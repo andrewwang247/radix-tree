@@ -4,8 +4,6 @@
 #include <initializer_list>
 #include <ostream>
 
-//? Possibly make reverse and const reverse iterators.
-
 /**
  * Defines a singular node in the Trie data structure. If it corresponds
  * to a full key, it may store a datum of templated type.
