@@ -25,9 +25,6 @@ struct Node {
 class Trie {
 public:
 
-	// Uses word as prefix.
-	constexpr static bool PREFIX_FLAG = true;
-
 	/**
 	 * Default constructor initializes empty trie.
 	 * GUARANTEES: No memory leaks if exception is thrown.
@@ -155,7 +152,7 @@ public:
 		const std::string& operator*() const;
 	};
 
-	// Return begin and end iterators of the regular, const, and reverse varieties.
+	// Return begin and end iterators of the regular and const varieties.
 
 	iterator begin() noexcept;
 	iterator end() noexcept;
