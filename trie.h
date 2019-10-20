@@ -3,6 +3,9 @@
 #include <set>
 #include <initializer_list>
 #include <vector>
+#include <ostream>
+
+// * Possible future update: trie multiset with optional parameter in node specifying frequency.
 
 /**
  * Defines a singular node in the Trie data structure.
@@ -113,11 +116,20 @@ public:
 	 */
 	size_t size( const std::string& prefix = "" ) const noexcept;
 
+	/* --- ENTRY OUTPUT --- */
+
 	/**
 	 * Returns a sorted vector of all entries with given prefix.
 	 * Default prefix is empty, which means the entire trie is included.
 	 */
 	std::vector<std::string> entry_list( const std::string& prefix = "" ) const;
+
+	/**
+	 * Writes a sorted list of all entries with given prefix into the output iterator.
+	 * Returns an iterator the end of the destination range.
+	 */
+	template <typename OutputIterator>
+	OutputIterator copy( OutputIterator start, const std::string& prefix = "" ) const;
 
 	/* --- ASYMMETRIC BINARY OPERATIONS --- */
 
@@ -126,6 +138,8 @@ public:
 	set difference of the entries contained in the trie.
 	*/
 	
+	/* Arithmetic operators */
+
 	Trie& operator+=( const Trie& rhs );
 	Trie& operator-=( const Trie& rhs ) noexcept;
 
@@ -142,6 +156,8 @@ Trie A is strictly less than Trie B if Trie A's entry list is a proper
 subset of Trie B's entry list.
 */
 
+/* Comparison operators */
+
 inline bool operator==( const Trie& lhs, const Trie& rhs ) noexcept;
 inline bool operator!=( const Trie& lhs, const Trie& rhs ) noexcept;
 inline bool operator<( const Trie& lhs, const Trie& rhs ) noexcept;
@@ -149,5 +165,12 @@ inline bool operator>( const Trie& lhs, const Trie& rhs ) noexcept;
 inline bool operator<=( const Trie& lhs, const Trie& rhs ) noexcept;
 inline bool operator>=( const Trie& lhs, const Trie& rhs ) noexcept;
 
+/* Arithmetic operators */
+
 inline Trie operator+( Trie lhs, const Trie& rhs );
 inline Trie operator-( Trie lhs, const Trie& rhs );
+
+/**
+ * Outputs each entry in obj to os. Each entry is given its own line.
+ */
+std::ostream& operator<<( std::ostream& os, const Trie& obj );
