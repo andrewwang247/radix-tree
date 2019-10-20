@@ -18,8 +18,6 @@ struct Node {
 /**
  * An compact prefix tree with keys as std::basic_string.
  * The empty string is always contained in the trie.
- * In general, function behavior when is_prefix is true is a
- * supserset of its behavior when is_prefix is false.
  */
 class Trie {
 public:
@@ -78,43 +76,6 @@ public:
 	 */
 	size_t size( const std::string& prefix = "" ) const noexcept;
 
-	/* --- SEARCHING --- */
-
-	/**
-	 * Searches for key in trie and returns whether search was successful.
-	 * If is_prefix is true, it treats the key as a prefix and returns whether
-	 * or not the trie contains the given prefix. By default, is_prefix is
-	 * false, so the key is searched as a complete string.
-	 */
-	bool contains( const std::string& key, bool is_prefix = false ) const noexcept;
-
-	/* --- INSERTION --- */
-
-	/**
-	 * Inserts key into trie.
-	 * GUARANTEES: Idempotent if key in trie.
-	 * Returns whether or not a key was inserted.
-	 */
-	bool insert( const std::string& key );
-
-	/* --- DELETION --- */
-
-	/**
-	 * Erases key from trie.
-	 * If is_prefix is true, deletes everything with key as prefix.
-	 * If is_prefix is false, only erases a singular key.
-	 * GUARANTEES: Idempotent if key ( or prefix ) is not in trie.
-	 * Returns the number of keys erased.
-	 */
-	size_t erase( const std::string& key, bool is_prefix = false ) noexcept;
-
-	/**
-	 * Erases all keys from trie.
-	 * Equivalent result to erase( "", true ).
-	 * GUARANTEES: Idempotent on empty tries.
-	 */
-	void clear() noexcept;
-
 	/* --- ITERATION --- */
 
 	// Supports bidirectional const iteration over the trie.
@@ -151,6 +112,57 @@ public:
 
 	iterator begin( const std::string& prefix ) const noexcept;
 	iterator end( const std::string& prefix ) const noexcept;
+
+	/* --- SEARCHING --- */
+
+	/**
+	 * Searches for key in trie and returns an iterator to
+	 * it if it exists. Otherwise, returns a null iterator.
+	 * If is_prefix is true, returns an iterator to the first
+	 * key that matches the prefix.
+	 */
+	iterator find( const std::string& key, bool is_prefix = false ) const noexcept;
+
+	/* --- INSERTION --- */
+
+	/**
+	 * Inserts key (or key pointed to by iterator) into trie.
+	 * GUARANTEES: Idempotent if key in trie.
+	 * Returns an iterator to the key (whether inserted or not).
+	 */
+	iterator insert( const std::string& key );
+	/**
+	 * Same as regular insertion, but performs an insertion operation
+	 * on every item in the range [start, finish).
+	 */
+	void insert( iterator start, iterator finish );
+	/**
+	 * Same as regular insertion, but performs on initializer list.
+	 */
+	void insert( const std::initializer_list<std::string>& list );
+
+	/* --- DELETION --- */
+
+	/**
+	 * Erases key (or key pointed to by iterator) from trie.
+	 * GUARANTEES: Idempotent if key ( or prefix ) is not in trie.
+	 * Returns iterator after the item erased.
+	 */
+	iterator erase( const std::string& key ) noexcept;
+	/**
+	 * Same as regular erase, but over the range [start, finish).
+	 */
+	void erase( iterator start, iterator finish );
+	/**
+	 * Same as regular insertion, but performed on initializer list.
+	 */
+	void erase( const std::initializer_list<std::string>& list );
+
+	/**
+	 * Erases all keys from trie.
+	 * GUARANTEES: Idempotent on empty tries.
+	 */
+	void clear() noexcept;
 
 	/* --- ASYMMETRIC BINARY OPERATIONS --- */
 

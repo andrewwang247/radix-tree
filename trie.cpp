@@ -51,16 +51,32 @@ size_t Trie::size( const string& prefix ) const {
 
 }
 
-bool Trie::contains( const string& key, bool is_prefix ) const {
+Trie::iterator Trie::find( const string& key, bool is_prefix ) const {
 
 }
 
-bool Trie::insert( const string& key ) {
+Trie::iterator Trie::insert( const string& key ) {
 
 }
 
-size_t Trie::erase( const string& key, bool is_prefix ) {
+void Trie::insert( Trie::iterator start, Trie::iterator finish ) {
 
+}
+
+void Trie::insert( const initializer_list<std::string>& list ) {
+
+}
+
+Trie::iterator Trie::erase( const string& key ) {
+
+}
+
+void Trie::erase( Trie::iterator start, Trie::iterator finish ) {
+
+}
+
+void Trie::erase( const initializer_list<std::string>& list ) {
+	
 }
 
 void Trie::clear() {

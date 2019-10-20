@@ -38,17 +38,25 @@ These functions do *not* modify the container.
 
 ### Searching
 
-The `contains` function returns whether or not the given key is contained in the tree. If `is_prefix` is set, it returns whether the tree contains any words with the given key as prefix.
+The `find` function returns an iterator to the key if it's contained in the tree. If `is_prefix` is set, it returns an iterator to the first key that matches the prefix.
 
 This function does *not* modify the container.
 
 ### Insertion
 
-To insert keys into the tree, use the `insert` function. If the key is already contained in the tree, the function call has no effect. If it's not yet in the tree, it will be inserted.
+To insert keys into the tree, use the `insert` function. If the key is already contained in the tree, the function call has no effect. If it's not yet in the tree, it will be inserted. There are 3 overloads of `insert`.
+
+- Inserts a single key. Returns iterator to inserted key.
+- Inserts a range specified by two iterators.
+- Inserts an initializer list.
 
 ### Deletion
 
-To remove a singular key or all keys matching a given prefix, use `erase` with the appropriate `is_prefix` parameter. This function has no effect if a key match is not found.
+To remove keys, use `erase`. This function has no effect if a key match is not found. There are 3 overloads of `erase`.
+
+- Erase a single key. Returns iterator to one after erased. Otherwise returns null iterator.
+- Erase a range specified by two iterators.
+- Erase an initializer list.
 
 To reset the entire tree, simply call `clear`, which is idempotent on empty trees.
 
