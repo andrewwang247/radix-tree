@@ -120,6 +120,7 @@ public:
 
 	/* --- ITERATION --- */
 
+	// Supports bidirectional const iteration over the trie.
 	class iterator {
 	private:
 		const Trie& tree;
