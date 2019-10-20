@@ -1,6 +1,6 @@
 # Radix Tree
 
-The API defined in `trie.h` is that of a templated set with prefix operations. The map is implemented as a radix tree (a compact prefix tree or trie) in modern C++17. See <https://en.wikipedia.org/wiki/Radix_tree> for more information on radix trees.
+The API defined in `trie.h` is that of a set with prefix operations. The map is implemented as a radix tree (a compact prefix tree or trie) in modern C++. See <https://en.wikipedia.org/wiki/Radix_tree> for more information on radix trees.
 
 ## Usage
 
