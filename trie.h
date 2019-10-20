@@ -20,6 +20,8 @@ struct Node {
 /**
  * A prefix tree with char as alphabet. By convention, the empty
  * string is always considered as being contained in the trie.
+ * In general, function behavior when is_prefix is true is a
+ * supserset of its behavior when is_prefix is false.
  */
 class Trie {
 public:
@@ -41,16 +43,11 @@ public:
 	template <typename InputIterator>
 	Trie( InputIterator start, InputIterator finish );
 
-	// Copy constructor.
+	/* Managing dynamic memory: the rule of 5. */
+
 	Trie( const Trie& other );
-
-	// Move constructor.
 	Trie( Trie&& other );
-
-	// Non-throwing destructor.
 	~Trie() noexcept;
-
-	// Assignment operator.
 	Trie& operator=( Trie other );
 
 	/* --- CORE ALGORITHMS --- */
@@ -80,9 +77,21 @@ public:
 	 */
 	void erase( const std::string& word, bool is_prefix = false ) noexcept;
 
-	/*
-	Templated iterator versions of contains, insert, and erase.
-	*/
+	/**
+	 * Erases all words from trie. Idempotent on empty tries.
+	 * Equivalent to erase( "", true ).
+	 */
+	void reset() const noexcept;
+
+	/**
+	 * Returns the number of words stored in the trie with given prefix.
+	 * Default prefix is empty, which means the full trie size is returned.
+	 */
+	size_t size( const std::string& prefix = "" ) const noexcept;
+
+	/* --- ITERATOR VERSIONS --- */
+
+	// NOTE: close parallels between templated contains functions and STL algorithm's any_of, all_of, and none_of.
 
 	// Returns if at least one call of contains( *InputIterator, is_prefix ) is true.
 	template <typename InputIterator>
@@ -104,18 +113,6 @@ public:
 	template <typename InputIterator>
 	void erase( InputIterator start, InputIterator finish, bool is_prefix = false ) noexcept;
 
-	/**
-	 * Erases all words from trie. Idempotent on empty tries.
-	 * Equivalent to erase( "", true ).
-	 */
-	void reset() const noexcept;
-
-	/**
-	 * Returns the number of words stored in the trie with given prefix.
-	 * Default prefix is empty, which means the full trie size is returned.
-	 */
-	size_t size( const std::string& prefix = "" ) const noexcept;
-
 	/* --- ENTRY OUTPUT --- */
 
 	/**
@@ -126,7 +123,7 @@ public:
 
 	/**
 	 * Writes a sorted list of all entries with given prefix into the output iterator.
-	 * Returns an iterator the end of the destination range.
+	 * Returns an iterator to the end of the destination range.
 	 */
 	template <typename OutputIterator>
 	OutputIterator copy( OutputIterator start, const std::string& prefix = "" ) const;
@@ -144,8 +141,11 @@ public:
 	Trie& operator-=( const Trie& rhs ) noexcept;
 
 private:
+
 	// Pointer to the root node.
 	Node* root;
+
+	// TODO: helper function that returns the pointer at the head of a given prefix parameter.
 };
 
 /* --- SYMMETRIC BINARY OPERATIONS --- */
