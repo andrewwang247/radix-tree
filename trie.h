@@ -1,62 +1,117 @@
 #pragma once
 #include <string>
-#include <unordered_set>
+#include <map>
 #include <initializer_list>
 #include <vector>
 #include <ostream>
-
-// * Possible future update: trie multiset with optional parameter in node specifying frequency.
+#include <optional>
+#include <utility>
 
 /**
- * Defines a singular node in the Trie data structure.
+ * Defines a singular node in the Trie data structure. If it corresponds
+ * to a full key, it may store a datum of templated type.
  */
+template <typename ValueType>
 struct Node {
-	// Flag for when this node represents the end of a word.
-	bool is_end;
+	// Contains data if the given Node is a full word.
+	std::optional<ValueType> datum;
 	// Set of pointers to the children node.
-	std::unordered_set<char, Node*> children;
+	std::map<std::string, Node*> children;
 };
 
 /**
- * A prefix tree with char as alphabet. The empty string is
- * is always considered as being contained in the trie.
+ * An associative prefix tree with keys as std::basic_string.
+ * The empty string is always contained in the trie.
  * In general, function behavior when is_prefix is true is a
  * supserset of its behavior when is_prefix is false.
  */
+template <typename ValueType>
 class Trie {
 public:
-	/* --- CONSTRUCTORS, DESTRUCTORS, UTILITY --- */
 
-	// Default constructor initializes empty trie.
-	Trie() noexcept;
-
-	// Initializes tree with a singular entry.
-	explicit Trie( const std::string& word );
-
-	// Initializer list constructor inserts strings in list into trie.
-	Trie( const std::initializer_list<std::string>& list );
+	// Uses word as prefix.
+	constexpr static bool PREFIX_FLAG = true;
 
 	/**
-	 * Initializes with all items between input iterators.
-	 * REQUIRES: InputIterator over strings and has base class std::input_iterator.
+	 * Default constructor initializes empty trie.
+	 * GUARANTEES: No memory leaks if exception is thrown.
+	 */
+	Trie() noexcept;
+
+	/* --- INITIALIZER LIST CONSTRUCTORS --- */
+
+	/**
+	 * Initializer list constructor inserts strings in key_list into trie.
+	 * Duplicates are ignored.
+	 * Values of each word is default initialized.
+	 * REQUIRES: ValueType can be default constructed.
+	 * GUARANTEES: No memory leaks if exception is thrown.
+	 */
+	Trie( const std::initializer_list<std::string>& key_list );
+
+	/**
+	 * Initializer list constructor inserts strings in key_list with values in value_list.
+	 * Duplicates keys with multiple values will have the final value inserted.
+	 * REQUIRES: key_list and value_list have the same size.
+	 * GUARANTEES: No memory leaks if exception is thrown.
+	 */
+	Trie( const std::initializer_list<std::string& key_list, const std::initializer_list<ValueType>& value_list );
+
+	/**
+	 * Initializer list constructor inserts key value pairs into trie.
+	 * Duplicates keys with multiple values will have the final value inserted.
+	 * GUARANTEES: No memory leaks if exception is thrown.
+	 */
+	Trie( const std::initializer_list<std::pair<std::string, ValueType>>& pair_list );
+
+	/* --- ITERATOR CONSTRUCTORS --- */
+
+	/**
+	 * If includes_values = false, initializes with items between iterators. Duplicates ignored.
+	 * If includes_values = true, treats start, finish as iterators over pairs.
+	 * REQUIRES: If includes_values = false,
+	 *     InputIterator over strings and has base class std::input_iterator.
+	 *     ValueType can be default constructed.
+	 * REQUIRES: If includes_values = true,
+	 *     InputIterator over pair< string, ValueType > and has base class std::input_iterator.
+	 * GUARANTEES: No memory leaks if exception is thrown.
 	 */
 	template <typename InputIterator>
-	Trie( InputIterator start, InputIterator finish );
+	Trie( InputIterator start, InputIterator finish, bool includes_values = false );
 
-	/* Managing dynamic memory: the rule of 5. */
+	/**
+	 * Initializes with all items between input iterators and starting at value iterator.
+	 * Duplicates keys with multiple values will take the value of the final value inserted.
+	 * REQUIRES: KeyInputIterator over strings and has base class std::input_iterator.
+	 * REQUIRES: ValueInputIterator over ValueType and has base class std::input_iterator.
+	 * REQUIRES: value_start can be incremented the appropriate number of times.
+	 * GUARANTEES: No memory leaks if exception is thrown.
+	 */
+	template <typename KeyInputIterator, typename ValueInputIterator>
+	Trie( KeyInputIterator key_start, KeyInputIterator key_finish, ValueInputIterator value_start );
+
+	/* --- DYNAMIC MEMORY: RULE OF 5 */
 
 	Trie( const Trie& other );
 	Trie( Trie&& other );
 	~Trie() noexcept;
 	Trie& operator=( Trie other );
 
-	/* --- CORE ALGORITHMS --- */
+	/* --- CONTAINER SIZE --- */
 
 	/**
 	 * Returns whether or not the trie is empty starting at given prefix.
 	 * Prefix defaults to empty string, corresponding to entire trie.
 	 */
 	bool empty( const std::string& prefix = "" ) const noexcept;
+
+	/**
+	 * Returns the number of words stored in the trie with given prefix.
+	 * Default prefix is empty, which means the full trie size is returned.
+	 */
+	size_t size( const std::string& prefix = "" ) const noexcept;
+
+	/* --- SEARCHING --- */
 
 	/**
 	 * Searches for word in trie and returns whether search was successful.
@@ -66,63 +121,102 @@ public:
 	 */
 	bool contains( const std::string& word, bool is_prefix = false ) const noexcept;
 
+	/* --- ELEMENT ACCESS --- */
+
 	/**
-	 * Inserts word into trie. Idempotent if word in trie.
+	 * Returns reference to value stored at word.
+	 * THROWS: std::out_of_range if word is not in Trie.
+	 * GUARANTEES: No change to trie if throws.
+	 */
+	ValueType& at( const std::string& word );
+	const ValueType& at( const std::string& word ) const;
+
+	/**
+	 * If word is a key, returns reference to value stored at word.
+	 * Otherwise, inserts word into the trie and return reference
+	 * to default constructed value.
+	 * REQUIRES: ValueType can be default constructed.
+	 */
+	ValueType& operator[]( const std::string& word );
+
+	/* --- IDEMPOTENT INSERTION --- */
+
+	/**
+	 * Inserts word into trie.
+	 * REQUIRES: ValueType can be default constructed.
+	 * GUARANTEES: Idempotent if word in trie.
 	 */
 	void insert( const std::string& word );
 
 	/**
-	 * Erases word from trie. Idempotent if word not in trie.
+	 * Inserts pair into Trie.
+	 * GUARANTEES: Idempotent if word in trie.
+	 */
+	void insert( const std::string& word, const ValueType& value );
+	void insert( const std::pair< std::string, ValueType >& pair  );
+
+	/* --- ASSIGNMENT INSERTION --- */
+
+	/**
+	 * Inserts pair into Trie. If key is already present,
+	 * assigns value to the old key.
+	 */
+	void insert_or_assign( const std::string& word, const ValueType& value );
+	void insert_or_assign( const std::pair< std::string, ValueType >& pair );
+
+	/* --- ERASURE --- */
+
+	/**
+	 * Erases word from trie.
 	 * If is_prefix is true, deletes everything with word as prefix.
-	 * By default, is_prefix is false, so it erases a singular word.
+	 * If is_prefix is false, only erases a singular word.
+	 * GUARANTEES: Idempotent if word ( or prefix ) is not in trie.
 	 */
 	void erase( const std::string& word, bool is_prefix = false ) noexcept;
 
 	/**
-	 * Erases all words from trie. Idempotent on empty tries.
+	 * Erases all words from trie.
 	 * Equivalent result to erase( "", true ).
+	 * GUARANTEES: Idempotent on empty tries.
 	 */
-	void reset() const noexcept;
+	void clear() const noexcept;
 
-	/**
-	 * Returns the number of words stored in the trie with given prefix.
-	 * Default prefix is empty, which means the full trie size is returned.
-	 */
-	size_t size( const std::string& prefix = "" ) const noexcept;
-
-	/* --- ENTRY OUTPUT --- */
-
-	/**
-	 * Returns a sorted vector of all entries with given prefix.
-	 * Default prefix is empty, which means the entire trie is included.
-	 * If trie is empty or no prefix matches, returns empty vector.
-	 */
-	std::vector<std::string> entry_list( const std::string& prefix = "" ) const;
+	/* --- ENTRY LISTS --- */
 
 	/**
 	 * Writes a sorted list of all entries with given prefix into the output iterator.
 	 * Returns an iterator to the end of the destination range.
-	 * REQUIRES: OutputIterator over strings and has base class std::output_iterator.
+	 * REQUIRES: OutputIterator over strings or pairs and has base class std::output_iterator.
 	 */
 	template <typename OutputIterator>
-	OutputIterator copy( OutputIterator start, const std::string& prefix = "" ) const;
+	OutputIterator copy_keys( OutputIterator start, const std::string& prefix = "" ) const;
+	template <typename OutputIterator>
+	OutputIterator copy_pairs( OutputIterator start, const std::string& prefix = "" ) const;
 
 	/* --- ASYMMETRIC BINARY OPERATIONS --- */
 
 	/*
-	Define addition and subtraction of tries as the union and
-	set difference of the entries contained in the trie.
+	RULES: Binary operations.
+	Let A and B be two distinct tries over a common ValueType.
+	A + B = A with the pairs in B that not contained in A.
+	That is, duplicates keys in B are ignored.
+	A - B = A with all keys in B erased.
+	A * B = A with all pairs in B. That is, duplicate keys
+	in B overwrite those in A.
+	Note that A * B = A - B + B.
+	WARNINGS:
+		None of the binary operations are commutative.
+		There is no division operator.
 	*/
-	
-	/* Arithmetic operators */
 
 	Trie& operator+=( const Trie& rhs );
 	Trie& operator-=( const Trie& rhs ) noexcept;
+	Trie& operator*=( const Trie& rhs );
 
 private:
 
 	// Pointer to the root node.
-	Node* root;
+	Node<ValueType>* root;
 
 	// TODO: helper function that returns the pointer at the head of a given prefix parameter.
 };
@@ -130,26 +224,44 @@ private:
 /* --- SYMMETRIC BINARY OPERATIONS --- */
 
 /*
-Two tries are equal if the entry lists they contain are equivalents.
-Trie A is strictly less than Trie B if Trie A's entry list is a proper
-subset of Trie B's entry list.
+COMPARISON OF TRIES.
+We say that A == B if A and B have equivalent key value pairs.
+Define A < B if the function given by A is a proper restriction of that given by B.
+That is, A's key value pairs form a proper subset of B's key value pairs.
+
+One can form many identities from this. If A < B, then:
+	A + B = A * B = B
+	A - B = empty.
 */
 
-/* Comparison operators */
+// Comparison operators
 
-inline bool operator==( const Trie& lhs, const Trie& rhs ) noexcept;
-inline bool operator!=( const Trie& lhs, const Trie& rhs ) noexcept;
-inline bool operator<( const Trie& lhs, const Trie& rhs ) noexcept;
-inline bool operator>( const Trie& lhs, const Trie& rhs ) noexcept;
-inline bool operator<=( const Trie& lhs, const Trie& rhs ) noexcept;
-inline bool operator>=( const Trie& lhs, const Trie& rhs ) noexcept;
+template <typename ValueType>
+inline bool operator==( const Trie<ValueType>& lhs, const Trie<ValueType>& rhs ) noexcept;
+template <typename ValueType>
+inline bool operator!=( const Trie<ValueType>& lhs, const Trie<ValueType>& rhs ) noexcept;
+template <typename ValueType>
+inline bool operator<( const Trie<ValueType>& lhs, const Trie<ValueType>& rhs ) noexcept;
+template <typename ValueType>
+inline bool operator>( const Trie<ValueType>& lhs, const Trie<ValueType>& rhs ) noexcept;
+template <typename ValueType>
+inline bool operator<=( const Trie<ValueType>& lhs, const Trie<ValueType>& rhs ) noexcept;
+template <typename ValueType>
+inline bool operator>=( const Trie<ValueType>& lhs, const Trie<ValueType>& rhs ) noexcept;
 
-/* Arithmetic operators */
+// Arithmetic operators
 
-inline Trie operator+( Trie lhs, const Trie& rhs );
-inline Trie operator-( Trie lhs, const Trie& rhs );
+template <typename ValueType>
+inline Trie<ValueType> operator+( Trie<ValueType> lhs, const Trie<ValueType>& rhs );
+template <typename ValueType>
+inline Trie<ValueType> operator-( Trie<ValueType> lhs, const Trie<ValueType>& rhs );
+template <typename ValueType>
+inline Trie<ValueType> operator*( Trie<ValueType> lhs, const Trie<ValueType>& rhs );
 
 /**
  * Outputs each entry in obj to os. Each entry is given its own line.
+ * Format is key : value
+ * REQUIRES: ValueType has operator<< defined.
  */
-std::ostream& operator<<( std::ostream& os, const Trie& obj );
+template <typename ValueType>
+std::ostream& operator<<( std::ostream& os, const Trie<ValueType>& obj );
