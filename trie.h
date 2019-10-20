@@ -18,8 +18,8 @@ struct Node {
 };
 
 /**
- * A prefix tree with char as alphabet. By convention, the empty
- * string is always considered as being contained in the trie.
+ * A prefix tree with char as alphabet. The empty string is
+ * is always considered as being contained in the trie.
  * In general, function behavior when is_prefix is true is a
  * supserset of its behavior when is_prefix is false.
  */
@@ -31,14 +31,14 @@ public:
 	Trie() noexcept;
 
 	// Initializes tree with a singular entry.
-	Trie( const std::string& word );
+	explicit Trie( const std::string& word );
 
 	// Initializer list constructor inserts strings in list into trie.
 	Trie( const std::initializer_list<std::string>& list );
 
 	/**
-	 * Templated iterator constructor inserts all items between constructors.
-	 * REQUIRES: Input_Iterator is of type or inherited from std::input_iterator.
+	 * Initializes with all items between input iterators.
+	 * REQUIRES: InputIterator over strings and has base class std::input_iterator.
 	 */
 	template <typename InputIterator>
 	Trie( InputIterator start, InputIterator finish );
@@ -53,9 +53,10 @@ public:
 	/* --- CORE ALGORITHMS --- */
 
 	/**
-	 * Returns whether or not the trie is empty.
+	 * Returns whether or not the trie is empty starting at given prefix.
+	 * Prefix defaults to empty string, corresponding to entire trie.
 	 */
-	bool empty() const noexcept;
+	bool empty( const std::string& prefix = "" ) const noexcept;
 
 	/**
 	 * Searches for word in trie and returns whether search was successful.
@@ -79,7 +80,7 @@ public:
 
 	/**
 	 * Erases all words from trie. Idempotent on empty tries.
-	 * Equivalent to erase( "", true ).
+	 * Equivalent result to erase( "", true ).
 	 */
 	void reset() const noexcept;
 
@@ -93,23 +94,38 @@ public:
 
 	// NOTE: close parallels between templated contains functions and STL algorithm's any_of, all_of, and none_of.
 
-	// Returns if at least one call of contains( *InputIterator, is_prefix ) is true.
+	/**
+	 * Returns if at least one call of contains( *InputIterator, is_prefix ) is true.
+	 * REQUIRES: InputIterator over strings and has base class std::input_iterator.
+	 */
 	template <typename InputIterator>
 	bool contains_any_of( InputIterator start, InputIterator finish, bool is_prefix = false ) const noexcept;
 
-	// Returns if every call of contains( *InputIterator, is_prefix ) is true.
+	/**
+	 * Returns if every call of contains( *InputIterator, is_prefix ) is true.
+	 * REQUIRES: InputIterator over strings and has base class std::input_iterator.
+	 */
 	template <typename InputIterator>
 	bool contains_all_of( InputIterator start, InputIterator finish, bool is_prefix = false ) const noexcept;
 
-	// Returns if every call of contains( *InputIterator, is_prefix ) is false.
+	/**
+	 * Returns if every call of contains( *InputIterator, is_prefix ) is false.
+	 * REQUIRES: InputIterator over strings and has base class std::input_iterator.
+	 */
 	template <typename InputIterator>
 	bool contains_none_of( InputIterator start, InputIterator finish, bool is_prefix = false ) const noexcept;
 
-	// Inserts each element defined in the range [start, finish).
+	/**
+	 * Inserts each element defined in the range [start, finish).
+	 * REQUIRES: InputIterator over strings and has base class std::input_iterator.
+	 */
 	template <typename InputIterator>
 	void insert( InputIterator start, InputIterator finish );
 
-	// Erases each element defined in the range [start, finish).
+	/**
+	 * Erases each element defined in the range [start, finish).
+	 * REQUIRES: InputIterator over strings and has base class std::input_iterator.
+	 */
 	template <typename InputIterator>
 	void erase( InputIterator start, InputIterator finish, bool is_prefix = false ) noexcept;
 
@@ -118,12 +134,14 @@ public:
 	/**
 	 * Returns a sorted vector of all entries with given prefix.
 	 * Default prefix is empty, which means the entire trie is included.
+	 * If trie is empty or no prefix matches, returns empty vector.
 	 */
 	std::vector<std::string> entry_list( const std::string& prefix = "" ) const;
 
 	/**
 	 * Writes a sorted list of all entries with given prefix into the output iterator.
 	 * Returns an iterator to the end of the destination range.
+	 * REQUIRES: OutputIterator over strings and has base class std::output_iterator.
 	 */
 	template <typename OutputIterator>
 	OutputIterator copy( OutputIterator start, const std::string& prefix = "" ) const;
@@ -151,7 +169,7 @@ private:
 /* --- SYMMETRIC BINARY OPERATIONS --- */
 
 /*
-Two tries are equal if they contain their entry lists are equivalents.
+Two tries are equal if the entry lists they contain are equivalents.
 Trie A is strictly less than Trie B if Trie A's entry list is a proper
 subset of Trie B's entry list.
 */
