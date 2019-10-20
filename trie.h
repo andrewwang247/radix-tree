@@ -119,7 +119,7 @@ public:
 	 */
 	std::vector<std::string> entry_list( const std::string& prefix = "" ) const;
 
-	/* --- OPERATORS --- */
+	/* --- ASYMMETRIC BINARY OPERATIONS --- */
 
 	/*
 	Define addition and subtraction of tries as the union and
