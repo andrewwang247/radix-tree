@@ -5,6 +5,8 @@
 #include <ostream>
 #include <iterator>
 
+//? Possibly make reverse and const reverse iterators.
+
 /**
  * Defines a singular node in the Trie data structure. If it corresponds
  * to a full key, it may store a datum of templated type.
@@ -120,11 +122,11 @@ public:
 
 	class iterator {
 	private:
-		Trie& tree;
-		Node* p;
+		const Trie& tree;
+		const Node* ptr;
 	public:
 		// constructor
-		iterator(Trie& t, Node* p = nullptr);
+		iterator( const Trie& t, const Node* p = nullptr );
 		// increment operators
 		iterator& operator++();
 		iterator operator++(int);
@@ -132,32 +134,25 @@ public:
 		iterator& operator--();
 		iterator operator--(int);
 		// dereference operator
-		std::string& operator*();
+		std::string operator*();
 	};
 
-	class const_iterator {
-	private:
-		const Trie& tree;
-		const Node* p;
-	public:
-		// constructor
-		const_iterator(const Trie& t, const Node* p = nullptr);
-		// increment operators
-		const_iterator& operator++();
-		const_iterator operator++(int);
-		// decrement operators
-		const_iterator& operator--();
-		const_iterator operator--(int);
-		// dereference operator
-		const std::string& operator*() const;
-	};
+	// Return begin and end iterators.
 
-	// Return begin and end iterators of the regular and const varieties.
+	iterator begin() const noexcept;
+	iterator end() const noexcept;
 
-	iterator begin() noexcept;
-	iterator end() noexcept;
-	const_iterator begin() const noexcept;
-	const_iterator end() const noexcept;
+	/*
+	Prefix traversal by iterator. Returns begin and end iterators to the range of
+	items which has prefix given by the parameter. Note that they constitute an
+	alphabetically ordered range like regular traversal by iterator.
+	If none of the keys have the given prefix, returns a null iterator.
+	begin("") and end("") have the same behavior as begin() and end()
+	since every key has empty string as prefix.
+	*/
+
+	iterator begin( const std::string& prefix ) const noexcept;
+	iterator end( const std::string& prefix ) const noexcept;
 
 	/* --- ASYMMETRIC BINARY OPERATIONS --- */
 
@@ -206,6 +201,3 @@ std::ostream& operator<<( std::ostream& os, const Trie& tree );
 
 inline bool operator==( const Trie::iterator& lhs, const Trie::iterator& rhs ) noexcept;
 inline bool operator!=( const Trie::iterator& lhs, const Trie::iterator& rhs ) noexcept;
-
-inline bool operator==( const Trie::const_iterator& lhs, const Trie::const_iterator& rhs ) noexcept;
-inline bool operator!=( const Trie::const_iterator& lhs, const Trie::const_iterator& rhs ) noexcept;

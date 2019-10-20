@@ -67,20 +67,46 @@ void Trie::clear() {
 
 }
 
-Trie::iterator Trie::begin() {
+Trie::iterator::iterator( const Trie& t, const Node* p ) : tree(t), ptr(p) {}
+
+Trie::iterator& Trie::iterator::operator++() {
 
 }
 
-Trie::iterator Trie::end() {
+Trie::iterator Trie::iterator::operator++(int) {
+	auto temp(*this);
+	++(*this);
+	return temp;
+}
+
+Trie::iterator& Trie::iterator::operator--() {
+
+}
+
+Trie::iterator Trie::iterator::operator--(int) {
+	auto temp(*this);
+	--(*this);
+	return temp;
+}
+
+string Trie::iterator::operator*() {
+
+}
+
+Trie::iterator Trie::begin() const {
+
+}
+
+Trie::iterator Trie::end() const {
 	return iterator(*this, nullptr);
 }
 
-Trie::const_iterator Trie::begin() const {
+Trie::iterator Trie::begin( const string& prefix ) const {
 
 }
 
-Trie::const_iterator Trie::end() const {
-	return const_iterator(*this, nullptr);
+Trie::iterator Trie::end( const string& prefix ) const {
+
 }
 
 
@@ -125,7 +151,7 @@ bool operator>=( const Trie& lhs, const Trie& rhs ) {
 }
 
 ostream& operator<<( std::ostream& os, const Trie& tree ) {
-	for ( const auto& str : tree ) {
+	for ( const auto str : tree ) {
 		os << str << '\n';
 	}
 	return os;
