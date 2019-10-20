@@ -1,4 +1,5 @@
 #include "trie.h"
+#include <algorithm>
 using namespace std;
 
 // TODO: helper function that returns the pointer at the head of a given prefix parameter.
@@ -60,11 +61,16 @@ Trie::iterator Trie::insert( const string& key ) {
 }
 
 void Trie::insert( Trie::iterator start, Trie::iterator finish ) {
-
+	while ( start != finish ) {
+		insert( *start );
+		++start;
+	}
 }
 
 void Trie::insert( const initializer_list<std::string>& list ) {
-
+	for ( const auto& str : list ) {
+		insert( str );
+	}
 }
 
 Trie::iterator Trie::erase( const string& key ) {
@@ -72,15 +78,20 @@ Trie::iterator Trie::erase( const string& key ) {
 }
 
 void Trie::erase( Trie::iterator start, Trie::iterator finish ) {
-
+	while ( start != finish ) {
+		erase( *start );
+		++start;
+	}
 }
 
 void Trie::erase( const initializer_list<std::string>& list ) {
-	
+	for ( const auto& str : list ) {
+		erase( str );
+	}
 }
 
 void Trie::clear() {
-
+	recursive_delete( root );
 }
 
 Trie::iterator::iterator( const Trie& t, const Node* p ) : tree(t), ptr(p) {}
@@ -171,4 +182,14 @@ ostream& operator<<( std::ostream& os, const Trie& tree ) {
 		os << str << '\n';
 	}
 	return os;
+}
+
+bool operator==( const Trie::iterator& lhs, const Trie::iterator& rhs ) {
+	// Performs element by element.
+	return lhs == rhs;
+}
+
+bool operator!=( const Trie::iterator& lhs, const Trie::iterator& rhs ) {
+	// Performs element by element.
+	return lhs != rhs;
 }
