@@ -6,7 +6,7 @@
 
 /**
  * Defines a singular node in the Trie data structure. If it corresponds
- * to a full key, it may store a datum of templated type.
+ * to a full key, the is_end flag is set to true.
  */
 struct Node {
 	// Flag for when the given Node ends a full word. False by default.
