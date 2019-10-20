@@ -54,7 +54,7 @@ To reset the entire tree, simply call `clear`, which is idempotent on empty tree
 
 ### Iteration
 
-The tree supports bidirectional iterators (of regular, const, reverse, and const reverse varieties) that traverse the stored keys in alphabetical or reverse alphabetical order.
+The tree supports bidirectional iterators (of regular or const variety) that traverse the stored keys in alphabetical order.
 
 ### Operators
 

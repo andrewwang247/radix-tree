@@ -10,8 +10,8 @@
  * to a full key, it may store a datum of templated type.
  */
 struct Node {
-	// Contains data if the given Node is a full word.
-	bool is_end;
+	// Flag for when the given Node ends a full word. False by default.
+	bool is_end = false;
 	// Set of pointers to the children node.
 	std::map<std::string, Node*> children;
 };
@@ -97,8 +97,9 @@ public:
 	/**
 	 * Inserts key into trie.
 	 * GUARANTEES: Idempotent if key in trie.
+	 * Returns whether or not a key was inserted.
 	 */
-	void insert( const std::string& key );
+	bool insert( const std::string& key );
 
 	/* --- DELETION --- */
 
@@ -107,99 +108,59 @@ public:
 	 * If is_prefix is true, deletes everything with key as prefix.
 	 * If is_prefix is false, only erases a singular key.
 	 * GUARANTEES: Idempotent if key ( or prefix ) is not in trie.
+	 * Returns the number of keys erased.
 	 */
-	void erase( const std::string& key, bool is_prefix = false ) noexcept;
+	size_t erase( const std::string& key, bool is_prefix = false ) noexcept;
 
 	/**
 	 * Erases all keys from trie.
 	 * Equivalent result to erase( "", true ).
 	 * GUARANTEES: Idempotent on empty tries.
 	 */
-	void clear() const noexcept;
+	void clear() noexcept;
 
 	/* --- ITERATION --- */
 
-	class iterator : public std::iterator<std::bidirectional_iterator_tag, std::string> {
+	class iterator {
 	private:
 		Trie& tree;
-		Node* ptr;
+		Node* p;
 	public:
 		// constructor
 		iterator(Trie& t, Node* p = nullptr);
-		// dereference operator
-		std::string& operator*();
 		// increment operators
 		iterator& operator++();
 		iterator operator++(int);
 		// decrement operators
 		iterator& operator--();
 		iterator operator--(int);
-	};
-
-	class reverse_iterator : public std::iterator<std::bidirectional_iterator_tag, std::string> {
-	private:
-		Trie& tree;
-		Node* ptr;
-	public:
-		// constructor
-		reverse_iterator(Trie& t, Node* p = nullptr);
 		// dereference operator
 		std::string& operator*();
-		// increment operators
-		reverse_iterator& operator++();
-		reverse_iterator operator++(int);
-		// decrement operators
-		reverse_iterator& operator--();
-		reverse_iterator operator--(int);
 	};
 
-	class const_iterator : public std::iterator<std::bidirectional_iterator_tag, std::string> {
+	class const_iterator {
 	private:
 		const Trie& tree;
-		const Node* ptr;
+		const Node* p;
 	public:
 		// constructor
 		const_iterator(const Trie& t, const Node* p = nullptr);
-		// dereference operator
-		const std::string& operator*();
 		// increment operators
 		const_iterator& operator++();
 		const_iterator operator++(int);
 		// decrement operators
 		const_iterator& operator--();
 		const_iterator operator--(int);
-	};
-
-	class const_reverse_iterator : public std::iterator<std::bidirectional_iterator_tag, std::string> {
-	private:
-		const Trie& tree;
-		const Node* ptr;
-	public:
-		// constructor
-		const_reverse_iterator(const Trie& t, const Node* p = nullptr);
 		// dereference operator
-		const std::string& operator*();
-		// increment operators
-		const_reverse_iterator& operator++();
-		const_reverse_iterator operator++(int);
-		// decrement operators
-		const_reverse_iterator& operator--();
-		const_reverse_iterator operator--(int);
+		const std::string& operator*() const;
 	};
 
 	// Return begin and end iterators of the regular, const, and reverse varieties.
 
 	iterator begin() noexcept;
 	iterator end() noexcept;
-
-	reverse_iterator rbegin() noexcept;
-	reverse_iterator rend() noexcept;
-
-	const_iterator cbegin() const noexcept;
-	const_iterator cend() const noexcept;
-
-	const_reverse_iterator crbegin() const noexcept;
-	const_reverse_iterator crend() const noexcept;
+	const_iterator begin() const noexcept;
+	const_iterator end() const noexcept;
 
 	/* --- ASYMMETRIC BINARY OPERATIONS --- */
 
@@ -215,9 +176,6 @@ private:
 
 	// Pointer to the root node.
 	Node* root;
-
-	// TODO: helper function that returns the pointer at the head of a given prefix parameter.
-	// TODO: helper function that, given a pointer to a node, constructs the corresponding string.
 };
 
 /* --- SYMMETRIC BINARY OPERATIONS --- */
@@ -243,6 +201,14 @@ inline Trie operator+( Trie lhs, const Trie& rhs );
 inline Trie operator-( Trie lhs, const Trie& rhs );
 
 /**
- * Outputs each entry in obj to os. Each entry is given its own line.
+ * Outputs each entry in tree to os. Each entry is given its own line.
  */
-std::ostream& operator<<( std::ostream& os, const Trie& obj );
+std::ostream& operator<<( std::ostream& os, const Trie& tree );
+
+// Comparison between iterators.
+
+inline bool operator==( const Trie::iterator& lhs, const Trie::iterator& rhs ) noexcept;
+inline bool operator!=( const Trie::iterator& lhs, const Trie::iterator& rhs ) noexcept;
+
+inline bool operator==( const Trie::const_iterator& lhs, const Trie::const_iterator& rhs ) noexcept;
+inline bool operator!=( const Trie::const_iterator& lhs, const Trie::const_iterator& rhs ) noexcept;
