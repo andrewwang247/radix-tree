@@ -90,45 +90,6 @@ public:
 	 */
 	size_t size( const std::string& prefix = "" ) const noexcept;
 
-	/* --- ITERATOR VERSIONS --- */
-
-	// NOTE: close parallels between templated contains functions and STL algorithm's any_of, all_of, and none_of.
-
-	/**
-	 * Returns if at least one call of contains( *InputIterator, is_prefix ) is true.
-	 * REQUIRES: InputIterator over strings and has base class std::input_iterator.
-	 */
-	template <typename InputIterator>
-	bool contains_any_of( InputIterator start, InputIterator finish, bool is_prefix = false ) const noexcept;
-
-	/**
-	 * Returns if every call of contains( *InputIterator, is_prefix ) is true.
-	 * REQUIRES: InputIterator over strings and has base class std::input_iterator.
-	 */
-	template <typename InputIterator>
-	bool contains_all_of( InputIterator start, InputIterator finish, bool is_prefix = false ) const noexcept;
-
-	/**
-	 * Returns if every call of contains( *InputIterator, is_prefix ) is false.
-	 * REQUIRES: InputIterator over strings and has base class std::input_iterator.
-	 */
-	template <typename InputIterator>
-	bool contains_none_of( InputIterator start, InputIterator finish, bool is_prefix = false ) const noexcept;
-
-	/**
-	 * Inserts each element defined in the range [start, finish).
-	 * REQUIRES: InputIterator over strings and has base class std::input_iterator.
-	 */
-	template <typename InputIterator>
-	void insert( InputIterator start, InputIterator finish );
-
-	/**
-	 * Erases each element defined in the range [start, finish).
-	 * REQUIRES: InputIterator over strings and has base class std::input_iterator.
-	 */
-	template <typename InputIterator>
-	void erase( InputIterator start, InputIterator finish, bool is_prefix = false ) noexcept;
-
 	/* --- ENTRY OUTPUT --- */
 
 	/**
