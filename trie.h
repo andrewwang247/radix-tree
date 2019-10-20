@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include <set>
+#include <unordered_set>
 #include <initializer_list>
 #include <vector>
 #include <ostream>
@@ -14,7 +14,7 @@ struct Node {
 	// Flag for when this node represents the end of a word.
 	bool is_end;
 	// Set of pointers to the children node.
-	std::set<char, Node*> children;
+	std::unordered_set<char, Node*> children;
 };
 
 /**
