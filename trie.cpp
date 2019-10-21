@@ -2,41 +2,38 @@
 #include <algorithm>
 using namespace std;
 
-// TODO: helper function that returns the pointer at the head of a given prefix parameter.
-// TODO: helper function that, given a pointer to a node, constructs the corresponding string.
-
 Trie::Trie() : root( nullptr ) {}
 
-Trie::Trie( const initializer_list<string>& key_list ) {
-
+Trie::Trie( const initializer_list<string>& key_list ) : Trie() {
+	try {
+		insert( key_list );
+	}
+	catch ( bad_alloc& e ) {
+		Helper::recursive_delete( root );
+		cerr << e.what() << endl;
+	}
 }
 
-// Templated iterator constructor implemented in header.
+// Templated iterator constructor implemented in header
 
-Trie::Trie( const Trie& other ) {
-
+Trie::Trie( const Trie& other ) : Trie() {
+	if ( !other.root ) return;
+	try {
+		root = new Node;
+		Helper::recursive_copy( root, other.root );
+	}
+	catch ( bad_alloc& e ) {
+		Helper::recursive_delete( root );
+		cerr << e.what() << endl;
+	}
 }
 
 Trie::Trie( Trie&& other ) : Trie() {
 	swap( *this, other );
 }
 
-/**
- * Helper function
- * Recursively deletes all nodes that are children
- * of root as well as root itself.
- */
-void recursive_delete( Node* root ) {
-	if ( !root ) return;
-	// Recursively delete all children.
-	for ( auto str_ptr_pair : root->children ) {
-		recursive_delete( str_ptr_pair.second );
-	}
-	delete root;
-}
-
 Trie::~Trie() {
-	recursive_delete( root );
+	Helper::recursive_delete( root );
 }
 
 Trie& Trie::operator=( Trie other ) {
@@ -60,12 +57,7 @@ Trie::iterator Trie::insert( const string& key ) {
 
 }
 
-void Trie::insert( Trie::iterator start, Trie::iterator finish ) {
-	while ( start != finish ) {
-		insert( *start );
-		++start;
-	}
-}
+// Templated insert function implemented in header
 
 void Trie::insert( const initializer_list<std::string>& list ) {
 	for ( const auto& str : list ) {
@@ -77,12 +69,7 @@ Trie::iterator Trie::erase( const string& key ) {
 
 }
 
-void Trie::erase( Trie::iterator start, Trie::iterator finish ) {
-	while ( start != finish ) {
-		erase( *start );
-		++start;
-	}
-}
+// Templated erase function implemented in header
 
 void Trie::erase( const initializer_list<std::string>& list ) {
 	for ( const auto& str : list ) {
@@ -91,7 +78,7 @@ void Trie::erase( const initializer_list<std::string>& list ) {
 }
 
 void Trie::clear() {
-	recursive_delete( root );
+	Helper::recursive_delete( root );
 }
 
 Trie::iterator::iterator( const Trie& t, const Node* p ) : tree(t), ptr(p) {}
