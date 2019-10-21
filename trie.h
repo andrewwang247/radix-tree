@@ -22,6 +22,8 @@ private:
 		bool is_end = false;
 		// Set of pointers to the children node.
 		std::map<std::string, Node*> children;
+		// Pointer to the parent node, null by default.
+		Node* parent = nullptr;
 	};
 
 	/**
@@ -38,34 +40,88 @@ private:
 	// TODO: helper function that, given a pointer to a node, constructs the corresponding string.
 
 	/**
-	 * Recursively copies other into root.
-	 * REQUIRES: root and other are not nullptr.
+	 * Helper function.
+	 * Recursively copies other into rt.
+	 * REQUIRES: rt and other are not nullptr.
 	 * THROWS: std::bad_alloc if @new fails.
 	 */
-	void recursive_copy( Node* root, const Node* other ) {
-		assert( !root && !other );
-		// Make root's is_end the same as other's is_end.
-		root->is_end = other->is_end;
-		// Recursively copy children.
-		for ( const auto& x : other->children ) {
-			Node* child = new Node;
-			root->children[x.first] = child;
-			recursive_copy( child, x.second );
-		}
-	}
+	void recursive_copy( Node* rt, const Node* other );
 
 	/**
+	 * Helper function.
 	 * Recursively deletes all nodes that are children
-	 * of root as well as root itself.
+	 * of rt as well as rt itself.
 	 */
-	void recursive_delete( Node* root ) noexcept {
-		if ( !root ) return;
-		// Recursively delete all children.
-		for ( auto str_ptr_pair : root->children ) {
-			recursive_delete( str_ptr_pair.second );
-		}
-		delete root;
-	}
+	void recursive_delete( Node* rt ) noexcept;
+
+	/*
+	Radix tree invariants.
+	1. Given a node N, children of N do not share any common non-empty prefixes.
+		Otherwise, the common prefix would have been compressed.
+	2. As a corollary of (1), for any non-empty prefix P and node N, at most 1 child
+		node of N has P as a prefix.
+	3. The empty string is never in a children map. Suppose N contains the empty string
+		in its children map. This would be equivalent to N being is_end.
+	4. All leaf nodes have true is_end. If a leaf node N was not the end of a word,
+		it must have non-empty children map, which it can't have because it's a leaf.
+	5. If node N has false is_end, it must have at least 2 children node.
+		Otherwise, it would be compressed with its only child.
+	6. As another corollary of (1), a children map can have at most |char| items.
+		Therefore, we can treat searching std::map as constant.
+	*/
+
+	/**
+	 * Helper function.
+	 * RETURNS: whether or not prf is a prefix of word.
+	 * @param prf: the string to match with the beginning of word.
+	 * @param word: the full string for which we are testing existence of a prefix.
+	 */
+	bool is_prefix( const std::string& prf, const std::string& word ) const noexcept;
+
+	/**
+	 * Helper function.
+	 * Depth traversing search for the deepest node N such that a prefix of key
+	 * matches the string representation at N.
+	 * RETURNS: the node N described above.
+	 * GUARANTEES: since the root node is equivalent to the empty string,
+	 *    this function will never return a nullptr UNLESS rt is empty.
+	 * MODIFIES: key such that the string representation at N is removed.
+	 * @param rt: the node at which to start searching.
+	 * @param key: the key on which to make an approximate match.
+	 */
+	Node* approximate_match( const Node* rt, std::string& key ) const noexcept;
+
+	/**
+	 * Helper function.
+	 * Depth traversing search for the node that serves as a root for prf.
+	 * RETURNS: the deepest node N such that N and all of N's children have prf as prefix.
+	 *     if rt is nullptr, returns a nullptr.
+	 *     if prf is not a prefix, returns a nullptr.
+	 * MODIFIES: prf so that the string at prefix_match is removed from prf.
+	 *     Note that if prf is not a prefix, the modified prf reflects as far as it got.
+	 * @param rt: the node at which to start searching.
+	 * @param prf: the prefix which the return node should be a root of.
+	 */
+	Node* prefix_match( const Node* rt, std::string& prf ) const noexcept;
+
+	/**
+	 * Helper function.
+	 * Depth traversing search for the node that matches word.
+	 * RETURNS: the node that forms an exact match with the given word.
+	 *     if no match is found, returns a nullptr.
+	 * @param rt: the root node from which to search.
+	 * @param word: the string we are trying to match.
+	 */
+	Node* exact_match( const Node* rt, std::string& word ) const noexcept;
+
+	/**
+	 * Helper function.
+	 * Counts the number of keys stored at or as children of rt added to acc.
+	 * Equivalent to counting the number of true is_end's accessible from rt.
+	 * @param rt: the root node at which to start counting.
+	 * @param acc: the value at which to start counting.
+	 */
+	void key_counter( const Node* rt, size_t& acc ) const noexcept;
 
 public:
 
@@ -233,7 +289,7 @@ public:
 	 * @param key: The key used to search the trie.
 	 * @param is_prefix: Flags whether or not to treat the key as a prefix.
 	 */
-	iterator find( const std::string& key, bool is_prefix = false ) const noexcept;
+	iterator find( std::string key, bool is_prefix = false ) const noexcept;
 
 	/* --- INSERTION --- */
 
