@@ -7,26 +7,37 @@
 #include <cassert>
 
 /**
- * Defines a singular node in the Trie data structure. If it corresponds
- * to a full key, the is_end flag is set to true.
+ * An compact prefix tree with keys as std::basic_string.
+ * The empty string is always contained in the trie.
  */
-struct Node {
-	// Flag for when the given Node ends a full word. False by default.
-	bool is_end = false;
-	// Set of pointers to the children node.
-	std::map<std::string, Node*> children;
-};
-
-
-/**
- * Defines helper functions that are used to implement member functions.
- * TODO: helper function that returns the pointer at the head of a given prefix parameter.
- * TODO: helper function that, given a pointer to a node, constructs the corresponding string.
- */
-namespace Helper {
+class Trie {
+private:
 
 	/**
-	 * Helper function
+	 * Defines a singular node in the Trie data structure. If it corresponds
+	 * to a full key, the is_end flag is set to true.
+	 */
+	struct Node {
+		// Flag for when the given Node ends a full word. False by default.
+		bool is_end = false;
+		// Set of pointers to the children node.
+		std::map<std::string, Node*> children;
+	};
+
+	/**
+	 * Private member variable.
+	 * @param root is nullptr if the trie is empty.
+	 *     Otherwise, it's points to the root node.
+	 */
+	Node* root;
+
+	/* --- HELPER FUNCTIONS --- */
+
+	
+	// TODO: helper function that returns the pointer at the head of a given prefix parameter.
+	// TODO: helper function that, given a pointer to a node, constructs the corresponding string.
+
+	/**
 	 * Recursively copies other into root.
 	 * REQUIRES: root and other are not nullptr.
 	 * THROWS: std::bad_alloc if @new fails.
@@ -44,7 +55,6 @@ namespace Helper {
 	}
 
 	/**
-	 * Helper function
 	 * Recursively deletes all nodes that are children
 	 * of root as well as root itself.
 	 */
@@ -57,13 +67,6 @@ namespace Helper {
 		delete root;
 	}
 
-}
-
-/**
- * An compact prefix tree with keys as std::basic_string.
- * The empty string is always contained in the trie.
- */
-class Trie {
 public:
 
 	/**
@@ -98,7 +101,7 @@ public:
 		}
 		catch( std::bad_alloc& e ) {
 			std::cerr << e.what() << std::endl;
-			Helper::recursive_delete( root );
+			recursive_delete( root );
 		}
 	}
 
@@ -314,10 +317,6 @@ public:
 	 */
 	Trie& operator-=( const Trie& rhs ) noexcept;
 
-private:
-
-	// Pointer to the root node.
-	Node* root;
 };
 
 /* --- SYMMETRIC BINARY OPERATIONS --- */

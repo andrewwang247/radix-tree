@@ -9,7 +9,7 @@ Trie::Trie( const initializer_list<string>& key_list ) : Trie() {
 		insert( key_list );
 	}
 	catch ( bad_alloc& e ) {
-		Helper::recursive_delete( root );
+		recursive_delete( root );
 		cerr << e.what() << endl;
 	}
 }
@@ -20,10 +20,10 @@ Trie::Trie( const Trie& other ) : Trie() {
 	if ( !other.root ) return;
 	try {
 		root = new Node;
-		Helper::recursive_copy( root, other.root );
+		recursive_copy( root, other.root );
 	}
 	catch ( bad_alloc& e ) {
-		Helper::recursive_delete( root );
+		recursive_delete( root );
 		cerr << e.what() << endl;
 	}
 }
@@ -33,7 +33,7 @@ Trie::Trie( Trie&& other ) : Trie() {
 }
 
 Trie::~Trie() {
-	Helper::recursive_delete( root );
+	recursive_delete( root );
 }
 
 Trie& Trie::operator=( Trie other ) {
@@ -78,7 +78,7 @@ void Trie::erase( const initializer_list<std::string>& list ) {
 }
 
 void Trie::clear() {
-	Helper::recursive_delete( root );
+	recursive_delete( root );
 }
 
 Trie::iterator::iterator( const Trie& t, const Node* p ) : tree(t), ptr(p) {}
