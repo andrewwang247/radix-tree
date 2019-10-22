@@ -53,24 +53,20 @@ private:
 
 	/* --- HELPER FUNCTIONS --- */
 
-	
-	// TODO: helper function that returns the pointer at the head of a given prefix parameter.
-	// TODO: helper function that, given a pointer to a node, constructs the corresponding string.
-
 	/**
 	 * Helper function.
 	 * Recursively copies other into rt.
 	 * REQUIRES: rt and other are not nullptr.
 	 * THROWS: std::bad_alloc if @new fails.
 	 */
-	void recursive_copy( Node* rt, const Node* other );
+	static void recursive_copy( Node* rt, const Node* other );
 
 	/**
 	 * Helper function.
 	 * Recursively deletes all nodes that are children
 	 * of rt as well as rt itself.
 	 */
-	void recursive_delete( Node* rt ) noexcept;
+	static void recursive_delete( Node* rt ) noexcept;
 
 	/**
 	 * Helper function.
@@ -78,7 +74,7 @@ private:
 	 * @param prf: the string to match with the beginning of word.
 	 * @param word: the full string for which we are testing existence of a prefix.
 	 */
-	bool is_prefix( const std::string& prf, const std::string& word ) const noexcept;
+	static bool is_prefix( const std::string& prf, const std::string& word ) noexcept;
 
 	/**
 	 * Helper function.
@@ -92,7 +88,7 @@ private:
 	 * @param rt: the node at which to start searching.
 	 * @param key: the key on which to make an approximate match.
 	 */
-	Node* approximate_match( const Node* rt, std::string& key ) const noexcept;
+	static Node* approximate_match( const Node* rt, std::string& key ) noexcept;
 
 	/**
 	 * Helper function.
@@ -105,7 +101,7 @@ private:
 	 * @param rt: the node at which to start searching.
 	 * @param prf: the prefix which the return node should be a root of.
 	 */
-	Node* prefix_match( const Node* rt, std::string& prf ) const noexcept;
+	static Node* prefix_match( const Node* rt, std::string& prf ) noexcept;
 
 	/**
 	 * Helper function.
@@ -115,7 +111,7 @@ private:
 	 * @param rt: the root node from which to search.
 	 * @param word: the string we are trying to match.
 	 */
-	Node* exact_match( const Node* rt, std::string& word ) const noexcept;
+	static Node* exact_match( const Node* rt, std::string& word ) noexcept;
 
 	/**
 	 * Helper function.
@@ -125,7 +121,14 @@ private:
 	 * @param rt: the root node at which to start counting.
 	 * @param acc: the value at which to start counting.
 	 */
-	void key_counter( const Node* rt, size_t& acc ) const noexcept;
+	static void key_counter( const Node* rt, size_t& acc ) noexcept;
+
+	/**
+	 * RETURNS: whether or not the tries rooted at rt_1 and rt_2 are equivalent.
+	 * @param rt_1: the root of the first trie.
+	 * @param rt_2: the root of the second trie.
+	 */
+	static bool are_equal( const Node* rt_1, const Node* rt_2 ) noexcept;
 
 public:
 
@@ -143,27 +146,6 @@ public:
 	 * @param key_list: The items to initialize the trie with.
 	 */
 	Trie( const std::initializer_list<std::string>& key_list );
-
-	/* --- ITERATOR CONSTRUCTORS --- */
-
-	/**
-	 * Initializes with all items in the range [key_start, key_finish).
-	 * Duplicates keys are ignored.
-	 * REQUIRES: InputIterator over strings and has base class std::input_iterator.
-	 * GUARANTEES: No memory leaks if exception is thrown.
-	 * @param key_start: begin iterator to the range.
-	 * @param key_finish: end iterator to the range. 
-	 */
-	template <typename InputIterator>
-	Trie( InputIterator key_start, InputIterator key_finish ) : Trie() {
-		try {
-			insert( key_start, key_finish );
-		}
-		catch( std::bad_alloc& e ) {
-			std::cerr << e.what() << std::endl;
-			recursive_delete( root );
-		}
-	}
 
 	/* --- DYNAMIC MEMORY: RULE OF 5 */
 
@@ -304,20 +286,7 @@ public:
 	 * @param key: the key to insert into the trie.
 	 */
 	iterator insert( std::string key );
-	/**
-	 * Same as regular insertion, but performs an insertion operation
-	 * on every item in the range [start, finish).
-	 * REQUIRES: InputIterator over strings and has base class std::input_iterator.
-	 * @param start: begin iterator to the range.
-	 * @param finish: end iterator to the range. 
-	 */
-	template <typename InputIterator>
-	void insert( InputIterator start, InputIterator finish ) {
-		while ( start != finish ) {
-			insert( *start );
-			++start;
-		}
-	}
+
 	/**
 	 * Same as regular insertion, but performs insert on initializer list.
 	 * @param list: the items to insert into the trie.
@@ -327,26 +296,14 @@ public:
 	/* --- DELETION --- */
 
 	/**
-	 * Erases key (or key pointed to by iterator) from trie.
+	 * Erases key from trie. If is_prefix, erases all keys that have
+	 * the key as prefix from the trie.
 	 * GUARANTEES: Idempotent if key ( or prefix ) is not in trie.
-	 * RETURNS: iterator after the item erased.
 	 * @param key: the key to erase from the trie.
+	 * @param is_prefix: flag for treating key as a prefix.
 	 */
-	iterator erase( const std::string& key ) noexcept;
-	/**
-	 * Same as regular deletion, but performs an erase operation
-	 * on every item in the range [start, finish).
-	 * REQUIRES: InputIterator over strings and has base class std::input_iterator.
-	 * @param start: begin iterator to the range.
-	 * @param finish: end iterator to the range. 
-	 */
-	template <typename InputIterator>
-	void erase( InputIterator start, InputIterator finish ) {
-		while ( start != finish ) {
-			erase( *start );
-			++start;
-		}
-	}
+	void erase( const std::string& key, bool is_prefix = false ) noexcept;
+
 	/**
 	 * Same as regular deletion, but performs erase on initializer list.
 	 * @param list: the items to erase from the trie.
@@ -368,14 +325,20 @@ public:
 
 	/**
 	 * Inserts all of rhs's keys into this.
+	 * REQUIRES: this and rhs are not the same trie.
 	 * @param rhs: the trie to union with this.
 	 */
 	Trie& operator+=( const Trie& rhs );
 	/**
 	 * Removes all of rhs's keys from this.
+	 * REQUIRES: this and rhs are not the same trie.
 	 * @param rhs: the trie to set subtract from this.
 	 */
 	Trie& operator-=( const Trie& rhs ) noexcept;
+
+	// Allow friend access for == and < operators. See COMPARISON OF TRIES.
+	friend inline bool operator==( const Trie& lhs, const Trie& rhs ) noexcept;
+	friend inline bool operator<( const Trie& lhs, const Trie& rhs ) noexcept;
 
 };
 
@@ -387,12 +350,11 @@ We say that A == B if A and B have equivalent keys.
 Define A < B as a proper subset relation.
 */
 
-inline bool operator==( const Trie& lhs, const Trie& rhs ) noexcept;
 inline bool operator!=( const Trie& lhs, const Trie& rhs ) noexcept;
-inline bool operator<( const Trie& lhs, const Trie& rhs ) noexcept;
 inline bool operator>( const Trie& lhs, const Trie& rhs ) noexcept;
 inline bool operator<=( const Trie& lhs, const Trie& rhs ) noexcept;
 inline bool operator>=( const Trie& lhs, const Trie& rhs ) noexcept;
+
 
 // Arithmetic operators, uses += and -=.
 

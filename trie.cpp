@@ -23,7 +23,7 @@ void Trie::recursive_delete( Node* rt ) {
 	delete rt;
 }
 
-bool Trie::is_prefix( const string& prf, const string& word ) const {
+bool Trie::is_prefix( const string& prf, const string& word ) {
 	// The empty string is a prefix for every string.
 	if ( prf.empty() ) return true;
 	// Assuming non-emptiness of prf, it cannot be longer than word.
@@ -35,7 +35,7 @@ bool Trie::is_prefix( const string& prf, const string& word ) const {
 	return res.first == prf.cend();
 }
 
-Trie::Node* Trie::approximate_match( const Node* rt, string& key ) const {
+Trie::Node* Trie::approximate_match( const Node* rt, string& key ) {
 	assert( rt );
 	// If the key is empty, return the root node.
 	if ( key.empty() ) return const_cast<Node*>(rt);
@@ -53,7 +53,7 @@ Trie::Node* Trie::approximate_match( const Node* rt, string& key ) const {
 	return const_cast<Node*>( rt );
 }
 
-Trie::Node* Trie::prefix_match( const Node* rt, string& prf ) const {
+Trie::Node* Trie::prefix_match( const Node* rt, string& prf ) {
 	// First compute the approximate root.
 	Node* app_ptr = approximate_match( rt, prf );
 	assert( app_ptr );
@@ -73,7 +73,7 @@ Trie::Node* Trie::prefix_match( const Node* rt, string& prf ) const {
 	return nullptr;
 }
 
-void Trie::key_counter( const Node* rt, size_t& acc ) const noexcept {
+void Trie::key_counter( const Node* rt, size_t& acc ) noexcept {
 	assert( rt );
 	// If root contains a word, increment the counter.
 	if ( rt->is_end ) ++acc;
@@ -84,7 +84,7 @@ void Trie::key_counter( const Node* rt, size_t& acc ) const noexcept {
 	}
 }
 
-Trie::Node* Trie::exact_match( const Node* rt, string& word ) const {
+Trie::Node* Trie::exact_match( const Node* rt, string& word ) {
 	// First compute the approximate root.
 	Node* app_ptr = approximate_match( rt, word );
 	assert( app_ptr );
@@ -104,8 +104,6 @@ Trie::Trie( const initializer_list<string>& key_list ) : Trie() {
 		cerr << e.what() << endl;
 	}
 }
-
-// Templated iterator constructor implemented in header
 
 Trie::Trie( const Trie& other ) : Trie() {
 	assert( other.root );
@@ -188,19 +186,15 @@ Trie::iterator Trie::insert( string key ) {
 	// TODO: handle the case when key is non-empty.
 }
 
-// Templated insert function implemented in header
-
 void Trie::insert( const initializer_list<std::string>& list ) {
 	for ( const auto& str : list ) {
 		insert( str );
 	}
 }
 
-Trie::iterator Trie::erase( const string& key ) {
+void Trie::erase( const string& key, bool is_prefix ) {
 
 }
-
-// Templated erase function implemented in header
 
 void Trie::erase( const initializer_list<std::string>& list ) {
 	for ( const auto& str : list ) {
@@ -259,7 +253,10 @@ Trie::iterator Trie::end( const string& prefix ) const {
 
 
 Trie& Trie::operator+=( const Trie& rhs ) {
-
+	assert( this != &rhs );
+	for ( const auto& str : rhs ) {
+		insert( str );
+	}
 }
 
 Trie operator+( Trie lhs, const Trie& rhs ) {
@@ -267,7 +264,10 @@ Trie operator+( Trie lhs, const Trie& rhs ) {
 }
 
 Trie& Trie::operator-=( const Trie& rhs ) {
-
+	assert( this != &rhs );
+	for ( const auto& str : rhs ) {
+		erase( str );
+	}
 }
 
 Trie operator-( Trie lhs, const Trie& rhs ) {
@@ -275,7 +275,7 @@ Trie operator-( Trie lhs, const Trie& rhs ) {
 }
 
 bool operator==( const Trie& lhs, const Trie& rhs ) {
-
+	return Trie::are_equal( lhs.root, rhs.root );
 }
 
 bool operator!=( const Trie& lhs, const Trie& rhs ) {
@@ -299,7 +299,7 @@ bool operator>=( const Trie& lhs, const Trie& rhs ) {
 }
 
 ostream& operator<<( std::ostream& os, const Trie& tree ) {
-	for ( const auto str : tree ) {
+	for ( const auto& str : tree ) {
 		os << str << '\n';
 	}
 	return os;

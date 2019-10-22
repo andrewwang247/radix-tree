@@ -44,19 +44,17 @@ This function does *not* modify the container.
 
 ### Insertion
 
-To insert keys into the tree, use the `insert` function. If the key is already contained in the tree, the function call has no effect. If it's not yet in the tree, it will be inserted. There are 3 overloads of `insert`.
+To insert keys into the tree, use the `insert` function. If the key is already contained in the tree, the function call has no effect. If it's not yet in the tree, it will be inserted. There are 2 overloads of `insert`.
 
 - Inserts a single key. Returns iterator to inserted key.
-- Inserts a range specified by two iterators.
-- Inserts an initializer list.
+- Inserts an initializer list of strings.
 
 ### Deletion
 
-To remove keys, use `erase`. This function has no effect if a key match is not found. There are 3 overloads of `erase`.
+To remove keys, use `erase`. This function has no effect if a key match is not found. There are 2 overloads of `erase`.
 
 - Erase a single key. Returns iterator to one after erased. Otherwise returns null iterator.
-- Erase a range specified by two iterators.
-- Erase an initializer list.
+- Erase an initializer list of strings.
 
 To reset the entire tree, simply call `clear`, which is idempotent on empty trees.
 
