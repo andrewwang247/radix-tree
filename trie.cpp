@@ -108,9 +108,9 @@ Trie::Trie( const initializer_list<string>& key_list ) : Trie() {
 // Templated iterator constructor implemented in header
 
 Trie::Trie( const Trie& other ) : Trie() {
-	if ( !other.root ) return;
+	assert( other.root );
 	try {
-		root = new Node;
+		// The default Trie constructor already set root to a node.
 		recursive_copy( root, other.root );
 	}
 	catch ( bad_alloc& e ) {
