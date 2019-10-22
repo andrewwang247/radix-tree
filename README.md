@@ -53,7 +53,7 @@ To insert keys into the tree, This function has no effect if the key is already 
 
 To remove keys from the tree, use `erase`. This function has no effect if a key match is not found. There are 2 overloads of `erase`.
 
-- Erase a single key. If `is_prefix`, erases all keys with the key as prefix.
+- Erase a single key. If `is_prefix` is set, erases all keys with the key as prefix.
 - Erase an initializer list of strings.
 
 To reset the entire tree, simply call `clear`, which is idempotent on empty trees.
