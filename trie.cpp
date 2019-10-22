@@ -2,7 +2,7 @@
 #include <algorithm>
 using namespace std;
 
-void Trie::recursive_copy( Node* rt, const Node* other ) {
+void Trie::recursive_copy( Node* const rt, const Node* other ) {
 	assert( rt && other );
 	// Make rt's is_end the same as other's is_end.
 	rt->is_end = other->is_end;
@@ -35,7 +35,7 @@ bool Trie::is_prefix( const string& prf, const string& word ) {
 	return res.first == prf.cend();
 }
 
-Trie::Node* Trie::approximate_match( const Node* rt, string& key ) {
+Trie::Node* Trie::approximate_match( const Node* const rt, string& key ) {
 	assert( rt );
 	// If the key is empty, return the root node.
 	if ( key.empty() ) return const_cast<Node*>(rt);
@@ -53,7 +53,7 @@ Trie::Node* Trie::approximate_match( const Node* rt, string& key ) {
 	return const_cast<Node*>( rt );
 }
 
-Trie::Node* Trie::prefix_match( const Node* rt, string& prf ) {
+Trie::Node* Trie::prefix_match( const Node* const rt, string& prf ) {
 	// First compute the approximate root.
 	Node* app_ptr = approximate_match( rt, prf );
 	assert( app_ptr );
@@ -73,7 +73,7 @@ Trie::Node* Trie::prefix_match( const Node* rt, string& prf ) {
 	return nullptr;
 }
 
-void Trie::key_counter( const Node* rt, size_t& acc ) noexcept {
+void Trie::key_counter( const Node* const rt, size_t& acc ) noexcept {
 	assert( rt );
 	// If root contains a word, increment the counter.
 	if ( rt->is_end ) ++acc;
@@ -84,12 +84,32 @@ void Trie::key_counter( const Node* rt, size_t& acc ) noexcept {
 	}
 }
 
-Trie::Node* Trie::exact_match( const Node* rt, string& word ) {
+Trie::Node* Trie::exact_match( const Node* const rt, string& word ) {
 	// First compute the approximate root.
 	Node* app_ptr = approximate_match( rt, word );
 	assert( app_ptr );
 	// If the given word is empty, it's a perfect match. Otherwise, there is no match.
 	return word.empty() ? app_ptr : nullptr;
+}
+
+bool Trie::are_equal( const Node* const rt_1, const Node* const rt_2 ) {
+	assert( rt_1 && rt_2 );
+	// Check is_end parameters match.
+	if ( rt_1->is_end != rt_2->is_end ) return false;
+	// Check that number of children are the same.
+	if ( rt_1->children.size() != rt_2->children.size() ) return false;
+	// Since the number of children match, we can iterate in parallel.
+	auto it_1 = rt_2->children.cbegin();
+	auto it_2 = rt_2->children.cbegin();
+	while ( it_1 != rt_1->children.cend() ) {
+		// Check that the strings on the branches match.
+		if ( it_1->first != it_2->first ) return false;
+		// Recursively check for equality.
+		if ( !are_equal( it_1->second, it_2->second ) ) return false;
+		++it_1;
+		++it_2;
+	}
+	return true;
 }
 
 // Set root to a new node corresponding to the empty trie.
@@ -132,7 +152,7 @@ Trie& Trie::operator=( Trie other ) {
 
 bool Trie::empty( const string& prefix ) const {
 	auto cp (prefix);
-	const Node* prf_rt = prefix_match( root, cp );
+	const Node* const prf_rt = prefix_match( root, cp );
 	// Check if prefix root is null
 	if ( !prf_rt ) return true;
 	// It's empty if prf_rt is not a word and has no children.
@@ -141,7 +161,7 @@ bool Trie::empty( const string& prefix ) const {
 
 size_t Trie::size( const string& prefix ) const {
 	auto cp (prefix);
-	const Node* prf_rt = prefix_match( root, cp );
+	const Node* const prf_rt = prefix_match( root, cp );
 	if ( !prf_rt ) return size_t(0);
 	size_t counter = 0;
 	key_counter( prf_rt, counter );
@@ -209,7 +229,7 @@ void Trie::clear() {
 	root = new Node { false, map<string, Node*>(), nullptr };
 }
 
-Trie::iterator::iterator( const Trie& t, const Node* p ) : tree(t), ptr(p) {}
+Trie::iterator::iterator( const Trie& t, const Node* const p ) : tree(t), ptr(p) {}
 
 Trie::iterator& Trie::iterator::operator++() {
 
@@ -283,7 +303,12 @@ bool operator!=( const Trie& lhs, const Trie& rhs ) {
 }
 
 bool operator<( const Trie& lhs, const Trie& rhs ) {
-
+	if ( lhs.size() >= rhs.size() ) return false;
+	// Check that everything in lhs is in rhs.
+	for ( const auto& str : lhs ) {
+		if ( rhs.find( str ) == rhs.end() ) return false;
+	}
+	return true;
 }
 
 bool operator>( const Trie& lhs, const Trie& rhs ) {

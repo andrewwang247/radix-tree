@@ -45,9 +45,7 @@ private:
 	};
 
 	/**
-	 * Private member variable.
-	 * @param root is nullptr if the trie is empty.
-	 *     Otherwise, it's points to the root node.
+	 * Private member variable pointing to the root node.
 	 */
 	Node* root;
 
@@ -56,10 +54,10 @@ private:
 	/**
 	 * Helper function.
 	 * Recursively copies other into rt.
-	 * REQUIRES: rt and other are not nullptr.
+	 * REQUIRES: rt and other are not null.
 	 * THROWS: std::bad_alloc if @new fails.
 	 */
-	static void recursive_copy( Node* rt, const Node* other );
+	static void recursive_copy( Node* const rt, const Node* const other );
 
 	/**
 	 * Helper function.
@@ -88,11 +86,12 @@ private:
 	 * @param rt: the node at which to start searching.
 	 * @param key: the key on which to make an approximate match.
 	 */
-	static Node* approximate_match( const Node* rt, std::string& key ) noexcept;
+	static Node* approximate_match( const Node* const rt, std::string& key ) noexcept;
 
 	/**
 	 * Helper function.
 	 * Depth traversing search for the node that serves as a root for prf.
+	 * REQUIRES: rt is not null.
 	 * RETURNS: the deepest node N such that N and all of N's children have prf as prefix.
 	 *     if rt is nullptr, returns a nullptr.
 	 *     if prf is not a prefix, returns a nullptr.
@@ -101,17 +100,18 @@ private:
 	 * @param rt: the node at which to start searching.
 	 * @param prf: the prefix which the return node should be a root of.
 	 */
-	static Node* prefix_match( const Node* rt, std::string& prf ) noexcept;
+	static Node* prefix_match( const Node* const rt, std::string& prf ) noexcept;
 
 	/**
 	 * Helper function.
 	 * Depth traversing search for the node that matches word.
+	 * REQUIRES: rt is not null.
 	 * RETURNS: the node that forms an exact match with the given word.
 	 *     if no match is found, returns a nullptr.
 	 * @param rt: the root node from which to search.
 	 * @param word: the string we are trying to match.
 	 */
-	static Node* exact_match( const Node* rt, std::string& word ) noexcept;
+	static Node* exact_match( const Node* const rt, std::string& word ) noexcept;
 
 	/**
 	 * Helper function.
@@ -121,14 +121,15 @@ private:
 	 * @param rt: the root node at which to start counting.
 	 * @param acc: the value at which to start counting.
 	 */
-	static void key_counter( const Node* rt, size_t& acc ) noexcept;
+	static void key_counter( const Node* const rt, size_t& acc ) noexcept;
 
 	/**
 	 * RETURNS: whether or not the tries rooted at rt_1 and rt_2 are equivalent.
+	 * REQUIRES: 
 	 * @param rt_1: the root of the first trie.
 	 * @param rt_2: the root of the second trie.
 	 */
-	static bool are_equal( const Node* rt_1, const Node* rt_2 ) noexcept;
+	static bool are_equal( const Node* const rt_1, const Node* const rt_2 ) noexcept;
 
 public:
 
@@ -203,14 +204,14 @@ public:
 		/**
 		 * The current Node being pointed at.
 		 */
-		const Node* ptr;
+		const Node* const ptr;
 	public:
 		/**
 		 * Constructor, Node ptr is null by default.
 		 * @param t: the trie reference to assign to tree.
 		 * @param p: the Node that the iterator is currently pointing at.
 		 */
-		iterator( const Trie& t, const Node* p = nullptr ) noexcept;
+		iterator( const Trie& t, const Node* const p = nullptr ) noexcept;
 		/**
 		 * Prefix increment.
 		 */
@@ -336,9 +337,8 @@ public:
 	 */
 	Trie& operator-=( const Trie& rhs ) noexcept;
 
-	// Allow friend access for == and < operators. See COMPARISON OF TRIES.
+	// Private access for == operators to allow efficient deep equality check. See COMPARISON OF TRIES.
 	friend inline bool operator==( const Trie& lhs, const Trie& rhs ) noexcept;
-	friend inline bool operator<( const Trie& lhs, const Trie& rhs ) noexcept;
 
 };
 
@@ -349,7 +349,7 @@ COMPARISON OF TRIES.
 We say that A == B if A and B have equivalent keys.
 Define A < B as a proper subset relation.
 */
-
+inline bool operator<( const Trie& lhs, const Trie& rhs ) noexcept;
 inline bool operator!=( const Trie& lhs, const Trie& rhs ) noexcept;
 inline bool operator>( const Trie& lhs, const Trie& rhs ) noexcept;
 inline bool operator<=( const Trie& lhs, const Trie& rhs ) noexcept;

@@ -60,11 +60,11 @@ To reset the entire tree, simply call `clear`, which is idempotent on empty tree
 
 ### Iteration
 
-The tree supports constant bidirectional iterators that traverse the stored keys in alphabetical order. Furthermore, using the `begin` and `end` overloads with the `prefix` parameter, it's possible to traverse the range of keys that have the given prefix.
+The tree supports constant bidirectional iterators that traverse the stored keys in alphabetical order. The class comes with STL style `begin` and `end` functions that range over the entire tree. Use the `begin` and `end` overloads with the `prefix` parameter to construct ranges over keys that match prefixes.
 
 ### Operators
 
 - Adding trees using the `+` or `+=` operators will take a set union over the contained keys.
-- Subtracting trees using the `-` or `-=` operators will take a set difference instead.
+- Subtracting trees using the `-` or `-=` operators will take a set difference over the contained keys.
 - Trees can be compared using `==, !=, <, >, <=, =>` where inequality implies a subset relation.
 - Printing all keys stored in the tree in alphabetical order can be done using the `<<` operator.
