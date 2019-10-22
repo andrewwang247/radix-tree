@@ -303,12 +303,7 @@ bool operator!=( const Trie& lhs, const Trie& rhs ) {
 }
 
 bool operator<( const Trie& lhs, const Trie& rhs ) {
-	if ( lhs.size() >= rhs.size() ) return false;
-	// Check that everything in lhs is in rhs.
-	for ( const auto& str : lhs ) {
-		if ( rhs.find( str ) == rhs.end() ) return false;
-	}
-	return true;
+
 }
 
 bool operator>( const Trie& lhs, const Trie& rhs ) {
