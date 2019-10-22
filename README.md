@@ -51,7 +51,7 @@ To insert keys into the tree, This function has no effect if the key is already 
 
 ### Deletion
 
-To remove keys from the tree, use `erase`. This function has no effect if a key match is not found. There are 2 overloads of `erase`.
+To remove keys from the tree, use `erase`. This function has no effect if the key is not in the tree. There are 2 overloads of `erase`.
 
 - Erase a single key. If `is_prefix` is set, erases all keys that match the prefix.
 - Erase an initializer list of strings.
