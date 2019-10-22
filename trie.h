@@ -9,6 +9,24 @@
 /**
  * An compact prefix tree with keys as std::basic_string.
  * The empty string is always contained in the trie.
+ * 
+ * Radix tree invariants.
+ * 1. Given a node N, children of N do not share any common non-empty prefixes.
+ *     Otherwise, the common prefix would have been compressed.
+ * 2. As a corollary of (1), for any non-empty prefix P and node N, at most 1
+ *     child node of N has P as a prefix.
+ * 3. The empty string is never in a children map. Suppose N contains the empty
+ *     string in its children map. This would be equivalent to N being is_end.
+ * 4. All leaf nodes have true is_end. If a leaf node N was not the end of a word,
+ *     must have non-empty children map, which it can't have because it's a leaf.
+ * 5. If node N has false is_end, it must have at least 2 children node.
+ *     Otherwise, it would be compressed with its only child.
+ * 6. As another corollary of (1), a children map can have at most |char| items.
+ *     Therefore, we can treat searching std::map as constant.
+ * 7. approximate_match, prefix_match, and exact_match can be composed due
+ *     to the recursive structure of the trie.
+ * 8. root is never null. The empty trie consists of a root node with false is_end,
+ *     an empty children set, and nullptr as parent.
  */
 class Trie {
 private:
@@ -54,22 +72,6 @@ private:
 	 */
 	void recursive_delete( Node* rt ) noexcept;
 
-	/*
-	Radix tree invariants.
-	1. Given a node N, children of N do not share any common non-empty prefixes.
-		Otherwise, the common prefix would have been compressed.
-	2. As a corollary of (1), for any non-empty prefix P and node N, at most 1 child
-		node of N has P as a prefix.
-	3. The empty string is never in a children map. Suppose N contains the empty string
-		in its children map. This would be equivalent to N being is_end.
-	4. All leaf nodes have true is_end. If a leaf node N was not the end of a word,
-		it must have non-empty children map, which it can't have because it's a leaf.
-	5. If node N has false is_end, it must have at least 2 children node.
-		Otherwise, it would be compressed with its only child.
-	6. As another corollary of (1), a children map can have at most |char| items.
-		Therefore, we can treat searching std::map as constant.
-	*/
-
 	/**
 	 * Helper function.
 	 * RETURNS: whether or not prf is a prefix of word.
@@ -82,9 +84,10 @@ private:
 	 * Helper function.
 	 * Depth traversing search for the deepest node N such that a prefix of key
 	 * matches the string representation at N.
+	 * REQUIRES: rt is not null.
 	 * RETURNS: the node N described above.
 	 * GUARANTEES: since the root node is equivalent to the empty string,
-	 *    this function will never return a nullptr UNLESS rt is empty.
+	 *    this function will never return a nullptr.
 	 * MODIFIES: key such that the string representation at N is removed.
 	 * @param rt: the node at which to start searching.
 	 * @param key: the key on which to make an approximate match.
@@ -118,6 +121,7 @@ private:
 	 * Helper function.
 	 * Counts the number of keys stored at or as children of rt added to acc.
 	 * Equivalent to counting the number of true is_end's accessible from rt.
+	 * REQUIRES: rt is not null.
 	 * @param rt: the root node at which to start counting.
 	 * @param acc: the value at which to start counting.
 	 */
@@ -128,7 +132,7 @@ public:
 	/**
 	 * Default constructor initializes empty trie.
 	 */
-	Trie() noexcept;
+	Trie();
 
 	/* --- INITIALIZER LIST CONSTRUCTORS --- */
 
@@ -299,7 +303,7 @@ public:
 	 * RETURNS: an iterator to the key (whether inserted or not).
 	 * @param key: the key to insert into the trie.
 	 */
-	iterator insert( const std::string& key );
+	iterator insert( std::string key );
 	/**
 	 * Same as regular insertion, but performs an insertion operation
 	 * on every item in the range [start, finish).

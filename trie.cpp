@@ -3,7 +3,7 @@
 using namespace std;
 
 void Trie::recursive_copy( Node* rt, const Node* other ) {
-	assert( !rt && !other );
+	assert( rt && other );
 	// Make rt's is_end the same as other's is_end.
 	rt->is_end = other->is_end;
 	// Recursively copy children.
@@ -36,12 +36,12 @@ bool Trie::is_prefix( const string& prf, const string& word ) const {
 }
 
 Trie::Node* Trie::approximate_match( const Node* rt, string& key ) const {
-	// Check for null.
-	if ( !rt ) return nullptr;
+	assert( rt );
 	// If the key is empty, return the root node.
 	if ( key.empty() ) return const_cast<Node*>(rt);
 
 	for ( const auto& str_ptr_pair : rt->children ) {
+		assert( str_ptr_pair.second );
 		// If one of the children is a prefix of key, recurse.
 		if ( is_prefix( str_ptr_pair.first, key ) ) {
 			// Remove the child string off the front of key.
@@ -56,13 +56,13 @@ Trie::Node* Trie::approximate_match( const Node* rt, string& key ) const {
 Trie::Node* Trie::prefix_match( const Node* rt, string& prf ) const {
 	// First compute the approximate root.
 	Node* app_ptr = approximate_match( rt, prf );
-	// This is only possible if rt was empty.
-	if ( !app_ptr ) return nullptr;
+	assert( app_ptr );
 	// If the given prf is empty, it's a perfect match.
 	if ( prf.empty() ) return app_ptr;
 
 	// If any of the returned node's children have prf as prefix, return that child.
-	for ( const auto& str_ptr_pair: app_ptr->children ) {
+	for ( const auto& str_ptr_pair : app_ptr->children ) {
+		assert( str_ptr_pair.second );
 		if ( is_prefix( prf, str_ptr_pair.first ) ) {
 			prf.clear();
 			return str_ptr_pair.second;
@@ -74,12 +74,12 @@ Trie::Node* Trie::prefix_match( const Node* rt, string& prf ) const {
 }
 
 void Trie::key_counter( const Node* rt, size_t& acc ) const noexcept {
-	// If rt is null, it obviously contains nothing.
-	if ( !rt ) return;
+	assert( rt );
 	// If root contains a word, increment the counter.
 	if ( rt->is_end ) ++acc;
 	// Recursively check for words in children
 	for ( const auto& str_ptr_pair : rt->children ) {
+		assert( str_ptr_pair.second );
 		key_counter( str_ptr_pair.second, acc );
 	}
 }
@@ -87,13 +87,13 @@ void Trie::key_counter( const Node* rt, size_t& acc ) const noexcept {
 Trie::Node* Trie::exact_match( const Node* rt, string& word ) const {
 	// First compute the approximate root.
 	Node* app_ptr = approximate_match( rt, word );
-	// This is only possible if rt was empty.
-	if ( !app_ptr ) return nullptr;
+	assert( app_ptr );
 	// If the given word is empty, it's a perfect match. Otherwise, there is no match.
 	return word.empty() ? app_ptr : nullptr;
 }
 
-Trie::Trie() : root( nullptr ) {}
+// Set root to a new node corresponding to the empty trie.
+Trie::Trie() : root( new Node { false, map<string, Node*>(), nullptr } ) {}
 
 Trie::Trie( const initializer_list<string>& key_list ) : Trie() {
 	try {
@@ -144,6 +144,7 @@ bool Trie::empty( const string& prefix ) const {
 size_t Trie::size( const string& prefix ) const {
 	auto cp (prefix);
 	const Node* prf_rt = prefix_match( root, cp );
+	if ( !prf_rt ) return size_t(0);
 	size_t counter = 0;
 	key_counter( prf_rt, counter );
 	return counter;
@@ -168,8 +169,23 @@ Trie::iterator Trie::find( string key, bool is_prefix ) const {
 	return iterator(*this, prf_rt);
 }
 
-Trie::iterator Trie::insert( const string& key ) {
+Trie::iterator Trie::insert( string key ) {
+	/*
+	Note: inserting key at root, is the same
+	as inserting reduced key at loc.
+	The problem space has been reduced.
+	*/
+	Node* loc = approximate_match( root, key );
+	assert( loc );
+	/* INSERT KEY AT LOC */
 
+	// If the key is now empty, simply set is_end to true.
+	if ( key.empty() ) {
+		loc->is_end = true;
+		return iterator(*this, loc);
+	}
+
+	// TODO: handle the case when key is non-empty.
 }
 
 // Templated insert function implemented in header
@@ -193,7 +209,10 @@ void Trie::erase( const initializer_list<std::string>& list ) {
 }
 
 void Trie::clear() {
+	// First delete everything.
 	recursive_delete( root );
+	// Then set root to default empty value.
+	root = new Node { false, map<string, Node*>(), nullptr };
 }
 
 Trie::iterator::iterator( const Trie& t, const Node* p ) : tree(t), ptr(p) {}
