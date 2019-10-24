@@ -1,5 +1,6 @@
 #include "trie.h"
 #include <algorithm>
+#include <limits>
 using namespace std;
 
 void Trie::recursive_copy( Node* const rt, const Node* other ) {
@@ -268,7 +269,8 @@ Trie::iterator Trie::begin( const string& prefix ) const {
 }
 
 Trie::iterator Trie::end( const string& prefix ) const {
-
+	string str = prefix + numeric_limits<char>::lowest();
+	// Equivalent to finding the first key that has prefix after
 }
 
 
