@@ -169,6 +169,7 @@ Trie::Trie( const initializer_list<string>& key_list ) : Trie() {
 	catch ( bad_alloc& e ) {
 		recursive_delete( root );
 		cerr << e.what() << endl;
+		throw e;
 	}
 }
 
@@ -181,6 +182,7 @@ Trie::Trie( const Trie& other ) : Trie() {
 	catch ( bad_alloc& e ) {
 		recursive_delete( root );
 		cerr << e.what() << endl;
+		throw e;
 	}
 }
 
