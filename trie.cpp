@@ -113,6 +113,56 @@ bool Trie::are_equal( const Node* const rt_1, const Node* const rt_2 ) {
 	return true;
 }
 
+Trie::Node* Trie::first_key( const Node* rt ) {
+	assert( rt );
+	// Keep moving down the tree along the left side until is_end.
+	while ( !rt->is_end ) {
+		assert( !rt->children.empty() );
+		rt = rt->children.begin()->second;
+		assert( rt );
+	}
+	return const_cast<Node*>(rt);
+}
+
+Trie::Node* Trie::next_node( const Node* ptr ) {
+	assert( ptr );
+
+	// Go up until we can start moving right.
+	auto par = ptr->parent;
+	// Note that par->children cannot be empty since its a parent.
+	while ( par && par->children.rbegin()->second == ptr ) {
+		// Move up.
+		ptr = par;
+		par = par->parent;
+	}
+
+	// If par is null, there is nothing to the right. Return null
+	if ( !par ) return nullptr;
+
+	/*
+	If par is non-null, the only way we broke out of the while
+	loop is because ptr is not the right-most child.
+	Thus, we want to find the child to the right of ptr.
+	*/
+	auto child_iter = value_find( par->children, ptr );
+	assert( child_iter != par->children.end() );
+	assert( next( child_iter ) != par->children.end() );
+	++child_iter;
+	auto rnode = child_iter->second;
+	assert( rnode );
+
+	// Return the smallest key rooted at rnode.
+	return first_key( rnode );
+}
+
+Trie::Node* Trie::prev_node( const Node* ptr ) {
+
+}
+
+string Trie::underlying_string( const Node* const ptr ) {
+
+}
+
 // Set root to a new node corresponding to the empty trie.
 Trie::Trie() : root( new Node { false, map<string, Node*>(), nullptr } ) {}
 
@@ -181,11 +231,8 @@ Trie::iterator Trie::find( string key, bool is_prefix ) const {
 	// If key is not a prefix of anything, there is no match.
 	if ( !prf_rt ) return iterator(*this);
 
-	// Move down the left of the tree until an is_end flag is encountered.
-	while ( !prf_rt->is_end ) {
-		prf_rt = prf_rt->children.begin()->second;
-	}
-	return iterator(*this, prf_rt);
+	// Find the first child key rooted at prt_rt.
+	return iterator( *this, first_key( prf_rt ) );
 }
 
 Trie::iterator Trie::insert( string key ) {
@@ -233,7 +280,8 @@ void Trie::clear() {
 Trie::iterator::iterator( const Trie& t, const Node* const p ) : tree(t), ptr(p) {}
 
 Trie::iterator& Trie::iterator::operator++() {
-
+	ptr = next_node( ptr );
+	return *this;
 }
 
 Trie::iterator Trie::iterator::operator++(int) {
@@ -243,7 +291,8 @@ Trie::iterator Trie::iterator::operator++(int) {
 }
 
 Trie::iterator& Trie::iterator::operator--() {
-
+	ptr = prev_node( ptr );
+	return *this;
 }
 
 Trie::iterator Trie::iterator::operator--(int) {
@@ -253,11 +302,16 @@ Trie::iterator Trie::iterator::operator--(int) {
 }
 
 string Trie::iterator::operator*() {
+	return underlying_string( ptr );
+}
 
+Trie::iterator::operator bool() const {
+	return ptr != nullptr;
 }
 
 Trie::iterator Trie::begin() const {
-
+	// Return the left most node that evaluates true.
+	Node* ptr = root;
 }
 
 Trie::iterator Trie::end() const {
@@ -265,14 +319,43 @@ Trie::iterator Trie::end() const {
 }
 
 Trie::iterator Trie::begin( const string& prefix ) const {
-
+	// Find the first key that matches the given prefix.
+	return find( prefix, PREFIX_FLAG );
 }
 
-Trie::iterator Trie::end( const string& prefix ) const {
-	string str = prefix + numeric_limits<char>::lowest();
-	// Equivalent to finding the first key that has prefix after
-}
+Trie::iterator Trie::end( string prefix ) const {
+	// Perform an approximate match.
+	auto app_ptr = approximate_match( root, prefix );
+	assert( app_ptr );
 
+	if ( prefix.empty() ) {
+		/*
+		If prefix is empty, we've essentially found a prefix match.
+		Therefore, nothing that's a child of this node works.
+		*/
+		return iterator( *this, next_node( app_ptr ) );
+	} else {
+		// Check if there are keys to the RIGHT of the remainder of prefix.
+		if ( app_ptr->children.empty() || app_ptr->children.rbegin()->first < prefix ) {
+			// If there are no children to the right of prefix, just return the next node.
+			return iterator( *this, next_node( app_ptr ) );
+		} else {
+			// Otherwise, find the first node the right of prefix.
+			for( const auto& str_ptr_pair : app_ptr->children ) {
+				// Note that since we used approximate_match, none of the children can EQUAL prefix.
+				if ( str_ptr_pair.first > prefix ) {
+					// Return the left most node of this child.
+					return iterator( *this, str_ptr_pair.second );
+				}
+			}
+
+			// If we got here and did not find anything, something is wrong.
+			assert( false );
+			// This line so the code compiles with warning flags.
+			return iterator( *this );
+		}
+	}
+}
 
 Trie& Trie::operator+=( const Trie& rhs ) {
 	assert( this != &rhs );

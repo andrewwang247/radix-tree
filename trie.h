@@ -54,7 +54,7 @@ private:
 	/**
 	 * Helper function.
 	 * Recursively copies other into rt.
-	 * REQUIRES: rt and other are not null.
+	 * REQUIRES: rt and other are not null but empty.
 	 * THROWS: std::bad_alloc if @new fails.
 	 */
 	static void recursive_copy( Node* const rt, const Node* const other );
@@ -69,8 +69,8 @@ private:
 	/**
 	 * Helper function.
 	 * RETURNS: whether or not prf is a prefix of word.
-	 * @param prf: the string to match with the beginning of word.
-	 * @param word: the full string for which we are testing existence of a prefix.
+	 * @param prf: The string to match with the beginning of word.
+	 * @param word: The full string for which we are testing existence of a prefix.
 	 */
 	static bool is_prefix( const std::string& prf, const std::string& word ) noexcept;
 
@@ -79,12 +79,12 @@ private:
 	 * Depth traversing search for the deepest node N such that a prefix of key
 	 * matches the string representation at N.
 	 * REQUIRES: rt is not null.
-	 * RETURNS: the node N described above.
-	 * GUARANTEES: since the root node is equivalent to the empty string,
+	 * RETURNS: The node N described above.
+	 * GUARANTEES: Since the root node is equivalent to the empty string,
 	 *    this function will never return a nullptr.
-	 * MODIFIES: key such that the string representation at N is removed.
-	 * @param rt: the node at which to start searching.
-	 * @param key: the key on which to make an approximate match.
+	 * MODIFIES: Key such that the string representation at N is removed.
+	 * @param rt: The node at which to start searching.
+	 * @param key: The key on which to make an approximate match.
 	 */
 	static Node* approximate_match( const Node* const rt, std::string& key ) noexcept;
 
@@ -92,13 +92,12 @@ private:
 	 * Helper function.
 	 * Depth traversing search for the node that serves as a root for prf.
 	 * REQUIRES: rt is not null.
-	 * RETURNS: the deepest node N such that N and all of N's children have prf as prefix.
-	 *     if rt is nullptr, returns a nullptr.
-	 *     if prf is not a prefix, returns a nullptr.
+	 * RETURNS: The deepest node N such that N and all of N's children have prf as prefix.
+	 *     If prf is not a prefix, returns a nullptr.
 	 * MODIFIES: prf so that the string at prefix_match is removed from prf.
 	 *     Note that if prf is not a prefix, the modified prf reflects as far as it got.
-	 * @param rt: the node at which to start searching.
-	 * @param prf: the prefix which the return node should be a root of.
+	 * @param rt: The node at which to start searching.
+	 * @param prf: The prefix which the return node should be a root of.
 	 */
 	static Node* prefix_match( const Node* const rt, std::string& prf ) noexcept;
 
@@ -106,10 +105,10 @@ private:
 	 * Helper function.
 	 * Depth traversing search for the node that matches word.
 	 * REQUIRES: rt is not null.
-	 * RETURNS: the node that forms an exact match with the given word.
-	 *     if no match is found, returns a nullptr.
-	 * @param rt: the root node from which to search.
-	 * @param word: the string we are trying to match.
+	 * RETURNS: The first node that exactly matches the given word.
+	 *     If no match is found, returns a nullptr.
+	 * @param rt: The root node from which to search.
+	 * @param word: The string we are trying to match.
 	 */
 	static Node* exact_match( const Node* const rt, std::string& word ) noexcept;
 
@@ -118,20 +117,64 @@ private:
 	 * Counts the number of keys stored at or as children of rt added to acc.
 	 * Equivalent to counting the number of true is_end's accessible from rt.
 	 * REQUIRES: rt is not null.
-	 * @param rt: the root node at which to start counting.
-	 * @param acc: the value at which to start counting.
+	 * @param rt: The root node at which to start counting.
+	 * @param acc: The value at which to start counting.
 	 */
 	static void key_counter( const Node* const rt, size_t& acc ) noexcept;
 
 	/**
-	 * RETURNS: whether or not the tries rooted at rt_1 and rt_2 are equivalent.
+	 * RETURNS: Whether or not the tries rooted at rt_1 and rt_2 are equivalent.
 	 * REQUIRES: 
-	 * @param rt_1: the root of the first trie.
-	 * @param rt_2: the root of the second trie.
+	 * @param rt_1: The root of the first trie.
+	 * @param rt_2: The root of the second trie.
 	 */
 	static bool are_equal( const Node* const rt_1, const Node* const rt_2 ) noexcept;
 
+	/**
+	 * Searches for the the given value in a map.
+	 * RETURNS: An iterator to the position which matches val.
+	 *     This is the end iterator if val is not in the map.
+	 * @param m: The map on which to search.
+	 * @param val: The Node we are searching for in the map.
+	 */
+	static std::map<std::string, Node*>::iterator value_find( const std::map<std::string, Node*>& m, const Node* const val ) noexcept;
+
+	/**
+	 * RETURNS: The first key that is a child of rt.
+	 * REQUIRES: rt is not null.
+	 * @param rt: The root node at which to start.
+	 */
+	static Node* first_key( const Node* rt ) noexcept;
+
+	/**
+	 * RETURNS: The first key AFTER ptr. If there isn't a key after ptr, returns nullptr.
+	 * REQUIRES: ptr is not null.
+	 * GUARANTEES: The returned Node is_end.
+	 * @param ptr: Starting node position.
+	 */
+	static Node* next_node( const Node* ptr ) noexcept;
+
+	/**
+	 * RETURNS: The first key BEFORE ptr. If there isn't a key before ptr, returns nullptr.
+	 * REQUIRES: ptr is not null.
+	 * GUARANTEES: The returned Node is_end.
+	 * @param ptr: Starting node position.
+	 */
+	static Node* prev_node( const Node* ptr ) noexcept;
+
+	/**
+	 * RETURNS: The string representation at ptr.
+	 * REQUIRES: Parent pointers along ptr are not cyclic (infinite loop)
+	 * @param ptr: The node for which we are trying to construct a string.
+	 */
+	static std::string underlying_string( const Node* const ptr ) noexcept;
+
 public:
+
+	/**
+	 * Used to mark a parameter as passing in a prefix and not a full key.
+	 */
+	static constexpr bool PREFIX_FLAG = true;
 
 	/**
 	 * Default constructor initializes empty trie.
@@ -153,13 +196,13 @@ public:
 	/**
 	 * Copy constructor.
 	 * GUARANTEES: No memory leaks if exception is thrown.
-	 * @param other: the trie to copy into this.
+	 * @param other: The trie to copy into this.
 	 */
 	Trie( const Trie& other );
 
 	/**
 	 * Move constructor.
-	 * @param other: the trie to move into this.
+	 * @param other: The trie to move into this.
 	 */
 	Trie( Trie&& other ) noexcept;
 
@@ -170,23 +213,23 @@ public:
 
 	/**
 	 * Assignment operator.
-	 * @param other: the trie to assign to this.
+	 * @param other: The trie to assign to this.
 	 */
 	Trie& operator=( Trie other ) noexcept;
 
 	/* --- CONTAINER SIZE --- */
 
 	/**
-	 * RETURNS: whether or not the trie is empty starting at given prefix.
+	 * RETURNS: Whether or not the trie is empty starting at given prefix.
 	 * Prefix defaults to empty string, corresponding to entire trie.
-	 * @param prefix: the prefix on which to check for emptiness.
+	 * @param prefix: The prefix on which to check for emptiness.
 	 */
 	bool empty( const std::string& prefix = "" ) const noexcept;
 
 	/**
-	 * RETURNS: the number of words stored in the trie with given prefix.
+	 * RETURNS: The number of words stored in the trie with given prefix.
 	 * Default prefix is empty, which means the full trie size is returned.
-	 * @param prefix: the prefix on which to check for size.
+	 * @param prefix: The prefix on which to check for size.
 	 */
 	size_t size( const std::string& prefix = "" ) const noexcept;
 
@@ -204,12 +247,12 @@ public:
 		/**
 		 * The current Node being pointed at.
 		 */
-		const Node* const ptr;
+		const Node* ptr;
 	public:
 		/**
 		 * Constructor, Node ptr is null by default.
-		 * @param t: the trie reference to assign to tree.
-		 * @param p: the Node that the iterator is currently pointing at.
+		 * @param t: The trie reference to assign to tree.
+		 * @param p: The Node that the iterator is currently pointing at.
 		 */
 		iterator( const Trie& t, const Node* const p = nullptr ) noexcept;
 		/**
@@ -232,15 +275,20 @@ public:
 		 * Dereference operator.
 		 */
 		std::string operator*();
+		/**
+		 * Implicit conversion to bool.
+		 * RETURNS: Whether or not the underlying pointer is null.
+		 */
+		operator bool() const;
 	};
 
 	/**
-	 * RETURNS: iterator the beginning of the trie.
+	 * RETURNS: Iterator to the beginning of the trie.
 	 */
 	iterator begin() const noexcept;
 
 	/**
-	 * RETURNS: iterator to one past the end of the trie.
+	 * RETURNS: Iterator to one past the end of the trie.
 	 */
 	iterator end() const noexcept;
 
@@ -254,43 +302,43 @@ public:
 	*/
 
 	/**
-	 * RETURNS: iterator to the start of the range with given prefix.
-	 * @param prefix: the prefix for which the function returns a begin iterator to.
+	 * RETURNS: Iterator to the start of the range with given prefix.
+	 * @param prefix: The prefix for which the function returns a begin iterator to.
 	 */
 	iterator begin( const std::string& prefix ) const noexcept;
 
 	/**
-	 * RETURNS: iterator to one past the end of the range with given prefix.
-	 * @param prefix: the prefix for which the function returns an end iterator to.
+	 * RETURNS: Iterator to one past the end of the range with given prefix.
+	 * @param prefix: The prefix for which the function returns an end iterator to.
 	 */
-	iterator end( const std::string& prefix ) const noexcept;
+	iterator end( std::string prefix ) const noexcept;
 
 	/* --- SEARCHING --- */
 
 	/**
 	 * Searches for key in trie.
-	 * RETURNS: an iterator to it if it exists.
+	 * RETURNS: An iterator to it if it exists.
 	 *     Otherwise, returns a null iterator.
 	 * If is_prefix is true, returns an iterator to the first
 	 * key that matches the prefix.
 	 * @param key: The key used to search the trie.
 	 * @param is_prefix: Flags whether or not to treat the key as a prefix.
 	 */
-	iterator find( std::string key, bool is_prefix = false ) const noexcept;
+	iterator find( std::string key, bool is_prefix = !PREFIX_FLAG ) const noexcept;
 
 	/* --- INSERTION --- */
 
 	/**
 	 * Inserts key (or key pointed to by iterator) into trie.
 	 * GUARANTEES: Idempotent if key in trie.
-	 * RETURNS: an iterator to the key (whether inserted or not).
-	 * @param key: the key to insert into the trie.
+	 * RETURNS: An iterator to the key (whether inserted or not).
+	 * @param key: The key to insert into the trie.
 	 */
 	iterator insert( std::string key );
 
 	/**
 	 * Same as regular insertion, but performs insert on initializer list.
-	 * @param list: the items to insert into the trie.
+	 * @param list: The items to insert into the trie.
 	 */
 	void insert( const std::initializer_list<std::string>& list );
 
@@ -300,10 +348,10 @@ public:
 	 * Erases key from trie. If is_prefix, erases all keys that have
 	 * the key as prefix from the trie.
 	 * GUARANTEES: Idempotent if key ( or prefix ) is not in trie.
-	 * @param key: the key to erase from the trie.
-	 * @param is_prefix: flag for treating key as a prefix.
+	 * @param key: The key to erase from the trie.
+	 * @param is_prefix: Flag for treating key as a prefix.
 	 */
-	void erase( const std::string& key, bool is_prefix = false ) noexcept;
+	void erase( const std::string& key, bool is_prefix = !PREFIX_FLAG ) noexcept;
 
 	/**
 	 * Same as regular deletion, but performs erase on initializer list.
@@ -326,14 +374,14 @@ public:
 
 	/**
 	 * Inserts all of rhs's keys into this.
-	 * REQUIRES: this and rhs are not the same trie.
-	 * @param rhs: the trie to union with this.
+	 * REQUIRES: This and rhs are not the same trie.
+	 * @param rhs: The trie to union with this.
 	 */
 	Trie& operator+=( const Trie& rhs );
 	/**
 	 * Removes all of rhs's keys from this.
-	 * REQUIRES: this and rhs are not the same trie.
-	 * @param rhs: the trie to set subtract from this.
+	 * REQUIRES: This and rhs are not the same trie.
+	 * @param rhs: The trie to set subtract from this.
 	 */
 	Trie& operator-=( const Trie& rhs ) noexcept;
 
