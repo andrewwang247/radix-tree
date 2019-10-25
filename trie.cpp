@@ -124,10 +124,10 @@ Trie::Node* Trie::first_key( const Node* rt ) {
 	return const_cast<Node*>(rt);
 }
 
-Trie::Node* Trie::next_node( const Node* ptr ) {
+Trie::Node* Trie::next_over( const Node* ptr ) {
 	assert( ptr );
 
-	// Go up until we can start moving right.
+	// Go up once then keep going up until we can move right.
 	auto par = ptr->parent;
 	// Note that par->children cannot be empty since its a parent.
 	while ( par && par->children.rbegin()->second == ptr ) {
@@ -148,15 +148,11 @@ Trie::Node* Trie::next_node( const Node* ptr ) {
 	assert( child_iter != par->children.end() );
 	assert( next( child_iter ) != par->children.end() );
 	++child_iter;
-	auto rnode = child_iter->second;
-	assert( rnode );
+	auto rn = child_iter->second;
+	assert( rn );
 
-	// Return the smallest key rooted at rnode.
-	return first_key( rnode );
-}
-
-Trie::Node* Trie::prev_node( const Node* ptr ) {
-
+	// Return the smallest key rooted at rn.
+	return first_key( rn );
 }
 
 string Trie::underlying_string( const Node* const ptr ) {
@@ -280,8 +276,7 @@ void Trie::clear() {
 Trie::iterator::iterator( const Trie& t, const Node* const p ) : tree(t), ptr(p) {}
 
 Trie::iterator& Trie::iterator::operator++() {
-	ptr = next_node( ptr );
-	return *this;
+
 }
 
 Trie::iterator Trie::iterator::operator++(int) {
@@ -291,8 +286,7 @@ Trie::iterator Trie::iterator::operator++(int) {
 }
 
 Trie::iterator& Trie::iterator::operator--() {
-	ptr = prev_node( ptr );
-	return *this;
+
 }
 
 Trie::iterator Trie::iterator::operator--(int) {
@@ -333,12 +327,12 @@ Trie::iterator Trie::end( string prefix ) const {
 		If prefix is empty, we've essentially found a prefix match.
 		Therefore, nothing that's a child of this node works.
 		*/
-		return iterator( *this, next_node( app_ptr ) );
+		return iterator( *this, next_over( app_ptr ) );
 	} else {
 		// Check if there are keys to the RIGHT of the remainder of prefix.
 		if ( app_ptr->children.empty() || app_ptr->children.rbegin()->first < prefix ) {
 			// If there are no children to the right of prefix, just return the next node.
-			return iterator( *this, next_node( app_ptr ) );
+			return iterator( *this, next_over( app_ptr ) );
 		} else {
 			// Otherwise, find the first node the right of prefix.
 			for( const auto& str_ptr_pair : app_ptr->children ) {

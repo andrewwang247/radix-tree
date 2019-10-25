@@ -124,7 +124,7 @@ private:
 
 	/**
 	 * RETURNS: Whether or not the tries rooted at rt_1 and rt_2 are equivalent.
-	 * REQUIRES: 
+	 * REQUIRES: rt_1 and rt_2 are not null.
 	 * @param rt_1: The root of the first trie.
 	 * @param rt_2: The root of the second trie.
 	 */
@@ -147,20 +147,13 @@ private:
 	static Node* first_key( const Node* rt ) noexcept;
 
 	/**
-	 * RETURNS: The first key AFTER ptr. If there isn't a key after ptr, returns nullptr.
+	 * RETURNS: The first key AFTER ptr that is not a child of ptr.
+	 *    If there isn't such a key, returns nullptr.
 	 * REQUIRES: ptr is not null.
 	 * GUARANTEES: The returned Node is_end.
 	 * @param ptr: Starting node position.
 	 */
-	static Node* next_node( const Node* ptr ) noexcept;
-
-	/**
-	 * RETURNS: The first key BEFORE ptr. If there isn't a key before ptr, returns nullptr.
-	 * REQUIRES: ptr is not null.
-	 * GUARANTEES: The returned Node is_end.
-	 * @param ptr: Starting node position.
-	 */
-	static Node* prev_node( const Node* ptr ) noexcept;
+	static Node* next_over( const Node* ptr ) noexcept;
 
 	/**
 	 * RETURNS: The string representation at ptr.
