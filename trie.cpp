@@ -85,7 +85,7 @@ void Trie::key_counter( const Node* const rt, size_t& acc ) noexcept {
 	}
 }
 
-Trie::Node* Trie::exact_match( const Node* const rt, string& word ) {
+Trie::Node* Trie::exact_match( const Node* const rt, string word ) {
 	// First compute the approximate root.
 	Node* app_ptr = approximate_match( rt, word );
 	assert( app_ptr );
@@ -164,11 +164,10 @@ Trie::Trie() : root( new Node { false, map<string, Node*>(), nullptr } ) {}
 
 Trie::Trie( const initializer_list<string>& key_list ) : Trie() {
 	try {
-		insert( key_list );
+		for_each( key_list.begin(), key_list.end(), insert );
 	}
 	catch ( bad_alloc& e ) {
 		recursive_delete( root );
-		cerr << e.what() << endl;
 		throw e;
 	}
 }
@@ -181,7 +180,6 @@ Trie::Trie( const Trie& other ) : Trie() {
 	}
 	catch ( bad_alloc& e ) {
 		recursive_delete( root );
-		cerr << e.what() << endl;
 		throw e;
 	}
 }
@@ -252,27 +250,31 @@ Trie::iterator Trie::insert( string key ) {
 	// TODO: handle the case when key is non-empty.
 }
 
-void Trie::insert( const initializer_list<std::string>& list ) {
-	for ( const auto& str : list ) {
-		insert( str );
-	}
-}
-
 void Trie::erase( const string& key, bool is_prefix ) {
+	if ( is_prefix ) {
+		string key_cp (key);
+		auto prf_ptr = prefix_match( root, key_cp );
+		// Delete everything under this prefix.
+		recursive_delete( prf_ptr );
+	} else {
+		// Must remove exact key.
+		auto match = exact_match( root, key );
+		// If the key was not in the tree, just return.
+		if ( !match ) return;
 
-}
-
-void Trie::erase( const initializer_list<std::string>& list ) {
-	for ( const auto& str : list ) {
-		erase( str );
+		// TODO: Remove the Node pointed to by match.
 	}
 }
 
 void Trie::clear() {
-	// First delete everything.
-	recursive_delete( root );
-	// Then set root to default empty value.
-	root = new Node { false, map<string, Node*>(), nullptr };
+	// Clear everything under root.
+	for ( const auto& str_ptr_pair : root->children ) {
+		recursive_delete( str_ptr_pair.second );
+	}
+	root->children.clear();
+	// Reset the root node to delete empty string.
+	root->is_end = false;
+	assert( !root->parent );
 }
 
 Trie::iterator::iterator( const Trie& t, const Node* const p ) : tree(t), ptr(p) {}

@@ -110,7 +110,7 @@ private:
 	 * @param rt: The root node from which to search.
 	 * @param word: The string we are trying to match.
 	 */
-	static Node* exact_match( const Node* const rt, std::string& word ) noexcept;
+	static Node* exact_match( const Node* const rt, std::string word ) noexcept;
 
 	/**
 	 * Helper function.
@@ -329,12 +329,6 @@ public:
 	 */
 	iterator insert( std::string key );
 
-	/**
-	 * Same as regular insertion, but performs insert on initializer list.
-	 * @param list: The items to insert into the trie.
-	 */
-	void insert( const std::initializer_list<std::string>& list );
-
 	/* --- DELETION --- */
 
 	/**
@@ -345,12 +339,6 @@ public:
 	 * @param is_prefix: Flag for treating key as a prefix.
 	 */
 	void erase( const std::string& key, bool is_prefix = !PREFIX_FLAG ) noexcept;
-
-	/**
-	 * Same as regular deletion, but performs erase on initializer list.
-	 * @param list: the items to erase from the trie.
-	 */
-	void erase( const std::initializer_list<std::string>& list );
 
 	/**
 	 * Erases all keys from trie.

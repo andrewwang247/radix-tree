@@ -18,14 +18,9 @@ The class comes equipped with:
 
 - default constructor
 - initializer list constructor
-- iterator constructor
 - copy and move constructors
 
 All constructors have a memory guarantee that exceptions thrown while constructing will not cause memory leaks.
-
-The default constructor initializes an empty trie. The initializer list constructors take lists of keys. The iterator constructors can iterate over keys in the given range.
-
-Duplicates are ignored.
 
 ### Size
 
@@ -44,17 +39,11 @@ This function does *not* modify the container.
 
 ### Insertion
 
-To insert keys into the tree, This function has no effect if the key is already in the tree. There are 2 overloads of `insert`.
-
-- Inserts a single key. Returns iterator to inserted key.
-- Inserts an initializer list of strings.
+To insert keys into the tree, This function has no effect if the key is already in the tree. There are 2 overloads of `insert`. It inserts a single key into the tree and returns an iterator to a Node matching the key.
 
 ### Deletion
 
-To remove keys from the tree, use `erase`. This function has no effect if the key is not in the tree. There are 2 overloads of `erase`.
-
-- Erase a single key. If `is_prefix` is set, erases all keys that match the prefix.
-- Erase an initializer list of strings.
+To remove keys from the tree, use `erase`. This function has no effect if the key is not in the tree. It removes a single key from the tree. If `is_prefix` is set, erases all keys that match the prefix.
 
 To reset the entire tree, simply call `clear`, which is idempotent on empty trees.
 
