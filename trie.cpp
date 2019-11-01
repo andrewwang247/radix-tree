@@ -1,6 +1,7 @@
 #include "trie.h"
 #include <algorithm>
 #include <limits>
+#include <unordered_set>
 using namespace std;
 
 void Trie::recursive_copy( Node* const rt, const Node* other ) {
@@ -156,7 +157,38 @@ Trie::Node* Trie::next_over( const Node* ptr ) {
 }
 
 string Trie::underlying_string( const Node* const ptr ) {
+	// TODO: Implement
+}
 
+bool Trie::check_invariant( const Node* const root ) {
+	// Check that root is non-null.
+	if ( !root ) return false;
+
+	if ( root->children.empty() && !root->is_end ) {
+		// If root is a leaf node and has no children, it's invalid.
+		return false;
+	}
+
+	unordered_set<char> characters;
+
+	// Check validity of children.
+	for( const auto& str_ptr_pair : root->children ) {
+		// No null nodes in children tree.
+		if ( !str_ptr_pair.second ) return false;
+		// Ensure that its parent is root.
+		if ( str_ptr_pair.second->parent != root ) return false;
+		// Make sure string is not empty.
+		if ( str_ptr_pair.first.empty() ) return false;
+		// Check that string does not share a prefix with other children.
+		// We only really need to check first char.
+		if ( characters.find( str_ptr_pair.first.front() ) != characters.end() ) return false;
+		characters.insert( str_ptr_pair.first.front() );
+		// Recursively check child node.
+		if ( !check_invariant( str_ptr_pair.second ) ) return false;
+	}
+
+	// If root passes every single check, the tree is valid.
+	return true;
 }
 
 // Set root to a new node corresponding to the empty trie.
@@ -237,7 +269,7 @@ Trie::iterator Trie::insert( string key ) {
 	as inserting reduced key at loc.
 	The problem space has been reduced.
 	*/
-	Node* loc = approximate_match( root, key );
+	auto loc = approximate_match( root, key );
 	assert( loc );
 	/* INSERT KEY AT LOC */
 
@@ -247,7 +279,30 @@ Trie::iterator Trie::insert( string key ) {
 		return iterator(*this, loc);
 	}
 
-	// TODO: handle the case when key is non-empty.
+	/*
+	At this point, the key is non-empty.
+	If loc has no children, then just make a child.
+	*/
+	if ( loc->children.empty() ) {
+		loc->children[key] = new Node { true, map<string, Node*>(), loc };
+		return iterator(*this, loc->children[key]);
+	}
+
+	// Check children of loc for shared prefixes.
+	// TODO: Continue with this part.
+	for ( const auto& str_ptr_pair : loc->children ) {
+		assert( !str_ptr_pair.first.empty() );
+
+		// Check when the first letter matches.
+		if ( str_ptr_pair.first.front() == key.front() ) {
+			const string& child_str = str_ptr_pair.first;
+			// Use mismatch to compute the spot where the prefix fails.
+			auto iter_pair = mismatch( key.cbegin(), key.cend(), child_str.cbegin() );
+			// If the given string fully matches a child, then approximate_match failed.
+			assert( iter_pair.second != child_str.cend() );
+		}
+	}
+
 }
 
 void Trie::erase( const string& key, bool is_prefix ) {

@@ -162,6 +162,12 @@ private:
 	 */
 	static std::string underlying_string( const Node* const ptr ) noexcept;
 
+	/**
+	 * RETURNS: Whether or not the tree at root is valid (satisfies invariants).
+	 * @param root: The root of the tree to check.
+	 */
+	static bool check_invariant( const Node* const root ) noexcept;
+
 public:
 
 	/**
