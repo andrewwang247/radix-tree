@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <limits>
 #include <unordered_set>
+#include <stack>
 using namespace std;
 
 void Trie::recursive_copy( Node* const rt, const Node* other ) {
@@ -116,8 +117,15 @@ bool Trie::are_equal( const Node* const rt_1, const Node* const rt_2 ) {
 
 Trie::Node* Trie::first_key( const Node* rt ) {
 	assert( rt );
+
+	// If rt has not children, either return rt or nullptr.
+	if ( rt->children.empty() ) {
+		return rt->is_end ? const_cast<Node*>(rt) : nullptr;
+	}
+
 	// Keep moving down the tree along the left side until is_end.
 	while ( !rt->is_end ) {
+		// If rt is not an end, its children should not be empty.
 		assert( !rt->children.empty() );
 		rt = rt->children.begin()->second;
 		assert( rt );
@@ -156,8 +164,33 @@ Trie::Node* Trie::next_over( const Node* ptr ) {
 	return first_key( rn );
 }
 
-string Trie::underlying_string( const Node* const ptr ) {
-	// TODO: Implement
+string Trie::underlying_string( const Node* ptr ) {
+	assert( ptr );
+
+	// As we move up, push string representations onto stack.
+	stack<string> history;
+	// Move up in trie until we get to root.
+	auto par = ptr->parent;
+
+	while( par ) {
+		// We must be able to find ptr in par->children.
+		auto iter = value_find( par->children, ptr );
+		assert( iter != par->children.end() );
+
+		// Push the string representation onto the stack and go up.
+		history.push( iter->first );
+		ptr = par;
+		par = par->parent;
+	}
+
+	// If par is root, then ptr must be root. Concatenate strings in reverse.
+	string str = "";
+	while ( !history.empty() ) {
+		str += history.top();
+		history.pop();
+	}
+
+	return str;
 }
 
 bool Trie::check_invariant( const Node* const root ) {
@@ -192,7 +225,7 @@ bool Trie::check_invariant( const Node* const root ) {
 }
 
 // Set root to a new node corresponding to the empty trie.
-Trie::Trie() : root( new Node { false, map<string, Node*>(), nullptr } ) {}
+Trie::Trie() : root( new Node { false, nullptr, map<string, Node*>() } ) {}
 
 Trie::Trie( const initializer_list<string>& key_list ) : Trie() {
 	try {
@@ -284,25 +317,57 @@ Trie::iterator Trie::insert( string key ) {
 	If loc has no children, then just make a child.
 	*/
 	if ( loc->children.empty() ) {
-		loc->children[key] = new Node { true, map<string, Node*>(), loc };
+		loc->children[key] = new Node { true, loc, map<string, Node*>() };
 		return iterator(*this, loc->children[key]);
 	}
 
 	// Check children of loc for shared prefixes.
-	// TODO: Continue with this part.
 	for ( const auto& str_ptr_pair : loc->children ) {
-		assert( !str_ptr_pair.first.empty() );
+		string child_str = str_ptr_pair.first;
+		assert( !child_str.empty() );
 
 		// Check when the first letter matches.
-		if ( str_ptr_pair.first.front() == key.front() ) {
-			const string& child_str = str_ptr_pair.first;
+		if ( child_str.front() == key.front() ) {
 			// Use mismatch to compute the spot where the prefix fails.
 			auto iter_pair = mismatch( key.cbegin(), key.cend(), child_str.cbegin() );
-			// If the given string fully matches a child, then approximate_match failed.
-			assert( iter_pair.second != child_str.cend() );
+			// Extract the common prefix and unique postfixes of key and child.
+			string common ( child_str.cbegin(), iter_pair.first );
+			string post_key ( iter_pair.first, key.cend() );
+			string post_child ( iter_pair.second, child_str.cend() );
+			// If remaining key's prefix can match a child, then approximate_match failed.
+			assert( !post_child.empty() );
+
+			/*
+			key and child_str agree up to iter_pair.
+			The common part is the new child at loc.
+			Extract this node from the children map.
+			*/
+			auto nh = loc->children.extract(child_str);
+
+			// Add a new node along the path of nh.
+			auto junction = new Node { post_key.empty(), loc, map<string, Node*>() };
+			loc->children[ common ] = junction;
+			// Attach nh to junction with a shortened key.
+			nh.key() = post_child;
+			nh.mapped()->parent = junction;
+			junction->children.insert(move(nh));
+
+			if ( !post_key.empty() ) {
+				/*
+				If post_key is non-empty. We need to attach another node to junction.
+				Otherwise, the junction will already have an is_end for the inserted key.
+				*/
+				auto key_node = new Node { true, junction, map<string, Node*>() };
+				junction->children[ post_key ] = key_node;
+				return iterator(*this, key_node);
+			} else {
+				return iterator(*this, junction);
+			}
 		}
 	}
 
+	// If the program reaches here without returning, there's a problem.
+	throw runtime_error("Failed to insert key.");
 }
 
 void Trie::erase( const string& key, bool is_prefix ) {
@@ -317,7 +382,43 @@ void Trie::erase( const string& key, bool is_prefix ) {
 		// If the key was not in the tree, just return.
 		if ( !match ) return;
 
-		// TODO: Remove the Node pointed to by match.
+		match->is_end = false;
+
+		// Check for special case if match is the root of the tree.
+		if ( match == root ) {
+			// If key was non empty, then exact_mach failed.
+			assert( key.empty() );
+			return;
+		}
+		// Now we can assume match is a non-root node.
+
+		// If match was a leaf node, it can be removed.
+		if ( match->children.empty() ) {
+			auto par = match->parent;
+			delete match;
+			par->children.erase(key);
+		} else if ( match->children.size() == 1 ) {
+			// If match had only one child, the child joins with match's parent.
+			auto child_iter_pair = match->children.begin();
+			string child_str = child_iter_pair->first;
+			assert( child_iter_pair->second );
+
+			auto par = match->parent;
+			assert( par ); // Non-root assumption.
+			auto parent_iter_pair = value_find( par->children, match );
+			string parent_str = parent_iter_pair->first;
+
+			// Add a new connection to the map.
+			string modified_str = parent_str + child_str;
+			par->children[modified_str] = child_iter_pair->second;
+			child_iter_pair->second->parent = par;
+
+			// Clean up the old connection.
+			par->children.erase( parent_iter_pair->first );
+			delete match;
+		}
+
+		// In all other cases, we don't want to remove match.
 	}
 }
 

@@ -38,10 +38,10 @@ private:
 	struct Node {
 		// Flag for when the given Node ends a full word. False by default.
 		bool is_end = false;
-		// Set of pointers to the children node.
-		std::map<std::string, Node*> children;
 		// Pointer to the parent node, null by default.
 		Node* parent = nullptr;
+		// Set of pointers to the children node.
+		std::map<std::string, Node*> children;
 	};
 
 	/**
@@ -141,6 +141,7 @@ private:
 
 	/**
 	 * RETURNS: The first key that is a child of rt.
+	 *     If trie is empty, returns a nullptr.
 	 * REQUIRES: rt is not null.
 	 * @param rt: The root node at which to start.
 	 */
@@ -160,7 +161,7 @@ private:
 	 * REQUIRES: Parent pointers along ptr are not cyclic (infinite loop)
 	 * @param ptr: The node for which we are trying to construct a string.
 	 */
-	static std::string underlying_string( const Node* const ptr ) noexcept;
+	static std::string underlying_string( const Node* ptr ) noexcept;
 
 	/**
 	 * RETURNS: Whether or not the tree at root is valid (satisfies invariants).
@@ -179,8 +180,6 @@ public:
 	 * Default constructor initializes empty trie.
 	 */
 	Trie();
-
-	/* --- INITIALIZER LIST CONSTRUCTORS --- */
 
 	/**
 	 * Initializer list constructor inserts strings in key_list into trie.
