@@ -17,7 +17,7 @@ By default, `prefix` and `is_prefix` parameters are empty `std::string` and `fal
 The class comes equipped with:
 
 - default constructor
-- initializer list constructor
+- `initializer_list` constructor
 - copy and move constructors
 
 All constructors have a memory guarantee that exceptions thrown while constructing will not cause memory leaks.
@@ -57,3 +57,14 @@ The tree supports constant forward iterators that traverse the stored keys in al
 - Subtracting trees using the `-` or `-=` operators will take a set difference over the contained keys.
 - Trees can be compared using `==, !=, <, >, <=, =>` where inequality implies a subset relation.
 - Printing all keys stored in the tree in alphabetical order can be done using the `<<` operator.
+
+## Testing
+
+The `Trie` class is validated using white box unit testing. We test the following functions.
+
+- Default, `initializer_list`, and copy constructors.
+- Destructor (does not leak memory).
+- `empty`, `size`, `find`, `insert`, and `erase`.
+- Iterator increment and dereference.
+- Traversal with `begin` and `end`.
+` All arithmetic and comparison operators.

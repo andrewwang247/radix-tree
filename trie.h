@@ -29,6 +29,10 @@
  *     an empty children set, and nullptr as parent.
  */
 class Trie {
+
+// This friend class is only used for unit testing. It should be commented out when not in use.
+friend class Unit_Test;
+
 private:
 
 	/**
