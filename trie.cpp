@@ -517,9 +517,8 @@ Trie::iterator Trie::end( string prefix ) const {
 
 Trie& Trie::operator+=( const Trie& rhs ) {
 	assert( this != &rhs );
-	for ( const auto& str : rhs ) {
-		insert( str );
-	}
+	for_each( rhs.begin(), rhs.end(), insert );
+	assert( check_invariant(root) );
 }
 
 Trie operator+( Trie lhs, const Trie& rhs ) {
@@ -528,9 +527,8 @@ Trie operator+( Trie lhs, const Trie& rhs ) {
 
 Trie& Trie::operator-=( const Trie& rhs ) {
 	assert( this != &rhs );
-	for ( const auto& str : rhs ) {
-		erase( str );
-	}
+	for_each( rhs.begin(), rhs.end(), erase );
+	assert( check_invariant(root) );
 }
 
 Trie operator-( Trie lhs, const Trie& rhs ) {
