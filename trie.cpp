@@ -195,12 +195,6 @@ string Trie::underlying_string( const Node* ptr ) {
 bool Trie::check_invariant( const Node* const root ) {
 	// Check that root is non-null.
 	if ( !root ) return false;
-
-	if ( root->children.empty() && !root->is_end ) {
-		// If root is a leaf node and has no children, it's invalid.
-		return false;
-	}
-
 	unordered_set<char> characters;
 
 	// Check validity of children.
@@ -224,7 +218,9 @@ bool Trie::check_invariant( const Node* const root ) {
 }
 
 // Set root to a new node corresponding to the empty trie.
-Trie::Trie() : root( new Node { false, nullptr, map<string, Node*>() } ) {}
+Trie::Trie() : root( new Node { false, nullptr, map<string, Node*>() } ) {
+	assert( check_invariant(root) );
+}
 
 Trie::Trie( const initializer_list<string>& key_list ) : Trie() {
 	try {
@@ -234,6 +230,7 @@ Trie::Trie( const initializer_list<string>& key_list ) : Trie() {
 		recursive_delete( root );
 		throw e;
 	}
+	assert( check_invariant(root) );
 }
 
 Trie::Trie( const Trie& other ) : Trie() {
@@ -246,10 +243,12 @@ Trie::Trie( const Trie& other ) : Trie() {
 		recursive_delete( root );
 		throw e;
 	}
+	assert( check_invariant(root) );
 }
 
 Trie::Trie( Trie&& other ) : Trie() {
 	swap( *this, other );
+	assert( check_invariant(root) );
 }
 
 Trie::~Trie() {
@@ -258,6 +257,7 @@ Trie::~Trie() {
 
 Trie& Trie::operator=( Trie other ) {
 	swap( *this, other );
+	assert( check_invariant(root) );
 	return *this;
 }
 
