@@ -7,7 +7,7 @@
 #include <cassert>
 
 /**
- * An compact prefix tree with keys as std::basic_string.
+ * A compact prefix tree with keys as std::basic_string.
  * The empty string is always contained in the trie.
  * 
  * Radix tree invariants.
@@ -140,7 +140,7 @@ private:
 	static std::map<std::string, Node*>::iterator value_find( const std::map<std::string, Node*>& m, const Node* const val ) noexcept;
 
 	/**
-	 * RETURNS: The first key that is a child of rt.
+	 * RETURNS: The first key that's a child of rt.
 	 *     If trie is empty, returns a nullptr.
 	 * REQUIRES: rt is not null.
 	 * @param rt: The root node at which to start.
@@ -151,10 +151,10 @@ private:
 	 * RETURNS: The first key AFTER ptr that is not a child of ptr.
 	 *    If there isn't such a key, returns nullptr.
 	 * REQUIRES: ptr is not null.
-	 * GUARANTEES: The returned Node is_end.
+	 * GUARANTEES: The returned Node is_end (or nullptr).
 	 * @param ptr: Starting node position.
 	 */
-	static Node* next_over( const Node* ptr ) noexcept;
+	static Node* next_node( const Node* ptr ) noexcept;
 
 	/**
 	 * RETURNS: The string representation at ptr.
@@ -164,6 +164,7 @@ private:
 	static std::string underlying_string( const Node* ptr ) noexcept;
 
 	/**
+	 * This function is only used for testing!
 	 * RETURNS: Whether or not the tree at root is valid (satisfies invariants).
 	 * @param root: The root of the tree to check.
 	 */
@@ -261,14 +262,6 @@ public:
 		 * Postfix increment.
 		 */
 		iterator operator++(int);
-		/**
-		 * Prefix decrement.
-		 */
-		iterator& operator--();
-		/**
-		 * Postfix decrement.
-		 */
-		iterator operator--(int);
 		/**
 		 * Dereference operator.
 		 */

@@ -118,10 +118,8 @@ bool Trie::are_equal( const Node* const rt_1, const Node* const rt_2 ) {
 Trie::Node* Trie::first_key( const Node* rt ) {
 	assert( rt );
 
-	// If rt has not children, either return rt or nullptr.
-	if ( rt->children.empty() ) {
-		return rt->is_end ? const_cast<Node*>(rt) : nullptr;
-	}
+	// If rt has no children, nullptr.
+	if ( rt->children.empty() ) return nullptr;
 
 	// Keep moving down the tree along the left side until is_end.
 	while ( !rt->is_end ) {
@@ -133,12 +131,13 @@ Trie::Node* Trie::first_key( const Node* rt ) {
 	return const_cast<Node*>(rt);
 }
 
-Trie::Node* Trie::next_over( const Node* ptr ) {
+Trie::Node* Trie::next_node( const Node* ptr ) {
 	assert( ptr );
 
 	// Go up once then keep going up until we can move right.
 	auto par = ptr->parent;
 	// Note that par->children cannot be empty since its a parent.
+	assert( !par->children.empty() );
 	while ( par && par->children.rbegin()->second == ptr ) {
 		// Move up.
 		ptr = par;
@@ -263,11 +262,12 @@ Trie& Trie::operator=( Trie other ) {
 }
 
 bool Trie::empty( const string& prefix ) const {
-	auto cp (prefix);
+	string cp (prefix);
 	const Node* const prf_rt = prefix_match( root, cp );
 	// Check if prefix root is null
 	if ( !prf_rt ) return true;
 	// It's empty if prf_rt is not a word and has no children.
+	assert( check_invariant(root) );
 	return !prf_rt->is_end && prf_rt->children.empty();
 }
 
@@ -277,6 +277,8 @@ size_t Trie::size( const string& prefix ) const {
 	if ( !prf_rt ) return size_t(0);
 	size_t counter = 0;
 	key_counter( prf_rt, counter );
+
+	assert( check_invariant(root) );
 	return counter;
 }
 
@@ -293,6 +295,7 @@ Trie::iterator Trie::find( string key, bool is_prefix ) const {
 	if ( !prf_rt ) return iterator(*this);
 
 	// Find the first child key rooted at prt_rt.
+	assert( check_invariant(root) );
 	return iterator( *this, first_key( prf_rt ) );
 }
 
@@ -309,6 +312,7 @@ Trie::iterator Trie::insert( string key ) {
 	// If the key is now empty, simply set is_end to true.
 	if ( key.empty() ) {
 		loc->is_end = true;
+		assert( check_invariant(root) );
 		return iterator(*this, loc);
 	}
 
@@ -318,6 +322,7 @@ Trie::iterator Trie::insert( string key ) {
 	*/
 	if ( loc->children.empty() ) {
 		loc->children[key] = new Node { true, loc, map<string, Node*>() };
+		assert( check_invariant(root) );
 		return iterator(*this, loc->children[key]);
 	}
 
@@ -359,8 +364,10 @@ Trie::iterator Trie::insert( string key ) {
 				*/
 				auto key_node = new Node { true, junction, map<string, Node*>() };
 				junction->children[ post_key ] = key_node;
+				assert( check_invariant(root) );
 				return iterator(*this, key_node);
 			} else {
+				assert( check_invariant(root) );
 				return iterator(*this, junction);
 			}
 		}
@@ -388,6 +395,7 @@ void Trie::erase( const string& key, bool is_prefix ) {
 		if ( match == root ) {
 			// If key was non empty, then exact_mach failed.
 			assert( key.empty() );
+			assert( check_invariant(root) );
 			return;
 		}
 		// Now we can assume match is a non-root node.
@@ -418,6 +426,7 @@ void Trie::erase( const string& key, bool is_prefix ) {
 			delete match;
 		}
 
+		assert( check_invariant(root) );
 		// In all other cases, we don't want to remove match.
 	}
 }
@@ -431,27 +440,22 @@ void Trie::clear() {
 	// Reset the root node to delete empty string.
 	root->is_end = false;
 	assert( !root->parent );
+	assert( check_invariant(root) );
 }
 
 Trie::iterator::iterator( const Trie& t, const Node* const p ) : tree(t), ptr(p) {}
 
 Trie::iterator& Trie::iterator::operator++() {
-
+	// If the ptr has children, return the first child.
+	// Otherwise, return the next node that isn't a child.
+	// Elegantly handles the case when the returned value is nullptr.
+	ptr = ptr->children.empty() ? next_node(ptr) : first_key(ptr);
+	return *this;
 }
 
 Trie::iterator Trie::iterator::operator++(int) {
 	auto temp(*this);
 	++(*this);
-	return temp;
-}
-
-Trie::iterator& Trie::iterator::operator--() {
-
-}
-
-Trie::iterator Trie::iterator::operator--(int) {
-	auto temp(*this);
-	--(*this);
 	return temp;
 }
 
@@ -487,12 +491,12 @@ Trie::iterator Trie::end( string prefix ) const {
 		If prefix is empty, we've essentially found a prefix match.
 		Therefore, nothing that's a child of this node works.
 		*/
-		return iterator( *this, next_over( app_ptr ) );
+		return iterator( *this, next_node( app_ptr ) );
 	} else {
 		// Check if there are keys to the RIGHT of the remainder of prefix.
 		if ( app_ptr->children.empty() || app_ptr->children.rbegin()->first < prefix ) {
 			// If there are no children to the right of prefix, just return the next node.
-			return iterator( *this, next_over( app_ptr ) );
+			return iterator( *this, next_node( app_ptr ) );
 		} else {
 			// Otherwise, find the first node the right of prefix.
 			for( const auto& str_ptr_pair : app_ptr->children ) {
