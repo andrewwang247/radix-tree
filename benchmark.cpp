@@ -23,8 +23,8 @@ int main() {
 	};
 
 	size_t passed = 0, failed = 0;
-	for ( size_t i = 0; i < tests.size(); ++i ) {
-		if ( (*tests[i])() ) {
+	for ( const auto& test : tests ) {
+		if ( test->operator() ) {
 			cout << "Passed.\n";
 			++passed;
 		} else {
