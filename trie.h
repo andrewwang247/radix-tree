@@ -239,7 +239,7 @@ public:
 	/* --- ITERATION --- */
 
 	/**
-	 * Supports bidirectional const iteration over the trie.
+	 * Supports const forward iteration over the trie.
 	 */
 	class iterator {
 	private:
