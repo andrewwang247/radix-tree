@@ -62,7 +62,7 @@ The tree supports constant forward iterators that traverse the stored keys in al
 
 ### Unit Tests
 
-The `Trie` class is validated using grey box unit testing. We test the following functions.
+The `Trie` class is validated using black box unit testing. We test the following functions.
 
 - Default, `initializer_list`, and copy constructors.
 - Destructor (does not leak memory).
