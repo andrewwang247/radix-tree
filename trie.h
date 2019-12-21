@@ -65,7 +65,7 @@ private:
 	 * Recursively deletes all nodes that are children
 	 * of rt as well as rt itself.
 	 */
-	static void recursive_delete( Node* rt ) noexcept;
+	static void recursive_delete( Node* rt );
 
 	/**
 	 * Helper function.
@@ -73,7 +73,7 @@ private:
 	 * @param prf: The string to match with the beginning of word.
 	 * @param word: The full string for which we are testing existence of a prefix.
 	 */
-	static bool is_prefix( const std::string& prf, const std::string& word ) noexcept;
+	static bool is_prefix( const std::string& prf, const std::string& word );
 
 	/**
 	 * Helper function.
@@ -87,7 +87,7 @@ private:
 	 * @param rt: The node at which to start searching.
 	 * @param key: The key on which to make an approximate match.
 	 */
-	static Node* approximate_match( const Node* const rt, std::string& key ) noexcept;
+	static Node* approximate_match( const Node* const rt, std::string& key );
 
 	/**
 	 * Helper function.
@@ -100,7 +100,7 @@ private:
 	 * @param rt: The node at which to start searching.
 	 * @param prf: The prefix which the return node should be a root of.
 	 */
-	static Node* prefix_match( const Node* const rt, std::string& prf ) noexcept;
+	static Node* prefix_match( const Node* const rt, std::string& prf );
 
 	/**
 	 * Helper function.
@@ -111,7 +111,7 @@ private:
 	 * @param rt: The root node from which to search.
 	 * @param word: The string we are trying to match.
 	 */
-	static Node* exact_match( const Node* const rt, std::string word ) noexcept;
+	static Node* exact_match( const Node* const rt, std::string word );
 
 	/**
 	 * Helper function.
@@ -121,7 +121,7 @@ private:
 	 * @param rt: The root node at which to start counting.
 	 * @param acc: The value at which to start counting.
 	 */
-	static void key_counter( const Node* const rt, size_t& acc ) noexcept;
+	static void key_counter( const Node* const rt, size_t& acc );
 
 	/**
 	 * RETURNS: Whether or not the tries rooted at rt_1 and rt_2 are equivalent.
@@ -129,7 +129,7 @@ private:
 	 * @param rt_1: The root of the first trie.
 	 * @param rt_2: The root of the second trie.
 	 */
-	static bool are_equal( const Node* const rt_1, const Node* const rt_2 ) noexcept;
+	static bool are_equal( const Node* const rt_1, const Node* const rt_2 );
 
 	/**
 	 * Searches for the the given value in a map.
@@ -138,7 +138,7 @@ private:
 	 * @param m: The map on which to search.
 	 * @param val: The Node we are searching for in the map.
 	 */
-	static std::map<std::string, Node*>::iterator value_find( const std::map<std::string, Node*>& m, const Node* const val ) noexcept;
+	static std::map<std::string, Node*>::const_iterator value_find( const std::map<std::string, Node*>& m, const Node* const val );
 
 	/**
 	 * RETURNS: The first key that's a child of rt.
@@ -146,7 +146,7 @@ private:
 	 * REQUIRES: rt is not null.
 	 * @param rt: The root node at which to start.
 	 */
-	static Node* first_key( const Node* rt ) noexcept;
+	static Node* first_key( const Node* rt );
 
 	/**
 	 * RETURNS: The first key AFTER ptr that is not a child of ptr.
@@ -155,21 +155,21 @@ private:
 	 * GUARANTEES: The returned Node is_end (or nullptr).
 	 * @param ptr: Starting node position.
 	 */
-	static Node* next_node( const Node* ptr ) noexcept;
+	static Node* next_node( const Node* ptr );
 
 	/**
 	 * RETURNS: The string representation at ptr.
 	 * REQUIRES: Parent pointers along ptr are not cyclic (infinite loop)
 	 * @param ptr: The node for which we are trying to construct a string.
 	 */
-	static std::string underlying_string( const Node* ptr ) noexcept;
+	static std::string underlying_string( const Node* ptr );
 
 	/**
 	 * This function is only used for testing!
 	 * RETURNS: Whether or not the tree at root is valid (satisfies invariants).
 	 * @param root: The root of the tree to check.
 	 */
-	static bool check_invariant( const Node* const root ) noexcept;
+	static bool check_invariant( const Node* const root );
 
 public:
 
@@ -204,18 +204,18 @@ public:
 	 * Move constructor.
 	 * @param other: The trie to move into this.
 	 */
-	Trie( Trie&& other ) noexcept;
+	Trie( Trie&& other );
 
 	/**
 	 * Destructor.
 	 */
-	~Trie() noexcept;
+	~Trie();
 
 	/**
 	 * Assignment operator.
 	 * @param other: The trie to assign to this.
 	 */
-	Trie& operator=( Trie other ) noexcept;
+	Trie& operator=( Trie other );
 
 	/* --- CONTAINER SIZE --- */
 
@@ -224,14 +224,14 @@ public:
 	 * Prefix defaults to empty string, corresponding to entire trie.
 	 * @param prefix: The prefix on which to check for emptiness.
 	 */
-	bool empty( const std::string& prefix = "" ) const noexcept;
+	bool empty( const std::string& prefix = "" ) const;
 
 	/**
 	 * RETURNS: The number of words stored in the trie with given prefix.
 	 * Default prefix is empty, which means the full trie size is returned.
 	 * @param prefix: The prefix on which to check for size.
 	 */
-	size_t size( const std::string& prefix = "" ) const noexcept;
+	size_t size( const std::string& prefix = "" ) const;
 
 	/* --- ITERATION --- */
 
@@ -254,7 +254,7 @@ public:
 		 * @param t: The trie reference to assign to tree.
 		 * @param p: The Node that the iterator is currently pointing at.
 		 */
-		iterator( const Trie& t, const Node* const p = nullptr ) noexcept;
+		iterator( const Trie& t, const Node* const p = nullptr );
 		/**
 		 * Prefix increment.
 		 */
@@ -277,12 +277,12 @@ public:
 	/**
 	 * RETURNS: Iterator to the beginning of the trie.
 	 */
-	iterator begin() const noexcept;
+	iterator begin() const;
 
 	/**
 	 * RETURNS: Iterator to one past the end of the trie.
 	 */
-	iterator end() const noexcept;
+	iterator end() const;
 
 	/*
 	Prefix traversal by iterator. Returns begin and end iterators to the range of
@@ -297,13 +297,13 @@ public:
 	 * RETURNS: Iterator to the start of the range with given prefix.
 	 * @param prefix: The prefix for which the function returns a begin iterator to.
 	 */
-	iterator begin( const std::string& prefix ) const noexcept;
+	iterator begin( const std::string& prefix ) const;
 
 	/**
 	 * RETURNS: Iterator to one past the end of the range with given prefix.
 	 * @param prefix: The prefix for which the function returns an end iterator to.
 	 */
-	iterator end( std::string prefix ) const noexcept;
+	iterator end( std::string prefix ) const;
 
 	/* --- SEARCHING --- */
 
@@ -316,7 +316,7 @@ public:
 	 * @param key: The key used to search the trie.
 	 * @param is_prefix: Flags whether or not to treat the key as a prefix.
 	 */
-	iterator find( std::string key, bool is_prefix = !PREFIX_FLAG ) const noexcept;
+	iterator find( std::string key, bool is_prefix = !PREFIX_FLAG ) const;
 
 	/* --- INSERTION --- */
 
@@ -337,13 +337,13 @@ public:
 	 * @param key: The key to erase from the trie.
 	 * @param is_prefix: Flag for treating key as a prefix.
 	 */
-	void erase( const std::string& key, bool is_prefix = !PREFIX_FLAG ) noexcept;
+	void erase( const std::string& key, bool is_prefix = !PREFIX_FLAG );
 
 	/**
 	 * Erases all keys from trie.
 	 * GUARANTEES: Idempotent on empty tries.
 	 */
-	void clear() noexcept;
+	void clear();
 
 	/* --- ASYMMETRIC BINARY OPERATIONS --- */
 
@@ -363,11 +363,11 @@ public:
 	 * REQUIRES: This and rhs are not the same trie.
 	 * @param rhs: The trie to set subtract from this.
 	 */
-	Trie& operator-=( const Trie& rhs ) noexcept;
+	Trie& operator-=( const Trie& rhs );
 
 	// Private access for == operators to allow efficient deep equality check. See COMPARISON OF TRIES.
-	friend inline bool operator==( const Trie& lhs, const Trie& rhs ) noexcept;
-	friend inline bool operator<( const Trie& lhs, const Trie& rhs ) noexcept;
+	friend bool operator==( const Trie& lhs, const Trie& rhs );
+	friend bool operator<( const Trie& lhs, const Trie& rhs );
 };
 
 /* --- SYMMETRIC BINARY OPERATIONS --- */
@@ -378,16 +378,16 @@ We say that A == B if A and B have equivalent keys.
 Define A < B as a proper subset relation.
 */
 
-inline bool operator!=( const Trie& lhs, const Trie& rhs ) noexcept;
-inline bool operator>( const Trie& lhs, const Trie& rhs ) noexcept;
-inline bool operator<=( const Trie& lhs, const Trie& rhs ) noexcept;
-inline bool operator>=( const Trie& lhs, const Trie& rhs ) noexcept;
+bool operator!=( const Trie& lhs, const Trie& rhs );
+bool operator>( const Trie& lhs, const Trie& rhs );
+bool operator<=( const Trie& lhs, const Trie& rhs );
+bool operator>=( const Trie& lhs, const Trie& rhs );
 
 
 // Arithmetic operators, uses += and -=.
 
-inline Trie operator+( Trie lhs, const Trie& rhs );
-inline Trie operator-( Trie lhs, const Trie& rhs );
+Trie operator+( Trie lhs, const Trie& rhs );
+Trie operator-( Trie lhs, const Trie& rhs );
 
 /**
  * Outputs each entry in tree to os. Each entry is given its own line.
@@ -396,5 +396,5 @@ std::ostream& operator<<( std::ostream& os, const Trie& tree );
 
 // Comparison between iterators performs element-wise comparison.
 
-inline bool operator==( const Trie::iterator& lhs, const Trie::iterator& rhs ) noexcept;
-inline bool operator!=( const Trie::iterator& lhs, const Trie::iterator& rhs ) noexcept;
+bool operator==( const Trie::iterator& lhs, const Trie::iterator& rhs );
+bool operator!=( const Trie::iterator& lhs, const Trie::iterator& rhs );

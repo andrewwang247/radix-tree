@@ -76,7 +76,7 @@ Trie::Node* Trie::prefix_match( const Node* const rt, string& prf ) {
 	return nullptr;
 }
 
-void Trie::key_counter( const Node* const rt, size_t& acc ) noexcept {
+void Trie::key_counter( const Node* const rt, size_t& acc ) {
 	assert( rt );
 	// If root contains a word, increment the counter.
 	if ( rt->is_end ) ++acc;
@@ -113,6 +113,13 @@ bool Trie::are_equal( const Node* const rt_1, const Node* const rt_2 ) {
 		++it_2;
 	}
 	return true;
+}
+
+map<string, Trie::Node*>::const_iterator Trie::value_find( const map<string, Node*>& m, const Node* const val ) {
+	for ( auto it = m.cbegin(); it != m.cend(); ++it ) {
+		if ( it->second == val ) return it;
+	}
+	return m.cend();
 }
 
 Trie::Node* Trie::first_key( const Node* rt ) {
@@ -224,7 +231,9 @@ Trie::Trie() : root( new Node { false, nullptr, map<string, Node*>() } ) {
 
 Trie::Trie( const initializer_list<string>& key_list ) : Trie() {
 	try {
-		for_each( key_list.begin(), key_list.end(), insert );
+		for ( auto& key : key_list ) {
+			this->insert(key);
+		}
 	}
 	catch ( bad_alloc& e ) {
 		recursive_delete( root );
@@ -468,12 +477,11 @@ Trie::iterator::operator bool() const {
 }
 
 Trie::iterator Trie::begin() const {
-	// Return the left most node that evaluates true.
-	Node* ptr = root;
+	return iterator( *this, first_key( root ) );
 }
 
 Trie::iterator Trie::end() const {
-	return iterator(*this, nullptr);
+	return iterator( *this, nullptr );
 }
 
 Trie::iterator Trie::begin( const string& prefix ) const {
@@ -517,8 +525,11 @@ Trie::iterator Trie::end( string prefix ) const {
 
 Trie& Trie::operator+=( const Trie& rhs ) {
 	assert( this != &rhs );
-	for_each( rhs.begin(), rhs.end(), insert );
+	for ( const string& key : rhs ) {
+		this->insert(key);
+	}
 	assert( check_invariant(root) );
+	return *this;
 }
 
 Trie operator+( Trie lhs, const Trie& rhs ) {
@@ -527,8 +538,11 @@ Trie operator+( Trie lhs, const Trie& rhs ) {
 
 Trie& Trie::operator-=( const Trie& rhs ) {
 	assert( this != &rhs );
-	for_each( rhs.begin(), rhs.end(), erase );
+	for ( const string& key : rhs ) {
+		this->erase(key);
+	}
 	assert( check_invariant(root) );
+	return *this;
 }
 
 Trie operator-( Trie lhs, const Trie& rhs ) {
@@ -544,7 +558,10 @@ bool operator!=( const Trie& lhs, const Trie& rhs ) {
 }
 
 bool operator<( const Trie& lhs, const Trie& rhs ) {
-
+	for ( const string& word : lhs ) {
+		if ( rhs.find(word) == rhs.end() ) return false;
+	}
+	return lhs.size() < rhs.size();
 }
 
 bool operator>( const Trie& lhs, const Trie& rhs ) {
