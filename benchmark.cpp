@@ -2,18 +2,33 @@
 #include <iostream>
 #include <vector>
 #include <functional>
+#include <fstream>
+#include <exception>
+#include <chrono>
+#include <set>
 using namespace std;
+using namespace std::chrono;
+
+using time_unit = milliseconds;
+const string perf_word_list ("words.txt");
+constexpr size_t num_perf_words (466551);
 
 // Forward declarations for test cases.
 
 bool Empty_Test();
 bool Find_Test();
 
+// Prints (to cout) the number of time_units elapsed between start and finish
+void print_duration(time_point<chrono::_V2::system_clock, nanoseconds> start,
+					time_point<chrono::_V2::system_clock, nanoseconds> finish );
+
 int main() {
 	vector< function<bool()> > test_cases {
 		Empty_Test,
 		Find_Test
 	};
+
+	// TODO: Design unit tests.
 	
 	cout << "--- EXECUTING UNIT TESTS ---\n";
 	unsigned passed = 0;
@@ -30,7 +45,44 @@ int main() {
 	cout << "Results: " << passed << " out of " << test_cases.size() << endl;
 
 	cout << "--- EXECUTING PERFORMANCE TEST ---\n";
-	// TODO: Design performance tests.
+	//* Make sure that this announcement matches time_units.
+	cout << "Time measured in milliseconds.\n";
+
+	/* READ WORDS INTO A VECTOR MASTER LIST */
+	ifstream fin (perf_word_list);
+	if (!fin) throw runtime_error("Could not open words.txt");
+
+	cout << "Importing words.txt...\n";
+	vector<string> master_list;
+	master_list.reserve(num_perf_words);
+	for ( string word; fin >> word; ) {
+		master_list.push_back(word);
+	}
+	fin.close();
+
+	/* INSERT WORDS INTO A STD::SET */
+
+	cout << "Set Insertion...\n";
+	set<string> word_set;
+	auto start = high_resolution_clock::now();
+	for ( auto& str : master_list ) {
+		word_set.insert(str);
+	}
+	auto finish = high_resolution_clock::now();
+	print_duration( start, finish );
+
+	/* INSERT WORDS INTO A TRIE */
+
+	cout << "Trie Insertion...\n";
+	Trie word_trie;
+	start = high_resolution_clock::now();
+	for ( auto& str : master_list ) {
+		word_trie.insert(str);
+	}
+	finish = high_resolution_clock::now();
+	print_duration( start, finish );
+
+	// TODO: Test performance of word_set and word_trie.
 }
 
 bool Empty_Test() {
@@ -65,4 +117,10 @@ bool Find_Test() {
 	if ( missing_prf_iter != tr.end() ) return false;
 
 	return true;
+}
+
+void print_duration(time_point<chrono::_V2::system_clock, nanoseconds> start,
+					time_point<chrono::_V2::system_clock, nanoseconds> finish ) {
+
+	cout << "Time: " << duration_cast<time_unit>( finish - start ).count() << endl;
 }
