@@ -10,17 +10,23 @@ using namespace std;
 using namespace std::chrono;
 
 using time_unit = milliseconds;
-const string perf_word_list ("words.txt");
-constexpr size_t num_perf_words (466551);
 
 // Forward declarations for test cases.
 
 bool Empty_Test();
 bool Find_Test();
 
-// Prints (to cout) the number of time_units elapsed between start and finish
+// Reads perf_word_list file into a vector reserved to num_perf_words.
+vector<string> read_words( const string& perf_word_list, size_t num_perf_words );
+
+// Prints (to cout) the number of time_units elapsed between start and finish.
 void print_duration(time_point<chrono::_V2::system_clock, nanoseconds> start,
 					time_point<chrono::_V2::system_clock, nanoseconds> finish );
+
+// Forward declarations for perf tests.
+
+set<string> get_set( const vector<string>& word_list );
+Trie get_trie( const vector<string>& word_list );
 
 int main() {
 	vector< function<bool()> > test_cases {
@@ -48,39 +54,12 @@ int main() {
 	//* Make sure that this announcement matches time_units.
 	cout << "Time measured in milliseconds.\n";
 
-	/* READ WORDS INTO A VECTOR MASTER LIST */
-	ifstream fin (perf_word_list);
-	if (!fin) throw runtime_error("Could not open words.txt");
+	const auto master_list = read_words("words.txt", 466551);
 
-	cout << "Importing words.txt...\n";
-	vector<string> master_list;
-	master_list.reserve(num_perf_words);
-	for ( string word; fin >> word; ) {
-		master_list.push_back(word);
-	}
-	fin.close();
+	// Insertion perf
 
-	/* INSERT WORDS INTO A STD::SET */
-
-	cout << "Set Insertion...\n";
-	set<string> word_set;
-	auto start = high_resolution_clock::now();
-	for ( auto& str : master_list ) {
-		word_set.insert(str);
-	}
-	auto finish = high_resolution_clock::now();
-	print_duration( start, finish );
-
-	/* INSERT WORDS INTO A TRIE */
-
-	cout << "Trie Insertion...\n";
-	Trie word_trie;
-	start = high_resolution_clock::now();
-	for ( auto& str : master_list ) {
-		word_trie.insert(str);
-	}
-	finish = high_resolution_clock::now();
-	print_duration( start, finish );
+	set<string> word_set = get_set(master_list);
+	Trie word_trie = get_trie(master_list);
 
 	// TODO: Test performance of word_set and word_trie.
 }
@@ -119,8 +98,44 @@ bool Find_Test() {
 	return true;
 }
 
+vector<string> read_words( const string& perf_word_list, size_t num_perf_words ) {
+	ifstream fin (perf_word_list);
+	if (!fin) throw runtime_error("Could not open words.txt");
+
+	cout << "Importing words.txt...\n";
+	vector<string> master_list;
+	master_list.reserve(num_perf_words);
+	for ( string word; fin >> word; ) {
+		master_list.push_back(word);
+	}
+	fin.close();
+}
+
 void print_duration(time_point<chrono::_V2::system_clock, nanoseconds> start,
 					time_point<chrono::_V2::system_clock, nanoseconds> finish ) {
 
 	cout << "Time: " << duration_cast<time_unit>( finish - start ).count() << endl;
+}
+
+set<string> get_words( const vector<string>& word_list ) {
+	cout << "Set Insertion...\n";
+	set<string> word_set;
+	auto start = high_resolution_clock::now();
+	for ( const auto& str : word_list ) {
+		word_set.insert(str);
+	}
+	auto finish = high_resolution_clock::now();
+	print_duration( start, finish );
+	return word_set; 
+}
+
+Trie get_trie( const vector<string>& word_list ) {
+	cout << "Trie Insertion...\n";
+	Trie word_trie;
+	auto start = high_resolution_clock::now();
+	for ( const auto& str : word_list ) {
+		word_trie.insert(str);
+	}
+	auto finish = high_resolution_clock::now();
+	print_duration( start, finish );
 }
