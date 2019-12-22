@@ -109,6 +109,7 @@ vector<string> read_words( const string& perf_word_list, size_t num_perf_words )
 		master_list.push_back(word);
 	}
 	fin.close();
+	return master_list;
 }
 
 void print_duration(time_point<chrono::_V2::system_clock, nanoseconds> start,
@@ -117,7 +118,7 @@ void print_duration(time_point<chrono::_V2::system_clock, nanoseconds> start,
 	cout << "Time: " << duration_cast<time_unit>( finish - start ).count() << endl;
 }
 
-set<string> get_words( const vector<string>& word_list ) {
+set<string> get_set( const vector<string>& word_list ) {
 	cout << "Set Insertion...\n";
 	set<string> word_set;
 	auto start = high_resolution_clock::now();
@@ -138,4 +139,5 @@ Trie get_trie( const vector<string>& word_list ) {
 	}
 	auto finish = high_resolution_clock::now();
 	print_duration( start, finish );
+	return word_trie;
 }
