@@ -15,6 +15,13 @@ using time_unit = milliseconds;
 
 bool Empty_Test();
 bool Find_Test();
+bool Insert_Test();
+bool Erase_Test();
+bool Copy_Test();
+bool Size_Test();
+bool Iteration_Test();
+bool Arithmetic_Test();
+bool Comparison_Test();
 
 // Reads perf_word_list file into a vector reserved to num_perf_words.
 vector<string> read_words( const string& perf_word_list, size_t num_perf_words );
@@ -31,7 +38,14 @@ Trie get_trie( const vector<string>& word_list );
 int main() {
 	vector< function<bool()> > test_cases {
 		Empty_Test,
-		Find_Test
+		Find_Test,
+		Insert_Test,
+		Erase_Test,
+		Copy_Test,
+		Size_Test,
+		Iteration_Test,
+		Arithmetic_Test,
+		Comparison_Test
 	};
 
 	// TODO: Design unit tests.
@@ -77,7 +91,8 @@ bool Empty_Test() {
 
 bool Find_Test() {
 	cout << "Find Test";
-	Trie tr { "mahogany", "mahjong", "compute", "computer", "matrix", "math", "contaminate", "corn", "corner", "material", "mat", "maternal", "contain" };
+	Trie tr { "mahogany", "mahjong", "compute", "computer", "matrix", "math",
+	"contaminate", "corn", "corner", "material", "mat", "maternal", "contain" };
 
 	if ( tr.empty() ) return false;
 	if ( tr.size() != 13 ) return false;
@@ -95,8 +110,12 @@ bool Find_Test() {
 	auto missing_prf_iter = tr.find("conk");
 	if ( missing_prf_iter != tr.end() ) return false;
 
+	// TODO: Add another prefix test.
+
 	return true;
 }
+
+// TODO: Implement test cases.
 
 vector<string> read_words( const string& perf_word_list, size_t num_perf_words ) {
 	ifstream fin (perf_word_list);
