@@ -3,7 +3,6 @@
 #include <vector>
 #include <functional>
 #include <fstream>
-#include <exception>
 #include <chrono>
 #include <set>
 using namespace std;
@@ -116,6 +115,41 @@ bool Find_Test() {
 }
 
 // TODO: Implement test cases.
+
+bool Insert_Test() {
+	cout << "Insert Test";
+	return true;
+}
+
+bool Erase_Test() {
+	cout << "Erase Test";
+	return true;
+}
+
+bool Copy_Test() {
+	cout << "Copy Test";
+	return true;
+}
+
+bool Size_Test() {
+	cout << "Size Test";
+	return true;
+}
+
+bool Iteration_Test() {
+	cout << "Iteration Test";
+	return true;
+}
+
+bool Arithmetic_Test() {
+	cout << "Arithmetic Test";
+	return true;
+}
+
+bool Comparison_Test() {
+	cout << "Comparison Test";
+	return true;
+}
 
 vector<string> read_words( const string& perf_word_list, size_t num_perf_words ) {
 	ifstream fin (perf_word_list);
