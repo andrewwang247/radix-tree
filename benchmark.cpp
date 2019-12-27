@@ -5,9 +5,9 @@
 #include <fstream>
 #include <chrono>
 #include <set>
+
 using namespace std;
 using namespace std::chrono;
-
 using time_unit = milliseconds;
 
 // Forward declarations for test cases.
@@ -103,13 +103,14 @@ bool Find_Test() {
 	auto prf_iter = tr.find("mate", Trie::PREFIX_FLAG);
 	if ( prf_iter == tr.end() || *prf_iter != "material" ) return false;
 
+	auto exact_prf_iter = tr.find("contaminate", Trie::PREFIX_FLAG);
+	if ( exact_prf_iter == tr.end() || *exact_prf_iter != "contaminate" ) return false;
+
 	auto missing_exact_iter = tr.find("testing");
 	if ( missing_exact_iter != tr.end() ) return false;
 
 	auto missing_prf_iter = tr.find("conk");
 	if ( missing_prf_iter != tr.end() ) return false;
-
-	// TODO: Add another prefix test.
 
 	return true;
 }
