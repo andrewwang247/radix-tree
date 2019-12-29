@@ -190,6 +190,11 @@ bool Erase_Test() {
 	if ( iter == tr.end() || *iter != "corner" ) return false;
 	if ( tr.size("co") != 5 ) return false;
 
+	// Try clearing.
+	tr.clear();
+	if ( !tr.empty() ) return false;
+	if ( tr.size() != 0 ) return false;
+
 	return true;
 }
 

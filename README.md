@@ -61,6 +61,8 @@ The tree supports constant forward iterators that traverse the stored keys in al
 
 ## Testing
 
+Running `benchmark.cpp` executes all unit and performance tests.
+
 ### Unit Tests
 
 The `Trie` class is validated using black box unit testing. We test the following functions.
@@ -72,7 +74,7 @@ The `Trie` class is validated using black box unit testing. We test the followin
 - Traversal with `begin` and `end`.
 - All arithmetic and comparison operators.
 
-The `Unit_Test` base class is a functor that handles the running and checking of test cases for the `Trie`. Each test case inherits from `Unit_Test` and implements its own constructor (initialize `answer`) and `test()` function. Each of them is added to a `vector` of `Unit_Test` types. Running `benchmark.cpp` executes all unit tests.
+The `Unit_Test` base class is a functor that handles the running and checking of test cases for the `Trie`. Each test case inherits from `Unit_Test` and implements its own constructor (initialize `answer`) and `test()` function. Each of them is added to a `vector` of `Unit_Test` types.
 
 ### Performance Tests
 
