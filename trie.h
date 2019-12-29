@@ -5,6 +5,7 @@
 #include <iostream>
 #include <exception>
 #include <cassert>
+#include <iterator>
 
 /**
  * A compact prefix tree with keys as std::basic_string.
@@ -191,6 +192,17 @@ public:
 	 */
 	Trie( const std::initializer_list<std::string>& key_list );
 
+
+	/**
+	 * Range constructor inserts strings contained in [first, last) into trie.
+	 * Duplicates are ignored.
+	 * GUARANTEES: No memory leaks if exception is thrown.
+	 * @param first: The starting iterator of the range.
+	 * @param last: The ending iterator (one past end) of the range.
+	 */
+	template<typename InputIterator>
+	Trie( InputIterator first, InputIterator last );
+
 	/* --- DYNAMIC MEMORY: RULE OF 5 */
 
 	/**
@@ -238,7 +250,13 @@ public:
 	/**
 	 * Supports const forward iteration over the trie.
 	 */
-	class iterator {
+	class iterator : public std::iterator<
+		std::forward_iterator_tag, // iterator category
+		std::string, // value_type
+		std::ptrdiff_t, // difference_type
+		std::string*, // pointer
+		std::string& // reference
+	> {
 	private:
 		/**
 		 * Reference to the underlying trie.
@@ -249,24 +267,33 @@ public:
 		 */
 		const Node* ptr;
 	public:
+
+
+
 		/**
 		 * Constructor, Node ptr is null by default.
 		 * @param t: The trie reference to assign to tree.
 		 * @param p: The Node that the iterator is currently pointing at.
 		 */
 		iterator( const Trie& t, const Node* const p = nullptr );
+
+		iterator& operator=( iterator other );
+
 		/**
 		 * Prefix increment.
 		 */
 		iterator& operator++();
+
 		/**
 		 * Postfix increment.
 		 */
 		iterator operator++(int);
+
 		/**
 		 * Dereference operator.
 		 */
 		std::string operator*();
+
 		/**
 		 * Implicit conversion to bool.
 		 * RETURNS: Whether or not the underlying pointer is null.
@@ -398,3 +425,19 @@ std::ostream& operator<<( std::ostream& os, const Trie& tree );
 
 bool operator==( const Trie::iterator& lhs, const Trie::iterator& rhs );
 bool operator!=( const Trie::iterator& lhs, const Trie::iterator& rhs );
+
+// TEMPLATED IMPLEMENTATIONS
+
+template<typename InputIterator>
+Trie::Trie( InputIterator first, InputIterator last ) {
+	try {
+		for ( InputIterator iter = first; iter != last; ++iter ) {
+			this->insert(*iter);
+		}
+	}
+	catch ( std::bad_alloc& e ) {
+		recursive_delete(root);
+		throw e;
+	}
+	assert( check_invariant(root) );
+}

@@ -21,6 +21,11 @@ debug : clean $(EXECUTABLE).cpp $(LINKED_CPP)
 	$(CXX) $(CXX_FLAGS) $(DEBUG) -c $(EXECUTABLE).cpp $(LINKED_CPP)
 	$(CXX) $(CXX_FLAGS) $(DEBUG) $(EXECUTABLE).o $(LINKED_O) -o $(EXECUTABLE)_debug
 
+# Build with no compiler optimization - ensure clean slate.
+noopt : clean $(EXECUTABLE).cpp $(LINKED_CPP)
+	$(CXX) $(CXX_FLAGS) -c $(EXECUTABLE).cpp $(LINKED_CPP)
+	$(CXX) $(CXX_FLAGS) $(EXECUTABLE).o $(LINKED_O) -o $(EXECUTABLE)
+
 # Remove executable binary and generated objected files.
 .PHONY : clean
 clean : 

@@ -6,11 +6,11 @@ The API defined in `trie.h` is that of a set with prefix operations. The map is 
 
 To use the radix tree, simply put `#include "trie.h"` at the beginning of your file and compile/link `trie.cpp` with the rest of your program.
 
-Using the included `Makefile`, run `make` to compile and execute all included test cases in the `tests` directory.
+Using the included `Makefile`, run `make` to compile `benchmark.cpp`, which conducts unit and performance tests.
 
 ## Documentation
 
-By default, `prefix` and `is_prefix` parameters are empty `std::string` and `false` respectively.
+By default, `prefix` and `is_prefix` parameters are empty `std::string` and `false` respectively. Best practice is to use `Trie::PREFIX_FLAG` to specify that an operation works on prefixes.
 
 ### Construction
 
@@ -19,6 +19,7 @@ The class comes equipped with:
 - default constructor
 - `initializer_list` constructor
 - copy and move constructors
+- range constructor
 
 All constructors have a memory guarantee that exceptions thrown while constructing will not cause memory leaks.
 
@@ -64,7 +65,7 @@ The tree supports constant forward iterators that traverse the stored keys in al
 
 The `Trie` class is validated using black box unit testing. We test the following functions.
 
-- Default, `initializer_list`, and copy constructors.
+- Default, `initializer_list`, copy, and range constructors.
 - Destructor (does not leak memory).
 - `empty`, `size`, `find`, `insert`, and `erase`.
 - Iterator increment and dereference.
@@ -74,3 +75,10 @@ The `Trie` class is validated using black box unit testing. We test the followin
 The `Unit_Test` base class is a functor that handles the running and checking of test cases for the `Trie`. Each test case inherits from `Unit_Test` and implements its own constructor (initialize `answer`) and `test()` function. Each of them is added to a `vector` of `Unit_Test` types. Running `benchmark.cpp` executes all unit tests.
 
 ### Performance Tests
+
+We also compare performance of `set<string>` and `Trie` under big data inputs. The benchmark measures the time it takes for each data structure to complete:
+
+- Mass insertion of randomly assorted words.
+- Determining the size of various prefix subsets.
+- Finding the range of words with a given prefix.
+- Mass deletion of all words with a given prefix.

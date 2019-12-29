@@ -5,6 +5,8 @@
 #include <fstream>
 #include <chrono>
 #include <set>
+#include <numeric>
+#include <type_traits>
 
 using namespace std;
 using namespace std::chrono;
@@ -16,23 +18,39 @@ bool Empty_Test();
 bool Find_Test();
 bool Insert_Test();
 bool Erase_Test();
-bool Copy_Test();
-bool Size_Test();
 bool Iteration_Test();
+bool Copy_Test();
 bool Arithmetic_Test();
 bool Comparison_Test();
+
+// Helper function to see if prf is a prefix of word.
+bool is_prefix( const string& prf, const string& word );
 
 // Reads perf_word_list file into a vector reserved to num_perf_words.
 vector<string> read_words( const string& perf_word_list, size_t num_perf_words );
 
-// Prints (to cout) the number of time_units elapsed between start and finish.
+// Prints (to cout) and returns the number of time_units elapsed between start and finish.
 void print_duration(time_point<chrono::_V2::system_clock, nanoseconds> start,
 					time_point<chrono::_V2::system_clock, nanoseconds> finish );
 
-// Forward declarations for perf tests.
+// Returns a Container with the words in word_list.
+template<class Container>
+Container get_words( const vector<string>& word_list );
 
-set<string> get_set( const vector<string>& word_list );
-Trie get_trie( const vector<string>& word_list );
+// Prefix counting test.
+
+void set_count( const set<string>& words );
+void trie_count( const Trie& words );
+
+// Prefix finding text.
+
+void set_find( const set<string>& words, string prefix );
+void trie_find( const Trie& words, string prefix );
+
+// Prefix erasing test.
+
+void set_erase( set<string>& words, string prefix );
+void trie_erase( Trie& words, string prefix );
 
 int main() {
 	vector< function<bool()> > test_cases {
@@ -40,17 +58,14 @@ int main() {
 		Find_Test,
 		Insert_Test,
 		Erase_Test,
-		Copy_Test,
-		Size_Test,
 		Iteration_Test,
+		Copy_Test,
 		Arithmetic_Test,
 		Comparison_Test
 	};
-
-	// TODO: Design unit tests.
 	
 	cout << "--- EXECUTING UNIT TESTS ---\n";
-	unsigned passed = 0;
+	unsigned short passed = 0;
 	for ( auto& test : test_cases ) {
 		if ( test() ) {
 			++passed;
@@ -61,20 +76,31 @@ int main() {
 	}
 
 	cout << "--- FINISHED UNIT TESTS ---\n";
-	cout << "Results: " << passed << " out of " << test_cases.size() << endl;
+	cout << "Passed " << passed << " out of " << test_cases.size() << " unit tests." << endl;
+
 
 	cout << "--- EXECUTING PERFORMANCE TEST ---\n";
 	//* Make sure that this announcement matches time_units.
 	cout << "Time measured in milliseconds.\n";
-
 	const auto master_list = read_words("words.txt", 466551);
 
-	// Insertion perf
+	// Insert perf
+	auto word_set = get_words< set<string> >(master_list);
+	auto word_trie = get_words< Trie >(master_list);
 
-	set<string> word_set = get_set(master_list);
-	Trie word_trie = get_trie(master_list);
+	// Count perf
+	set_count(word_set);
+	trie_count(word_trie);
 
-	// TODO: Test performance of word_set and word_trie.
+	// Find perf
+	set_find(word_set, "re");
+	trie_find(word_trie, "re");
+
+	// Erase perf
+	set_erase(word_set, "pr");
+	trie_erase(word_trie, "pr");
+
+	cout << "--- FINISHED PERFORMANCE TEST ---" << endl;
 }
 
 bool Empty_Test() {
@@ -115,41 +141,159 @@ bool Find_Test() {
 	return true;
 }
 
-// TODO: Implement test cases.
-
 bool Insert_Test() {
 	cout << "Insert Test";
+
+	Trie tr;
+
+	auto iter = tr.insert("math");
+	if ( iter == tr.end() || *iter != "math" ) return false;
+	if ( tr.size("math") != 1 || tr.empty() ) return false;
+
+	iter = tr.insert("malleable");
+	if ( iter == tr.end() || *iter != "malleable" ) return false;
+	if ( tr.size() != 2 || tr.empty() ) return false;
+
+	iter = tr.insert("regression");
+	if ( iter == tr.end() || *iter != "regression" ) return false;
+	if ( tr.size("m") != 2 ) return false;
+	if ( tr.size() != 3 ) return false;
+
 	return true;
 }
 
 bool Erase_Test() {
 	cout << "Erase Test";
-	return true;
-}
+	Trie tr { "mahogany", "mahjong", "compute", "computer", "matrix", "math",
+	"contaminate", "corn", "corner", "material", "mat", "maternal", "contain" };
 
-bool Copy_Test() {
-	cout << "Copy Test";
-	return true;
-}
+	// Erase something that does not exist.
+	tr.erase("random", Trie::PREFIX_FLAG);
+	tr.erase("cplusplus");
+	if ( tr.size() != 13 ) return false;
 
-bool Size_Test() {
-	cout << "Size Test";
+	// Erase a leaf node.
+	tr.erase("maternal");
+	if ( tr.size() != 12 || tr.empty() ) return false;
+	if ( tr.find("maternal") != tr.end() ) return false;
+	if ( tr.size("mat") != 4 || !tr.empty("matern") ) return false;
+
+	// Erase non-degenerate internal node.
+	tr.erase("mat");
+	auto iter = tr.find("mat", Trie::PREFIX_FLAG);
+	if ( iter == tr.end() || *iter != "material" ) return false;
+	if ( tr.size("ma") != 5 || tr.empty("mat") ) return false;
+
+	// Erase degenerate internal node.
+	tr.erase("corn");
+	iter = tr.find("corner");
+	if ( iter == tr.end() || *iter != "corner" ) return false;
+	if ( tr.size("co") != 5 ) return false;
+
 	return true;
 }
 
 bool Iteration_Test() {
 	cout << "Iteration Test";
+
+	vector<string> words { "mahogany", "mahjong", "compute", "computer", "matrix", "math",
+	"contaminate", "corn", "corner", "material", "mat", "maternal", "contain" };
+
+	// Also tests input iterator constructor.
+	Trie tr ( words.begin(), words.end() );
+
+	vector<string> total_iterated ( tr.begin(), tr.end() );
+
+	if (words != total_iterated) return false;
+
+	// Only iterator over a subportion.
+	vector<string> co_words { "compute", "computer", "contain", "contaminate", "corn", "corner" };
+	vector<string> co_iterated ( tr.begin("co"), tr.begin("co") );
+	if ( co_words != co_iterated ) return false;
+
+	vector<string> ma_words { "mahjong", "mahogany", "material", "maternal", "mat", "math", "matrix" };
+	vector<string> ma_iterated ( tr.begin("ma"), tr.end("ma") );
+	if ( ma_words != ma_iterated ) return false;
+
 	return true;
 }
 
-bool Arithmetic_Test() {
-	cout << "Arithmetic Test";
-	return true;
+bool Copy_Test() {
+	cout << "Copy Test";
+
+	Trie original { "mahogany", "mahjong", "compute", "computer", "matrix", "math",
+	"contaminate", "corn", "corner", "material", "mat", "maternal", "contain" };
+
+	Trie copied (original);
+
+	vector<string> orig_vec ( original.begin(), original.end() );
+	vector<string> copy_vec ( copied.begin(), copied.end() );
+
+	return orig_vec == copy_vec;
 }
 
 bool Comparison_Test() {
 	cout << "Comparison Test";
+
+	Trie t1 { "mahogany", "mahjong", "compute", "computer", "matrix", "math",
+	"contaminate", "corn", "corner", "material", "mat", "maternal", "contain" };
+
+	Trie t2 { "mahogany", "mahjong", "compute", "computer", "matrix", "math",
+	"contaminate", "corn", "corner", "material", "mat", "maternal", "contain" };
+
+	// Test equality
+	if ( t1 != t2 ) return false;
+
+	// Test inequality
+	t1.erase("material");
+	return t1 < t2;
+}
+
+bool Arithmetic_Test() {
+	cout << "Arithmetic Test";
+
+	Trie tr { "mahogany", "mahjong", "compute", "computer", "matrix", "math",
+	"contaminate", "corn", "corner", "material", "mat", "maternal", "contain" };
+
+	Trie tr_bigger { "mahogany", "mahjong", "compute", "computer", "matrix", "math", "contaminate",
+	"corn", "corner", "material", "mat", "maternal", "contain", "extra", "stuff", "inside" };
+
+	Trie t1 { "mahogany", "mahjong", "compute", "computer", "matrix",
+	"math",	"contaminate", "corn", "corner", };
+	Trie t1_c { "material", "mat", "maternal", "contain" };
+	Trie t1_c_bigger { "material", "mat", "maternal", "contain", "extra", "stuff", "inside" };
+
+	Trie t2 { "matrix", "math",	"contaminate", "corn", "corner",
+	"material", "mat", "maternal", "contain" };
+	Trie t2_c { "mahogany", "mahjong", "compute", "computer" };
+	Trie t2_c_bigger { "mahogany", "mahjong", "compute", "computer", "extra", "stuff", "inside" };
+
+	if ( t1 + t2 != tr ) return false;
+	if ( t1 + t1_c != tr ) return false;
+	if ( t2 + t2_c != tr ) return false;
+	if ( t1 + t2_c >= tr ) return false;
+	if ( t1_c + t2 >= tr ) return false;
+	if ( t1 + t1_c_bigger <= tr ) return false;
+	if ( t2 + t2_c_bigger <= tr ) return false;
+
+	if ( tr - t1_c_bigger != t1 ) return false;
+	if ( tr - t2_c_bigger != t2 ) return false;
+	if ( !(tr - tr_bigger).empty() ) return false;
+	if ( (tr_bigger - tr).empty() ) return false;
+
 	return true;
+}
+
+bool is_prefix( const string& prf, const string& word ) {
+	// The empty string is a prefix for every string.
+	if ( prf.empty() ) return true;
+	// Assuming non-emptiness of prf, it cannot be longer than word.
+	if ( prf.length() > word.length() ) return false;
+	// std::algorithm function that returns iterators to first mismatch.
+	auto res = mismatch( prf.cbegin(), prf.cend(), word.cbegin() );
+
+	// If we reached the end of prf, it's a prefix.
+	return res.first == prf.cend();
 }
 
 vector<string> read_words( const string& perf_word_list, size_t num_perf_words ) {
@@ -169,29 +313,115 @@ vector<string> read_words( const string& perf_word_list, size_t num_perf_words )
 void print_duration(time_point<chrono::_V2::system_clock, nanoseconds> start,
 					time_point<chrono::_V2::system_clock, nanoseconds> finish ) {
 
-	cout << "Time: " << duration_cast<time_unit>( finish - start ).count() << endl;
+	cout << "Duration: " << duration_cast<time_unit>( finish - start ).count() << endl;
 }
 
-set<string> get_set( const vector<string>& word_list ) {
-	cout << "Set Insertion...\n";
-	set<string> word_set;
-	auto start = high_resolution_clock::now();
-	for ( const auto& str : word_list ) {
-		word_set.insert(str);
+template<class Container>
+Container get_words( const vector<string>& word_list ) {
+	// Make announcement.
+	if ( is_same<Container, set<string> >::value ) {
+		cout << "Set Insertion...\n";
+	} else if ( is_same<Container, Trie >::value ) {
+		cout << "Trie Insertion...\n";
+	} else {
+		throw runtime_error("Container must be either set<string> or Trie.");
 	}
+
+	// Time insertion with range constructor.
+	auto start = high_resolution_clock::now();
+	Container words ( word_list.begin(), word_list.end() );
 	auto finish = high_resolution_clock::now();
 	print_duration( start, finish );
-	return word_set; 
+	return words;
 }
 
-Trie get_trie( const vector<string>& word_list ) {
-	cout << "Trie Insertion...\n";
-	Trie word_trie;
+void set_count( const set<string>& words ) {
+	cout << "Set Count...\n";
+
 	auto start = high_resolution_clock::now();
-	for ( const auto& str : word_list ) {
-		word_trie.insert(str);
+	// Get starting iterators on each character.
+	vector<set<string>::iterator> bounds;
+	for ( char c = 'a'; c != 'z'; ++c ) {
+		bounds.push_back(lower_bound(words.begin(), words.end(), string(1, c)));
+	}
+	cout << "\tPrinting subset sizes: ";
+	for ( size_t i = 0; i < bounds.size() - 1; ++i ) {
+		cout << distance( bounds[i], bounds[i + 1] ) << ' ';
 	}
 	auto finish = high_resolution_clock::now();
-	print_duration( start, finish );
-	return word_trie;
+
+	print_duration(start, finish);
+}
+
+void trie_count( const Trie& words ) {
+	cout << "Trie Count...\n";
+
+	auto start = high_resolution_clock::now();
+	cout << "\tPrinting subset sizes: ";
+	for ( char c = 'a'; c != 'z'; ++c ) {
+		cout << words.size( string(1, c) ) << ' ';
+	}
+	auto finish = high_resolution_clock::now();
+
+	print_duration(start, finish);
+}
+
+void set_find( const set<string>& words, string prefix ) {
+	cout << "Set Find...\n";
+
+	auto t0 = high_resolution_clock::now();
+
+	auto start = lower_bound( words.begin(), words.end(), prefix );
+	auto finish = start;
+	while ( finish != words.end() && is_prefix( prefix, *finish ) ) {
+		++finish;
+	}
+
+	auto t1 = high_resolution_clock::now();
+	cout << "Prefix " << prefix << " starts at " << *start << " and ends at " << *finish << endl;
+	print_duration(t0, t1);
+}
+
+void trie_find( const Trie& words, string prefix ) {
+	cout << "Trie Find...\n";
+
+	auto t0 = high_resolution_clock::now();
+
+	auto start = words.begin(prefix);
+	auto finish = words.end(prefix);
+
+	auto t1 = high_resolution_clock::now();
+	cout << "Prefix " << prefix << " starts at " << *start << " and ends at " << *finish << endl;
+	print_duration(t0, t1);
+}
+
+void set_erase( set<string>& words, string prefix ) {
+	cout << "Set Deletion...\n";
+
+	auto t0 = high_resolution_clock::now();
+
+	// Find the first item that's a prefix using lower bound.
+	auto start = lower_bound( words.begin(), words.end(), prefix );
+	// Find where it stops being a prefix.
+	auto finish = start;
+	while ( finish != words.end() && is_prefix( prefix, *finish ) ) {
+		++finish;
+	}
+	words.erase( start, finish );
+
+	auto t1 = high_resolution_clock::now();
+
+	cout << "Erased all words with prefix " << prefix << endl;
+	print_duration(t0, t1);
+}
+
+void trie_erase( Trie& words, string prefix ) {
+	cout << "Trie Deletion...\n";
+
+	auto t0 = high_resolution_clock::now();
+	words.erase(prefix, Trie::PREFIX_FLAG);
+	auto t1 = high_resolution_clock::now();
+
+	cout << "Erased all words with prefix " << prefix << endl;
+	print_duration(t0, t1);
 }

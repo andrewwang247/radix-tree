@@ -454,6 +454,11 @@ void Trie::clear() {
 
 Trie::iterator::iterator( const Trie& t, const Node* const p ) : tree(t), ptr(p) {}
 
+Trie::iterator& Trie::iterator::operator=( iterator other ) {
+	swap(*this, other);
+	return *this;
+}
+
 Trie::iterator& Trie::iterator::operator++() {
 	// If the ptr has children, return the first child.
 	// Otherwise, return the next node that isn't a child.
