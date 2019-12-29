@@ -12,18 +12,7 @@ using namespace std;
 using namespace std::chrono;
 using time_unit = milliseconds;
 
-// Forward declarations for test cases.
-
-bool Empty_Test();
-bool Find_Test();
-bool Insert_Test();
-bool Erase_Test();
-bool Iteration_Test();
-bool Copy_Test();
-bool Arithmetic_Test();
-bool Comparison_Test();
-
-// Helper function to see if prf is a prefix of word.
+// Checks if prf is a prefix of word.
 bool is_prefix( const string& prf, const string& word );
 
 // Reads perf_word_list file into a vector reserved to num_perf_words.
@@ -33,35 +22,45 @@ vector<string> read_words( const string& perf_word_list, size_t num_perf_words )
 void print_duration(time_point<chrono::_V2::system_clock, nanoseconds> start,
 					time_point<chrono::_V2::system_clock, nanoseconds> finish );
 
-// Returns a Container with the words in word_list.
-template<class Container>
-Container get_words( const vector<string>& word_list );
+namespace Unit_Test {
+	bool Empty_Test();
+	bool Find_Test();
+	bool Insert_Test();
+	bool Erase_Test();
+	bool Iteration_Test();
+	bool Copy_Test();
+	bool Arithmetic_Test();
+	bool Comparison_Test();
+}
 
-// Prefix counting test.
+namespace Perf_Test {
+	// Returns a Container with the words in word_list.
+	template<class Container>
+	Container get_words( const vector<string>& word_list );
 
-void set_count( const set<string>& words );
-void trie_count( const Trie& words );
+	// Prefix counting test.
+	void Count_Test( const set<string>& words );
+	void Count_Test( const Trie& words );
 
-// Prefix finding text.
+	// Prefix finding text.
+	void Find_Test( const set<string>& words, string prefix );
+	void Find_Test( const Trie& words, string prefix );
 
-void set_find( const set<string>& words, string prefix );
-void trie_find( const Trie& words, string prefix );
-
-// Prefix erasing test.
-
-void set_erase( set<string>& words, string prefix );
-void trie_erase( Trie& words, string prefix );
+	// Prefix erasing test.
+	void Erase_Test( set<string>& words, string prefix );
+	void Erase_Test( Trie& words, string prefix );
+}
 
 int main() {
 	vector< function<bool()> > test_cases {
-		Empty_Test,
-		Find_Test,
-		Insert_Test,
-		Erase_Test,
-		Iteration_Test,
-		Copy_Test,
-		Arithmetic_Test,
-		Comparison_Test
+		Unit_Test::Empty_Test,
+		Unit_Test::Find_Test,
+		Unit_Test::Insert_Test,
+		Unit_Test::Erase_Test,
+		Unit_Test::Iteration_Test,
+		Unit_Test::Copy_Test,
+		Unit_Test::Arithmetic_Test,
+		Unit_Test::Comparison_Test
 	};
 	
 	cout << "--- EXECUTING UNIT TESTS ---\n";
@@ -85,25 +84,57 @@ int main() {
 	const auto master_list = read_words("words.txt", 466551);
 
 	// Insert perf
-	auto word_set = get_words< set<string> >(master_list);
-	auto word_trie = get_words< Trie >(master_list);
+	auto word_set = Perf_Test::get_words< set<string> >(master_list);
+	auto word_trie = Perf_Test::get_words< Trie >(master_list);
 
 	// Count perf
-	set_count(word_set);
-	trie_count(word_trie);
+	Perf_Test::Count_Test(word_set);
+	Perf_Test::Count_Test(word_trie);
 
 	// Find perf
-	set_find(word_set, "re");
-	trie_find(word_trie, "re");
+	Perf_Test::Find_Test(word_set, "re");
+	Perf_Test::Find_Test(word_trie, "re");
 
 	// Erase perf
-	set_erase(word_set, "pr");
-	trie_erase(word_trie, "pr");
+	Perf_Test::Erase_Test(word_set, "pr");
+	Perf_Test::Erase_Test(word_trie, "pr");
 
 	cout << "--- FINISHED PERFORMANCE TEST ---" << endl;
 }
 
-bool Empty_Test() {
+bool is_prefix( const string& prf, const string& word ) {
+	// The empty string is a prefix for every string.
+	if ( prf.empty() ) return true;
+	// Assuming non-emptiness of prf, it cannot be longer than word.
+	if ( prf.length() > word.length() ) return false;
+	// std::algorithm function that returns iterators to first mismatch.
+	auto res = mismatch( prf.cbegin(), prf.cend(), word.cbegin() );
+
+	// If we reached the end of prf, it's a prefix.
+	return res.first == prf.cend();
+}
+
+vector<string> read_words( const string& perf_word_list, size_t num_perf_words ) {
+	ifstream fin (perf_word_list);
+	if (!fin) throw runtime_error("Could not open words.txt");
+
+	cout << "Importing words.txt...\n";
+	vector<string> master_list;
+	master_list.reserve(num_perf_words);
+	for ( string word; fin >> word; ) {
+		master_list.push_back(word);
+	}
+	fin.close();
+	return master_list;
+}
+
+void print_duration(time_point<chrono::_V2::system_clock, nanoseconds> start,
+					time_point<chrono::_V2::system_clock, nanoseconds> finish ) {
+
+	cout << "Duration: " << duration_cast<time_unit>( finish - start ).count() << endl;
+}
+
+bool Unit_Test::Empty_Test() {
 	cout << "Empty Test";
 	Trie tr;
 	if ( !tr.empty() ) return false;
@@ -114,7 +145,7 @@ bool Empty_Test() {
 	return true;
 }
 
-bool Find_Test() {
+bool Unit_Test::Find_Test() {
 	cout << "Find Test";
 	Trie tr { "mahogany", "mahjong", "compute", "computer", "matrix", "math",
 	"contaminate", "corn", "corner", "material", "mat", "maternal", "contain" };
@@ -141,7 +172,7 @@ bool Find_Test() {
 	return true;
 }
 
-bool Insert_Test() {
+bool Unit_Test::Insert_Test() {
 	cout << "Insert Test";
 
 	Trie tr;
@@ -162,7 +193,7 @@ bool Insert_Test() {
 	return true;
 }
 
-bool Erase_Test() {
+bool Unit_Test::Erase_Test() {
 	cout << "Erase Test";
 	Trie tr { "mahogany", "mahjong", "compute", "computer", "matrix", "math",
 	"contaminate", "corn", "corner", "material", "mat", "maternal", "contain" };
@@ -198,7 +229,7 @@ bool Erase_Test() {
 	return true;
 }
 
-bool Iteration_Test() {
+bool Unit_Test::Iteration_Test() {
 	cout << "Iteration Test";
 
 	vector<string> words { "mahogany", "mahjong", "compute", "computer", "matrix", "math",
@@ -223,7 +254,7 @@ bool Iteration_Test() {
 	return true;
 }
 
-bool Copy_Test() {
+bool Unit_Test::Copy_Test() {
 	cout << "Copy Test";
 
 	Trie original { "mahogany", "mahjong", "compute", "computer", "matrix", "math",
@@ -237,7 +268,7 @@ bool Copy_Test() {
 	return orig_vec == copy_vec;
 }
 
-bool Comparison_Test() {
+bool Unit_Test::Comparison_Test() {
 	cout << "Comparison Test";
 
 	Trie t1 { "mahogany", "mahjong", "compute", "computer", "matrix", "math",
@@ -254,7 +285,7 @@ bool Comparison_Test() {
 	return t1 < t2;
 }
 
-bool Arithmetic_Test() {
+bool Unit_Test::Arithmetic_Test() {
 	cout << "Arithmetic Test";
 
 	Trie tr { "mahogany", "mahjong", "compute", "computer", "matrix", "math",
@@ -289,40 +320,8 @@ bool Arithmetic_Test() {
 	return true;
 }
 
-bool is_prefix( const string& prf, const string& word ) {
-	// The empty string is a prefix for every string.
-	if ( prf.empty() ) return true;
-	// Assuming non-emptiness of prf, it cannot be longer than word.
-	if ( prf.length() > word.length() ) return false;
-	// std::algorithm function that returns iterators to first mismatch.
-	auto res = mismatch( prf.cbegin(), prf.cend(), word.cbegin() );
-
-	// If we reached the end of prf, it's a prefix.
-	return res.first == prf.cend();
-}
-
-vector<string> read_words( const string& perf_word_list, size_t num_perf_words ) {
-	ifstream fin (perf_word_list);
-	if (!fin) throw runtime_error("Could not open words.txt");
-
-	cout << "Importing words.txt...\n";
-	vector<string> master_list;
-	master_list.reserve(num_perf_words);
-	for ( string word; fin >> word; ) {
-		master_list.push_back(word);
-	}
-	fin.close();
-	return master_list;
-}
-
-void print_duration(time_point<chrono::_V2::system_clock, nanoseconds> start,
-					time_point<chrono::_V2::system_clock, nanoseconds> finish ) {
-
-	cout << "Duration: " << duration_cast<time_unit>( finish - start ).count() << endl;
-}
-
 template<class Container>
-Container get_words( const vector<string>& word_list ) {
+Container Perf_Test::get_words( const vector<string>& word_list ) {
 	// Make announcement.
 	if ( is_same<Container, set<string> >::value ) {
 		cout << "Set Insertion...\n";
@@ -340,7 +339,7 @@ Container get_words( const vector<string>& word_list ) {
 	return words;
 }
 
-void set_count( const set<string>& words ) {
+void Perf_Test::Count_Test( const set<string>& words ) {
 	cout << "Set Count...\n";
 
 	auto start = high_resolution_clock::now();
@@ -358,7 +357,7 @@ void set_count( const set<string>& words ) {
 	print_duration(start, finish);
 }
 
-void trie_count( const Trie& words ) {
+void Perf_Test::Count_Test( const Trie& words ) {
 	cout << "Trie Count...\n";
 
 	auto start = high_resolution_clock::now();
@@ -371,7 +370,7 @@ void trie_count( const Trie& words ) {
 	print_duration(start, finish);
 }
 
-void set_find( const set<string>& words, string prefix ) {
+void Perf_Test::Find_Test( const set<string>& words, string prefix ) {
 	cout << "Set Find...\n";
 
 	auto t0 = high_resolution_clock::now();
@@ -387,7 +386,7 @@ void set_find( const set<string>& words, string prefix ) {
 	print_duration(t0, t1);
 }
 
-void trie_find( const Trie& words, string prefix ) {
+void Perf_Test::Find_Test( const Trie& words, string prefix ) {
 	cout << "Trie Find...\n";
 
 	auto t0 = high_resolution_clock::now();
@@ -400,7 +399,7 @@ void trie_find( const Trie& words, string prefix ) {
 	print_duration(t0, t1);
 }
 
-void set_erase( set<string>& words, string prefix ) {
+void Perf_Test::Erase_Test( set<string>& words, string prefix ) {
 	cout << "Set Deletion...\n";
 
 	auto t0 = high_resolution_clock::now();
@@ -420,7 +419,7 @@ void set_erase( set<string>& words, string prefix ) {
 	print_duration(t0, t1);
 }
 
-void trie_erase( Trie& words, string prefix ) {
+void Perf_Test::Erase_Test( Trie& words, string prefix ) {
 	cout << "Trie Deletion...\n";
 
 	auto t0 = high_resolution_clock::now();
