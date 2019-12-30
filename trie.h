@@ -236,14 +236,14 @@ public:
 	 * Prefix defaults to empty string, corresponding to entire trie.
 	 * @param prefix: The prefix on which to check for emptiness.
 	 */
-	bool empty( const std::string& prefix = "" ) const;
+	bool empty( std::string prefix = "" ) const;
 
 	/**
 	 * RETURNS: The number of words stored in the trie with given prefix.
 	 * Default prefix is empty, which means the full trie size is returned.
 	 * @param prefix: The prefix on which to check for size.
 	 */
-	size_t size( const std::string& prefix = "" ) const;
+	size_t size( std::string prefix = "" ) const;
 
 	/* --- ITERATION --- */
 
@@ -261,21 +261,19 @@ public:
 		/**
 		 * Reference to the underlying trie.
 		 */
-		const Trie& tree;
+		const Node* const root;
 		/**
 		 * The current Node being pointed at.
 		 */
 		const Node* ptr;
 	public:
 
-
-
 		/**
 		 * Constructor, Node ptr is null by default.
 		 * @param t: The trie reference to assign to tree.
 		 * @param p: The Node that the iterator is currently pointing at.
 		 */
-		iterator( const Trie& t, const Node* const p = nullptr );
+		iterator( const Node* const root, const Node* const p = nullptr );
 
 		iterator& operator=( iterator other );
 
@@ -299,6 +297,11 @@ public:
 		 * RETURNS: Whether or not the underlying pointer is null.
 		 */
 		operator bool() const;
+
+		// Comparison between iterators performs element-wise comparison.
+		friend bool operator==( const Trie::iterator& lhs, const Trie::iterator& rhs );
+		friend bool operator!=( const Trie::iterator& lhs, const Trie::iterator& rhs );
+
 	};
 
 	/**
@@ -420,11 +423,6 @@ Trie operator-( Trie lhs, const Trie& rhs );
  * Outputs each entry in tree to os. Each entry is given its own line.
  */
 std::ostream& operator<<( std::ostream& os, const Trie& tree );
-
-// Comparison between iterators performs element-wise comparison.
-
-bool operator==( const Trie::iterator& lhs, const Trie::iterator& rhs );
-bool operator!=( const Trie::iterator& lhs, const Trie::iterator& rhs );
 
 // TEMPLATED IMPLEMENTATIONS
 
