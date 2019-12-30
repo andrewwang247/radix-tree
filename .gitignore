@@ -7,6 +7,11 @@
 
 # Custom ignores for this project. TODO - insert names here.
 
+# Extensionless files.
+*
+!*/
+!*.*
+
 # Exectuables and debug files.
 *.exe
 *.dSYM
