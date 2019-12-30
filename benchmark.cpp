@@ -68,9 +68,9 @@ int main() {
 	for ( auto& test : test_cases ) {
 		if ( test() ) {
 			++passed;
-			cout << " passed\n";
+			cout << " passed.\n";
 		} else {
-			cout << " failed\n";
+			cout << " failed.\n";
 		}
 	}
 

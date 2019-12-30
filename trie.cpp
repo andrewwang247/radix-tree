@@ -32,10 +32,10 @@ bool Trie::is_prefix( const string& prf, const string& word ) {
 	// Assuming non-emptiness of prf, it cannot be longer than word.
 	if ( prf.length() > word.length() ) return false;
 	// std::algorithm function that returns iterators to first mismatch.
-	auto res = mismatch( prf.cbegin(), prf.cend(), word.cbegin() );
+	auto res = mismatch( prf.begin(), prf.end(), word.begin() );
 
 	// If we reached the end of prf, it's a prefix.
-	return res.first == prf.cend();
+	return res.first == prf.end();
 }
 
 Trie::Node* Trie::approximate_match( const Node* const rt, string& key ) {
@@ -102,9 +102,9 @@ bool Trie::are_equal( const Node* const rt_1, const Node* const rt_2 ) {
 	// Check that number of children are the same.
 	if ( rt_1->children.size() != rt_2->children.size() ) return false;
 	// Since the number of children match, we can iterate in parallel.
-	auto it_1 = rt_2->children.cbegin();
-	auto it_2 = rt_2->children.cbegin();
-	while ( it_1 != rt_1->children.cend() ) {
+	auto it_1 = rt_2->children.begin();
+	auto it_2 = rt_2->children.begin();
+	while ( it_1 != rt_1->children.end() ) {
 		// Check that the strings on the branches match.
 		if ( it_1->first != it_2->first ) return false;
 		// Recursively check for equality.
@@ -116,10 +116,10 @@ bool Trie::are_equal( const Node* const rt_1, const Node* const rt_2 ) {
 }
 
 map<string, Trie::Node*>::const_iterator Trie::value_find( const map<string, Node*>& m, const Node* const val ) {
-	for ( auto it = m.cbegin(); it != m.cend(); ++it ) {
+	for ( auto it = m.begin(); it != m.end(); ++it ) {
 		if ( it->second == val ) return it;
 	}
-	return m.cend();
+	return m.end();
 }
 
 Trie::Node* Trie::first_key( const Node* rt ) {
@@ -232,7 +232,7 @@ Trie::Trie() : root( new Node { false, nullptr, map<string, Node*>() } ) {
 Trie::Trie( const initializer_list<string>& key_list ) : Trie() {
 	try {
 		for ( auto& key : key_list ) {
-			this->insert(key);
+			insert(key);
 		}
 	}
 	catch ( bad_alloc& e ) {
@@ -341,11 +341,11 @@ Trie::iterator Trie::insert( string key ) {
 		// Check when the first letter matches.
 		if ( child_str.front() == key.front() ) {
 			// Use mismatch to compute the spot where the prefix fails.
-			auto iter_pair = mismatch( key.cbegin(), key.cend(), child_str.cbegin() );
+			auto iter_pair = mismatch( key.begin(), key.end(), child_str.begin() );
 			// Extract the common prefix and unique postfixes of key and child.
-			string common ( child_str.cbegin(), iter_pair.first );
-			string post_key ( iter_pair.first, key.cend() );
-			string post_child ( iter_pair.second, child_str.cend() );
+			string common ( key.begin(), iter_pair.first );
+			string post_key ( iter_pair.first, key.end() );
+			string post_child ( iter_pair.second, child_str.end() );
 			// If remaining key's prefix can match a child, then approximate_match failed.
 			assert( !post_child.empty() );
 
@@ -380,8 +380,11 @@ Trie::iterator Trie::insert( string key ) {
 		}
 	}
 
-	// If the program reaches here without returning, there's a problem.
-	throw runtime_error("Failed to insert key.");
+	// If there are no shared prefixes, then simply make a new node under loc.
+	auto key_node = new Node { true, loc, map<string, Node*>() };
+	loc->children[key] = key_node;
+	assert( check_invariant(root) );
+	return iterator( root, key_node );
 }
 
 void Trie::erase( const string& key, bool is_prefix ) {
