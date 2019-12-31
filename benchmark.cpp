@@ -237,8 +237,8 @@ bool Unit_Test::Erase_Test() {
 bool Unit_Test::Iteration_Test() {
 	cout << "Iteration Test";
 
-	vector<string> words { "mahogany", "mahjong", "compute", "computer", "matrix", "math",
-	"contaminate", "corn", "corner", "material", "mat", "maternal", "contain" };
+	vector<string> words { "compute", "computer", "contain", "contaminate", "corn", "corner",
+		"mahjong", "mahogany", "material", "maternal", "mat", "math", "matrix" };
 
 	// Also tests input iterator constructor.
 	Trie tr ( words.begin(), words.end() );
@@ -247,14 +247,29 @@ bool Unit_Test::Iteration_Test() {
 
 	if (words != total_iterated) return false;
 
-	// Only iterator over a subportion.
+	// Only iterate over subportion.
 	vector<string> co_words { "compute", "computer", "contain", "contaminate", "corn", "corner" };
-	vector<string> co_iterated ( tr.begin("co"), tr.begin("co") );
+	vector<string> co_iterated ( tr.begin("co"), tr.end("co") );
 	if ( co_words != co_iterated ) return false;
 
 	vector<string> ma_words { "mahjong", "mahogany", "material", "maternal", "mat", "math", "matrix" };
 	vector<string> ma_iterated ( tr.begin("ma"), tr.end("ma") );
 	if ( ma_words != ma_iterated ) return false;
+
+	// Prefix subportion.
+	vector<string> mate_words { "material", "maternal" };
+	vector<string> mate_iterated ( tr.begin("mate"), tr.end("mate") );
+	if ( mate_words != mate_iterated ) return false;
+
+	// Singular word range.
+	auto single_start = tr.begin("contaminate");
+	auto single_finish = tr.begin("contaminate");
+	if ( single_start == tr.end() || *single_start != "contaminate") return false;
+	if ( single_finish == tr.end() || *single_finish != "corn" ) return false;
+
+	// Non-existant range.
+	if ( tr.begin("mall") != tr.end() ) return false;
+	if ( tr.end("mall") != tr.end() ) return false;
 
 	return true;
 }
