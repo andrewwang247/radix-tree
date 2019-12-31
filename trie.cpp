@@ -382,58 +382,60 @@ Trie::iterator Trie::insert( string key ) {
 	return iterator( key_node );
 }
 
-void Trie::erase( const string& key, bool is_prefix ) {
+void Trie::erase( string key, bool is_prefix ) {
+	// If is_prefix flag is set, simply wipe everything at and under the prefix_match.
 	if ( is_prefix ) {
-		string key_cp (key);
-		auto prf_ptr = prefix_match( root, key_cp );
-		// Delete everything under this prefix.
-		recursive_delete( prf_ptr );
-	} else {
-		// Must remove exact key.
-		auto match = exact_match( root, key );
-		// If the key was not in the tree, just return.
-		if ( !match ) return;
-
-		match->is_end = false;
-
-		// Check for special case if match is the root of the tree.
-		if ( match == root ) {
-			// If key was non empty, then exact_mach failed.
-			assert( key.empty() );
-			assert( check_invariant(root) );
-			return;
+		auto prf_ptr = prefix_match( root, key );
+		if ( !prf_ptr ) return;
+		if ( prf_ptr == root ) {
+			clear();
+		} else {
+			auto par = prf_ptr->parent;
+			assert(par);
+			par->children.erase( value_find(par->children, prf_ptr) );
+			recursive_delete( prf_ptr );
 		}
-		// Now we can assume match is a non-root node.
-
-		// If match was a leaf node, it can be removed.
-		if ( match->children.empty() ) {
-			auto par = match->parent;
-			delete match;
-			par->children.erase(key);
-		} else if ( match->children.size() == 1 ) {
-			// If match had only one child, the child joins with match's parent.
-			auto child_iter_pair = match->children.begin();
-			string child_str = child_iter_pair->first;
-			assert( child_iter_pair->second );
-
-			auto par = match->parent;
-			assert( par ); // Non-root assumption.
-			auto parent_iter_pair = value_find( par->children, match );
-			string parent_str = parent_iter_pair->first;
-
-			// Add a new connection to the map.
-			string modified_str = parent_str + child_str;
-			par->children[modified_str] = child_iter_pair->second;
-			child_iter_pair->second->parent = par;
-
-			// Clean up the old connection.
-			par->children.erase( parent_iter_pair->first );
-			delete match;
-		}
-
 		assert( check_invariant(root) );
-		// In all other cases, we don't want to remove match.
+		return;
 	}
+
+	// Must remove exact key.
+	auto match = exact_match( root, key );
+	// If the key was not in the tree, just return.
+	if ( !match ) return;
+	// No matter what happens, setting is_end to false is correct.
+	match->is_end = false;
+
+	// If match is the root node, it won't have a parent to deal with.
+	if ( match == root ) {
+		// If key was non-empty, exact_match failed.
+		assert( key.empty() );
+		assert( check_invariant(root) );
+		return;
+	}
+
+	// If match is a leaf node, simply delete it.
+	if ( match->children.empty() ) {
+		auto par = match->parent;
+		auto match_iter = value_find(par->children, match);
+		par->children.erase( match_iter );
+		delete match;
+	} else if ( match->children.size() == 1  ) {
+		// Extract child and parent string to form joined key.
+		auto only_child = match->children.begin();
+		auto par = match->parent;
+		assert( par );
+		auto match_iter = value_find( par->children, match );
+		string joined_key = match_iter->first + only_child->first;
+
+		only_child->second->parent = par;
+		par->children[ joined_key ] = only_child->second;
+		par->children.erase(match_iter);
+		delete match;
+	}
+
+	assert( check_invariant(root) );
+	// If match has multiple children, nothing can be joined.
 }
 
 void Trie::clear() {

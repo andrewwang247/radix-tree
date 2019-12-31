@@ -220,6 +220,12 @@ bool Unit_Test::Erase_Test() {
 	if ( iter == tr.end() || *iter != "corner" ) return false;
 	if ( tr.size("co") != 5 ) return false;
 
+	tr.erase("con", Trie::PREFIX_FLAG);
+	if ( tr.find("contain") != tr.end() ) return false;
+	if ( tr.find("contaminate") != tr.end() ) return false;
+	if ( tr.find("con", Trie::PREFIX_FLAG) != tr.end() ) return false;
+	if ( tr.size("co") != 3 ) return false;
+
 	// Try clearing.
 	tr.clear();
 	if ( !tr.empty() ) return false;

@@ -363,7 +363,7 @@ public:
 	 * @param key: The key to erase from the trie.
 	 * @param is_prefix: Flag for treating key as a prefix.
 	 */
-	void erase( const std::string& key, bool is_prefix = !PREFIX_FLAG );
+	void erase( std::string key, bool is_prefix = !PREFIX_FLAG );
 
 	/**
 	 * Erases all keys from trie.
