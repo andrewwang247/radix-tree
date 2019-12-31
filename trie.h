@@ -423,7 +423,7 @@ std::ostream& operator<<( std::ostream& os, const Trie& tree );
 // TEMPLATED IMPLEMENTATIONS
 
 template<typename InputIterator>
-Trie::Trie( InputIterator first, InputIterator last ) {
+Trie::Trie( InputIterator first, InputIterator last ) : Trie() {
 	try {
 		for ( InputIterator iter = first; iter != last; ++iter ) {
 			this->insert(*iter);
