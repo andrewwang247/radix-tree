@@ -27,7 +27,7 @@
  * 7. approximate_match, prefix_match, and exact_match can be composed due
  *     to the recursive structure of the trie.
  * 8. root is never null. The empty trie consists of a root node with false is_end,
- *     an empty children set, and nullptr as parent.
+ *     an empty children map, and nullptr as parent.
  */
 class Trie {
 
@@ -259,10 +259,6 @@ public:
 	> {
 	private:
 		/**
-		 * Reference to the underlying trie.
-		 */
-		const Node* const root;
-		/**
 		 * The current Node being pointed at.
 		 */
 		const Node* ptr;
@@ -273,7 +269,7 @@ public:
 		 * @param t: The trie reference to assign to tree.
 		 * @param p: The Node that the iterator is currently pointing at.
 		 */
-		iterator( const Node* const root, const Node* const p = nullptr );
+		iterator( const Node* const p = nullptr );
 
 		iterator& operator=( iterator other );
 

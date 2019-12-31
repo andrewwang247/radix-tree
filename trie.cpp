@@ -293,17 +293,18 @@ Trie::iterator Trie::find( string key, bool is_prefix ) const {
 	// Check if we need an exact match.
 	if (!is_prefix) {
 		// Elegantly handles both match and no match.
-		return iterator( root, exact_match( root, key ));
+		return iterator( exact_match( root, key ));
 	}
 	
 	// In this case, we need only find a word that key is a prefix of.
 	const Node* prf_rt = prefix_match( root, key );
 	// If key is not a prefix of anything, there is no match.
-	if ( !prf_rt ) return iterator( root );
+	if ( !prf_rt ) return iterator();
 
 	// Find the first child key rooted at prt_rt.
 	assert( check_invariant(root) );
-	return iterator( root, first_key( prf_rt ) );
+	// If key is empty and prf_rt is and end node, then it is the "first key".
+	return key.empty() && prf_rt->is_end ? iterator( prf_rt ) : iterator( first_key( prf_rt ) );
 }
 
 Trie::iterator Trie::insert( string key ) {
@@ -320,7 +321,7 @@ Trie::iterator Trie::insert( string key ) {
 	if ( key.empty() ) {
 		loc->is_end = true;
 		assert( check_invariant(root) );
-		return iterator( root , loc );
+		return iterator( loc );
 	}
 
 	/*
@@ -330,7 +331,7 @@ Trie::iterator Trie::insert( string key ) {
 	if ( loc->children.empty() ) {
 		loc->children[key] = new Node { true, loc, map<string, Node*>() };
 		assert( check_invariant(root) );
-		return iterator( root , loc->children[key]);
+		return iterator( loc->children[key]);
 	}
 
 	// Check children of loc for shared prefixes.
@@ -372,10 +373,10 @@ Trie::iterator Trie::insert( string key ) {
 				auto key_node = new Node { true, junction, map<string, Node*>() };
 				junction->children[ post_key ] = key_node;
 				assert( check_invariant(root) );
-				return iterator( root , key_node);
+				return iterator( key_node);
 			} else {
 				assert( check_invariant(root) );
-				return iterator( root , junction);
+				return iterator( junction);
 			}
 		}
 	}
@@ -384,7 +385,7 @@ Trie::iterator Trie::insert( string key ) {
 	auto key_node = new Node { true, loc, map<string, Node*>() };
 	loc->children[key] = key_node;
 	assert( check_invariant(root) );
-	return iterator( root, key_node );
+	return iterator( key_node );
 }
 
 void Trie::erase( const string& key, bool is_prefix ) {
@@ -453,7 +454,7 @@ void Trie::clear() {
 	assert( check_invariant(root) );
 }
 
-Trie::iterator::iterator( const Node* const rt, const Node* const p ) : root(rt), ptr(p) {}
+Trie::iterator::iterator( const Node* const p ) : ptr(p) {}
 
 Trie::iterator& Trie::iterator::operator=( iterator other ) {
 	swap(*this, other);
@@ -483,11 +484,11 @@ Trie::iterator::operator bool() const {
 }
 
 Trie::iterator Trie::begin() const {
-	return iterator( root, first_key( root ) );
+	return iterator( first_key( root ) );
 }
 
 Trie::iterator Trie::end() const {
-	return iterator( root, nullptr );
+	return iterator( nullptr );
 }
 
 Trie::iterator Trie::begin( const string& prefix ) const {
@@ -505,26 +506,26 @@ Trie::iterator Trie::end( string prefix ) const {
 		If prefix is empty, we've essentially found a prefix match.
 		Therefore, nothing that's a child of this node works.
 		*/
-		return iterator( root, next_node( app_ptr ) );
+		return iterator( next_node( app_ptr ) );
 	} else {
 		// Check if there are keys to the RIGHT of the remainder of prefix.
 		if ( app_ptr->children.empty() || app_ptr->children.rbegin()->first < prefix ) {
 			// If there are no children to the right of prefix, just return the next node.
-			return iterator( root, next_node( app_ptr ) );
+			return iterator( next_node( app_ptr ) );
 		} else {
 			// Otherwise, find the first node the right of prefix.
 			for( const auto& str_ptr_pair : app_ptr->children ) {
 				// Note that since we used approximate_match, none of the children can EQUAL prefix.
 				if ( str_ptr_pair.first > prefix ) {
 					// Return the left most node of this child.
-					return iterator( root, str_ptr_pair.second );
+					return iterator( str_ptr_pair.second );
 				}
 			}
 
 			// If we got here and did not find anything, something is wrong.
 			assert( false );
 			// This line so the code compiles with warning flags.
-			return iterator( root );
+			return iterator();
 		}
 	}
 }
@@ -591,10 +592,10 @@ ostream& operator<<( std::ostream& os, const Trie& tree ) {
 
 bool operator==( const Trie::iterator& lhs, const Trie::iterator& rhs ) {
 	// Performs element by element.
-	return lhs.ptr == rhs.ptr && lhs.root == rhs.root;
+	return lhs.ptr == rhs.ptr;
 }
 
 bool operator!=( const Trie::iterator& lhs, const Trie::iterator& rhs ) {
 	// Performs element by element.
-	return lhs.ptr != rhs.ptr || lhs.root != rhs.root;
+	return lhs.ptr != rhs.ptr;
 }
