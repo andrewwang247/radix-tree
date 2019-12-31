@@ -174,7 +174,6 @@ bool Unit_Test::Find_Test() {
 
 bool Unit_Test::Insert_Test() {
 	cout << "Insert Test";
-
 	Trie tr;
 
 	auto iter = tr.insert("math");

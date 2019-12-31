@@ -350,33 +350,27 @@ Trie::iterator Trie::insert( string key ) {
 			// If remaining key's prefix can match a child, then approximate_match failed.
 			assert( !post_child.empty() );
 
-			/*
-			key and child_str agree up to iter_pair.
-			The common part is the new child at loc.
-			Extract this node from the children map.
-			*/
-			auto nh = loc->children.extract(child_str);
-
-			// Add a new node along the path of nh.
-			auto junction = new Node { post_key.empty(), loc, map<string, Node*>() };
+			// Create a child for the common part. junction's parent is set.
+			auto junction = new Node{ post_key.empty(), loc, map<string, Node*>() };
+			// Add junction to loc under common.
 			loc->children[ common ] = junction;
-			// Attach nh to junction with a shortened key.
-			nh.key() = post_child;
-			nh.mapped()->parent = junction;
-			junction->children.insert(move(nh));
+			// loc child is added to junction's children map.
+			junction->children[ post_child ] = loc->children[ child_str ];
+			// The original child's parent pointer is set to junction.
+			loc->children[ child_str ]->parent = junction;
+			// Remove child_str from loc child map.
+			loc->children.erase( child_str );
 
 			if ( !post_key.empty() ) {
-				/*
-				If post_key is non-empty. We need to attach another node to junction.
-				Otherwise, the junction will already have an is_end for the inserted key.
-				*/
-				auto key_node = new Node { true, junction, map<string, Node*>() };
+				// Add an additional node for the split.
+				auto key_node = new Node{ true, junction, map<string, Node*>() };
 				junction->children[ post_key ] = key_node;
+
 				assert( check_invariant(root) );
-				return iterator( key_node);
+				return iterator(key_node);
 			} else {
 				assert( check_invariant(root) );
-				return iterator( junction);
+				return iterator(junction);
 			}
 		}
 	}
@@ -457,7 +451,7 @@ void Trie::clear() {
 Trie::iterator::iterator( const Node* const p ) : ptr(p) {}
 
 Trie::iterator& Trie::iterator::operator=( iterator other ) {
-	swap(*this, other);
+	ptr = other.ptr;
 	return *this;
 }
 
