@@ -11,7 +11,7 @@ void Trie::recursive_copy( Node* const rt, const Node* other ) {
 	rt->is_end = other->is_end;
 	// Recursively copy children.
 	for ( const auto& str_ptr_pair : other->children ) {
-		Node* child = new Node;
+		Node* child = new Node { false, rt, map<string, Node*>() };
 		rt->children[str_ptr_pair.first] = child;
 		recursive_copy( child, str_ptr_pair.second );
 	}
@@ -99,10 +99,12 @@ bool Trie::are_equal( const Node* const rt_1, const Node* const rt_2 ) {
 	assert( rt_1 && rt_2 );
 	// Check is_end parameters match.
 	if ( rt_1->is_end != rt_2->is_end ) return false;
+	// If neither have children, we're all good to go.
+	if ( rt_1->children.empty() && rt_2->children.empty() ) return true;
 	// Check that number of children are the same.
 	if ( rt_1->children.size() != rt_2->children.size() ) return false;
 	// Since the number of children match, we can iterate in parallel.
-	auto it_1 = rt_2->children.begin();
+	auto it_1 = rt_1->children.begin();
 	auto it_2 = rt_2->children.begin();
 	while ( it_1 != rt_1->children.end() ) {
 		// Check that the strings on the branches match.
@@ -419,12 +421,29 @@ void Trie::erase( string key, bool is_prefix ) {
 		return;
 	}
 
-	// If match is a leaf node, simply delete it.
 	if ( match->children.empty() ) {
 		auto par = match->parent;
 		auto match_iter = value_find(par->children, match);
 		par->children.erase( match_iter );
 		delete match;
+
+		// Check for possible joining with grand parent.
+		if ( par->children.size() == 1 && par != root && !par->is_end ) {
+
+			auto grand_par = par->parent;
+			assert( grand_par );
+			auto par_iter = value_find( grand_par->children, par );
+			assert( par_iter != grand_par->children.end() );
+
+			// Join keys on par_iter and the only child of par.
+			string mod_key = par_iter->first + par->children.begin()->first;
+			auto child = par->children.begin()->second;
+
+			grand_par->children[mod_key] = child;
+			child->parent = grand_par;
+			grand_par->children.erase(par_iter);
+			delete par;
+		}
 	} else if ( match->children.size() == 1  ) {
 		// Extract child and parent string to form joined key.
 		auto only_child = match->children.begin();
@@ -524,7 +543,7 @@ Trie::iterator Trie::end( string prefix ) const {
 Trie& Trie::operator+=( const Trie& rhs ) {
 	assert( this != &rhs );
 	for ( const string& key : rhs ) {
-		this->insert(key);
+		insert(key);
 	}
 	assert( check_invariant(root) );
 	return *this;
@@ -537,7 +556,7 @@ Trie operator+( Trie lhs, const Trie& rhs ) {
 Trie& Trie::operator-=( const Trie& rhs ) {
 	assert( this != &rhs );
 	for ( const string& key : rhs ) {
-		this->erase(key);
+		erase(key);
 	}
 	assert( check_invariant(root) );
 	return *this;
@@ -556,10 +575,11 @@ bool operator!=( const Trie& lhs, const Trie& rhs ) {
 }
 
 bool operator<( const Trie& lhs, const Trie& rhs ) {
+	if ( lhs.size() >= rhs.size() ) return false;
 	for ( const string& word : lhs ) {
 		if ( rhs.find(word) == rhs.end() ) return false;
 	}
-	return lhs.size() < rhs.size();
+	return true;
 }
 
 bool operator>( const Trie& lhs, const Trie& rhs ) {

@@ -426,7 +426,7 @@ template<typename InputIterator>
 Trie::Trie( InputIterator first, InputIterator last ) : Trie() {
 	try {
 		for ( InputIterator iter = first; iter != last; ++iter ) {
-			this->insert(*iter);
+			insert(*iter);
 		}
 	}
 	catch ( std::bad_alloc& e ) {
