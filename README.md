@@ -10,7 +10,7 @@ Using the included `Makefile`, run `make` to compile `benchmark.cpp`, which cond
 
 ## Documentation
 
-By default, `prefix` and `is_prefix` parameters are empty `std::string` and `false` respectively. Best practice is to use `Trie::PREFIX_FLAG` to specify that an operation works on prefixes.
+By default, the `prefix` and `is_prefix` function parameters are empty `std::string` and `false` respectively. Best practice is to use the boolean `Trie::PREFIX_FLAG` to specify that an operation works on prefixes.
 
 ### Construction
 
@@ -21,36 +21,34 @@ The class comes equipped with:
 - copy and move constructors
 - range constructor
 
-All constructors have a memory guarantee that exceptions thrown while constructing will not cause memory leaks.
+All constructors are exception safe. The use RAII prevents memory leaks once the `Trie` has already been constructed.
 
 ### Size
 
-The `empty` and `size` functions take a `prefix` parameter. They return, respectively:
+The `empty` and `size` functions take a `prefix` parameter that is empty by default. They return, respectively:
 
 - whether or not the tree contains keys of the given prefix
-- the number of words with the given prefix
+- the number of keys with the given prefix
 
 These functions do *not* modify the container.
 
 ### Searching
 
-The `find` function returns an iterator to the key if it's contained in the tree. If `is_prefix` is set, it returns an iterator to the first key that matches the prefix.
+The `find` function returns an iterator to the key if it's contained in the tree. If `is_prefix` is set with `Trie::PREFIX_FLAG`, it returns an iterator to the first key that matches the prefix.
 
 This function does *not* modify the container.
 
 ### Insertion
 
-To insert keys into the tree, This function has no effect if the key is already in the tree. There are 2 overloads of `insert`. It inserts a single key into the tree and returns an iterator to a Node matching the key.
+The `insert` function adds a single key into the tree and returns an iterator to a Node matching the key. The function is idempotent.
 
 ### Deletion
 
-To remove keys from the tree, use `erase`. This function has no effect if the key is not in the tree. It removes a single key from the tree. If `is_prefix` is set, erases all keys that match the prefix.
-
-To reset the entire tree, simply call `clear`, which is idempotent on empty trees.
+To remove keys from the tree, use `erase`. It removes a single key from the tree. If `is_prefix` is set with `Trie::PREFIX_FLAG`, it erases all keys that match the prefix. To reset the entire tree, simply call `clear`. Both `erase` and `clear` are idempotent.
 
 ### Iteration
 
-The tree supports constant forward iterators that traverse the stored keys in alphabetical order. The class comes with STL style `begin` and `end` functions that range over the entire tree. Use the `begin` and `end` overloads with the `prefix` parameter to construct ranges over keys that match prefixes. Make sure to check that `begin(std::string prefix)` is non-null before using as a range. This can efficiently be achieved using the `empty(std::string prefix)` function.
+The tree supports constant forward iterators that traverse the stored keys in alphabetical order. The class comes with STL style `begin` and `end` functions that range over the entire tree. Use the `begin` and `end` overloads with `prefix` parameter to construct ranges over keys that match prefixes. Make sure to check that `begin(std::string prefix)` is non-null before using as a range. This can be efficiently achieved with `empty(std::string prefix)`.
 
 ### Operators
 
@@ -61,11 +59,11 @@ The tree supports constant forward iterators that traverse the stored keys in al
 
 ## Testing
 
-Running `benchmark.cpp` executes all unit and performance tests.
+Running `benchmark.cpp` executes all unit and performance tests. In addition, the code has been checked for memory leaks using valgrind.
 
 ### Unit Tests
 
-The `Trie` class is validated using black box unit testing. We test the following functions.
+The `Trie` class is validated with 8 black box unit tests. We test the following functions.
 
 - Default, `initializer_list`, copy, and range constructors.
 - Destructor (does not leak memory).
@@ -74,23 +72,23 @@ The `Trie` class is validated using black box unit testing. We test the followin
 - Traversal with `begin` and `end`.
 - All arithmetic and comparison operators.
 
-The `Unit_Test` base class is a functor that handles the running and checking of test cases for the `Trie`. Each test case inherits from `Unit_Test` and implements its own constructor (initialize `answer`) and `test()` function. Each of them is added to a `vector` of `Unit_Test` types.
-
 ### Performance Tests
 
-We also compare performance of `set<string>` and `Trie` under big data inputs. The benchmark measures the time it takes for each data structure to complete:
+The performance of `std::set<std::string>` and `Trie` are compared under big data inputs. The benchmark measures the time it takes for each data structure to complete:
 
-- Mass insertion of randomly assorted words.
+- Mass insertion of randomly assorted keys.
 - Determining the size of various prefix subsets.
-- Finding the range of words with a given prefix.
-- Mass deletion of all words with a given prefix.
+- Finding the range of keys with a given prefix.
+- Mass deletion of all keys with a given prefix.
 
 ## Invariants
+
+This section discusses implementation details. It's not needed to write client code.
 
 1. Given a node N, children of N do not share any common non-empty prefixes. Otherwise, the common prefix would have been compressed.
 2. As a corollary of (1), for any non-empty prefix P and node N, at most 1 child node of N has P as a prefix.
 3. The empty string is never in a children map. Suppose N contains the empty string in its children map. This would be equivalent to N being `is_end`.
-4. All leaf nodes have true `is_end`. If a leaf node N was not the end of a word, must have non-empty `children` map, which it can't have because it's a leaf.
+4. All leaf nodes have true `is_end`. If a leaf node N was not the end of a key, must have non-empty `children` map, which it can't have because it's a leaf.
 5. If node N has false `is_end`, it must have at least 2 children node. Otherwise, it would be compressed with its only child.
 6. As another corollary of (1), a children map can have at most |char| items. Therefore, we can treat searching `std::map` as constant.
 7. `approximate_match`, `prefix_match`, and `exact_match` can be composed due to the recursive structure of the trie.

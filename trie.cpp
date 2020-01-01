@@ -231,7 +231,6 @@ bool Trie::check_invariant( const Node* const root ) {
 	return true;
 }
 
-// Set root to a new node corresponding to the empty trie.
 Trie::Trie() : root( new Node { false, nullptr, map<string, Node*>() } ) {
 	assert( check_invariant(root) );
 }
@@ -242,7 +241,7 @@ Trie::Trie( const initializer_list<string>& key_list ) : Trie() {
 			insert(key);
 		}
 	}
-	catch ( bad_alloc& e ) {
+	catch ( exception& e ) {
 		recursive_delete( root );
 		throw e;
 	}
@@ -255,7 +254,7 @@ Trie::Trie( const Trie& other ) : Trie() {
 		// The default Trie constructor already set root to a node.
 		recursive_copy( root, other.root );
 	}
-	catch ( bad_alloc& e ) {
+	catch ( exception& e ) {
 		recursive_delete( root );
 		throw e;
 	}

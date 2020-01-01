@@ -18,7 +18,7 @@
  *     child node of N has P as a prefix.
  * 3. The empty string is never in a children map. Suppose N contains the empty
  *     string in its children map. This would be equivalent to N being is_end.
- * 4. All leaf nodes have true is_end. If a leaf node N was not the end of a word,
+ * 4. All leaf nodes have true is_end. If a leaf node N was not the end of a key,
  *     must have non-empty children map, which it can't have because it's a leaf.
  * 5. If node N has false is_end, it must have at least 2 children node.
  *     Otherwise, it would be compressed with its only child.
@@ -429,7 +429,7 @@ Trie::Trie( InputIterator first, InputIterator last ) : Trie() {
 			insert(*iter);
 		}
 	}
-	catch ( std::bad_alloc& e ) {
+	catch ( std::exception& e ) {
 		recursive_delete(root);
 		throw e;
 	}
