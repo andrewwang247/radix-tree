@@ -68,9 +68,9 @@ int main() {
 	for ( auto& test : test_cases ) {
 		if ( test() ) {
 			++passed;
-			cout << " passed.\n";
+			cout << " passed." << endl;
 		} else {
-			cout << " failed.\n";
+			cout << " failed." << endl;
 		}
 	}
 
@@ -238,10 +238,10 @@ bool Unit_Test::Iteration_Test() {
 	cout << "Iteration Test";
 
 	vector<string> words { "compute", "computer", "contain", "contaminate", "corn", "corner",
-		"mahjong", "mahogany", "material", "maternal", "mat", "math", "matrix" };
+		"mahjong", "mahogany", "mat", "material", "maternal", "math", "matrix" };
 
 	// Also tests input iterator constructor.
-	Trie tr ( words.begin(), words.end() );
+	const Trie tr ( words.begin(), words.end() );
 
 	vector<string> total_iterated ( tr.begin(), tr.end() );
 
@@ -252,7 +252,7 @@ bool Unit_Test::Iteration_Test() {
 	vector<string> co_iterated ( tr.begin("co"), tr.end("co") );
 	if ( co_words != co_iterated ) return false;
 
-	vector<string> ma_words { "mahjong", "mahogany", "material", "maternal", "mat", "math", "matrix" };
+	vector<string> ma_words { "mahjong", "mahogany", "mat", "material", "maternal", "math", "matrix" };
 	vector<string> ma_iterated ( tr.begin("ma"), tr.end("ma") );
 	if ( ma_words != ma_iterated ) return false;
 
@@ -263,13 +263,13 @@ bool Unit_Test::Iteration_Test() {
 
 	// Singular word range.
 	auto single_start = tr.begin("contaminate");
-	auto single_finish = tr.begin("contaminate");
+	auto single_finish = tr.end("contaminate");
 	if ( single_start == tr.end() || *single_start != "contaminate") return false;
 	if ( single_finish == tr.end() || *single_finish != "corn" ) return false;
 
 	// Non-existant range.
-	if ( tr.begin("mall") != tr.end() ) return false;
-	if ( tr.end("mall") != tr.end() ) return false;
+	if ( tr.begin("cops") != tr.end() ) return false;
+	if ( *tr.end("cops") != "corn" ) return false;
 
 	return true;
 }

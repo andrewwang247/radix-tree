@@ -323,7 +323,7 @@ public:
 	 * RETURNS: Iterator to the start of the range with given prefix.
 	 * @param prefix: The prefix for which the function returns a begin iterator to.
 	 */
-	iterator begin( const std::string& prefix ) const;
+	iterator begin( std::string prefix ) const;
 
 	/**
 	 * RETURNS: Iterator to one past the end of the range with given prefix.

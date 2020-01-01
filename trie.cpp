@@ -128,6 +128,9 @@ Trie::Node* Trie::first_key( const Node* rt ) {
 	// If rt has no children, nullptr.
 	if ( rt->children.empty() ) return nullptr;
 
+	rt = rt->children.begin()->second;
+	assert( rt );
+
 	// Keep moving down the tree along the left side until is_end.
 	while ( !rt->is_end ) {
 		// If rt is not an end, its children should not be empty.
@@ -167,7 +170,9 @@ Trie::Node* Trie::next_node( const Node* ptr ) {
 	assert( rn );
 
 	// Return the smallest key rooted at rn.
-	return first_key( rn );
+	if ( rn->is_end ) return rn;
+	assert( !rn->children.empty() );
+	return first_key(rn);
 }
 
 string Trie::underlying_string( const Node* ptr ) {
@@ -480,14 +485,14 @@ Trie::iterator::operator bool() const {
 }
 
 Trie::iterator Trie::begin() const {
-	return iterator( first_key( root ) );
+	return root->is_end ? iterator(root) : iterator( first_key(root) );
 }
 
 Trie::iterator Trie::end() const {
 	return iterator( nullptr );
 }
 
-Trie::iterator Trie::begin( const string& prefix ) const {
+Trie::iterator Trie::begin( string prefix ) const {
 	// Find the first key that matches the given prefix.
 	return find( prefix, PREFIX_FLAG );
 }
@@ -497,33 +502,23 @@ Trie::iterator Trie::end( string prefix ) const {
 	auto app_ptr = approximate_match( root, prefix );
 	assert( app_ptr );
 
-	if ( prefix.empty() ) {
-		/*
-		If prefix is empty, we've essentially found a prefix match.
-		Therefore, nothing that's a child of this node works.
-		*/
-		return iterator( next_node( app_ptr ) );
-	} else {
-		// Check if there are keys to the RIGHT of the remainder of prefix.
-		if ( app_ptr->children.empty() || app_ptr->children.rbegin()->first < prefix ) {
-			// If there are no children to the right of prefix, just return the next node.
-			return iterator( next_node( app_ptr ) );
-		} else {
-			// Otherwise, find the first node the right of prefix.
-			for( const auto& str_ptr_pair : app_ptr->children ) {
-				// Note that since we used approximate_match, none of the children can EQUAL prefix.
-				if ( str_ptr_pair.first > prefix ) {
-					// Return the left most node of this child.
-					return iterator( str_ptr_pair.second );
-				}
-			}
+	// If prefix is empty, app_ptr is a prefix match and none of its children work.
+	// If all children of app_ptr are less than prefix, nothing under app_ptr works.
+	if ( prefix.empty() || app_ptr->children.empty() ||
+		app_ptr->children.rbegin()->first < prefix ) return iterator( next_node(app_ptr) );
 
-			// If we got here and did not find anything, something is wrong.
-			assert( false );
-			// This line so the code compiles with warning flags.
-			return iterator();
+	// Find the first child that is greater than prefix
+	for ( auto& str_ptr_pair : app_ptr->children ) {
+		// If equality, then approximate_match failed.
+		assert( str_ptr_pair.first != prefix );
+		if ( str_ptr_pair.first.front() > prefix.front() ) {
+			return str_ptr_pair.second->is_end ? iterator(str_ptr_pair.second)
+				: iterator( first_key(str_ptr_pair.second) );
 		}
 	}
+
+	// If we've gotten down to here, something has gone wrong.
+	throw runtime_error("Unexpected bug in Trie::end(std::string)");
 }
 
 Trie& Trie::operator+=( const Trie& rhs ) {

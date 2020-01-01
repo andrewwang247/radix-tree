@@ -50,7 +50,7 @@ To reset the entire tree, simply call `clear`, which is idempotent on empty tree
 
 ### Iteration
 
-The tree supports constant forward iterators that traverse the stored keys in alphabetical order. The class comes with STL style `begin` and `end` functions that range over the entire tree. Use the `begin` and `end` overloads with the `prefix` parameter to construct ranges over keys that match prefixes.
+The tree supports constant forward iterators that traverse the stored keys in alphabetical order. The class comes with STL style `begin` and `end` functions that range over the entire tree. Use the `begin` and `end` overloads with the `prefix` parameter to construct ranges over keys that match prefixes. Make sure to check that `begin(std::string prefix)` is non-null before using as a range. This can efficiently be achieved using the `empty(std::string prefix)` function.
 
 ### Operators
 
