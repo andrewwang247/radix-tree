@@ -54,7 +54,6 @@ private:
 	/* --- HELPER FUNCTIONS --- */
 
 	/**
-	 * Helper function.
 	 * Recursively copies other into rt.
 	 * REQUIRES: rt and other are not null but empty.
 	 * THROWS: std::bad_alloc if @new fails.
@@ -62,14 +61,12 @@ private:
 	static void recursive_copy( Node* const rt, const Node* const other );
 
 	/**
-	 * Helper function.
 	 * Recursively deletes all nodes that are children
 	 * of rt as well as rt itself.
 	 */
 	static void recursive_delete( Node* rt );
 
 	/**
-	 * Helper function.
 	 * RETURNS: whether or not prf is a prefix of word.
 	 * @param prf: The string to match with the beginning of word.
 	 * @param word: The full string for which we are testing existence of a prefix.
@@ -77,9 +74,8 @@ private:
 	static bool is_prefix( const std::string& prf, const std::string& word );
 
 	/**
-	 * Helper function.
-	 * Depth traversing search for the deepest node N such that a prefix of key
-	 * matches the string representation at N.
+	 * Depth traversing search for the deepest node N such that a prefix of
+	 *     key matches the string representation at N.
 	 * REQUIRES: rt is not null.
 	 * RETURNS: The node N described above.
 	 * GUARANTEES: Since the root node is equivalent to the empty string,
@@ -91,7 +87,6 @@ private:
 	static Node* approximate_match( const Node* const rt, std::string& key );
 
 	/**
-	 * Helper function.
 	 * Depth traversing search for the node that serves as a root for prf.
 	 * REQUIRES: rt is not null.
 	 * RETURNS: The deepest node N such that N and all of N's children have prf as prefix.
@@ -104,7 +99,6 @@ private:
 	static Node* prefix_match( const Node* const rt, std::string& prf );
 
 	/**
-	 * Helper function.
 	 * Depth traversing search for the node that matches word.
 	 * REQUIRES: rt is not null.
 	 * RETURNS: The first node that exactly matches the given word.
@@ -115,7 +109,6 @@ private:
 	static Node* exact_match( const Node* const rt, std::string word );
 
 	/**
-	 * Helper function.
 	 * Counts the number of keys stored at or as children of rt added to acc.
 	 * Equivalent to counting the number of true is_end's accessible from rt.
 	 * REQUIRES: rt is not null.
@@ -271,8 +264,6 @@ public:
 		 */
 		iterator( const Node* const p = nullptr );
 
-		iterator& operator=( iterator other );
-
 		/**
 		 * Prefix increment.
 		 */
@@ -294,7 +285,8 @@ public:
 		 */
 		operator bool() const;
 
-		// Comparison between iterators performs element-wise comparison.
+		/* Comparison between iterators performs element-wise comparison. */
+
 		friend bool operator==( const Trie::iterator& lhs, const Trie::iterator& rhs );
 		friend bool operator!=( const Trie::iterator& lhs, const Trie::iterator& rhs );
 
@@ -384,6 +376,7 @@ public:
 	 * @param rhs: The trie to union with this.
 	 */
 	Trie& operator+=( const Trie& rhs );
+
 	/**
 	 * Removes all of rhs's keys from this.
 	 * REQUIRES: This and rhs are not the same trie.
@@ -408,7 +401,6 @@ bool operator!=( const Trie& lhs, const Trie& rhs );
 bool operator>( const Trie& lhs, const Trie& rhs );
 bool operator<=( const Trie& lhs, const Trie& rhs );
 bool operator>=( const Trie& lhs, const Trie& rhs );
-
 
 // Arithmetic operators, uses += and -=.
 
