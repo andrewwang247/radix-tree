@@ -250,12 +250,12 @@ public:
 		std::string*, // pointer
 		std::string& // reference
 	> {
+	friend class Trie;
 	private:
 		/**
 		 * The current Node being pointed at.
 		 */
 		const Node* ptr;
-	public:
 
 		/**
 		 * Constructor, Node ptr is null by default.
@@ -263,6 +263,8 @@ public:
 		 * @param p: The Node that the iterator is currently pointing at.
 		 */
 		iterator( const Node* const p = nullptr );
+
+	public:
 
 		/**
 		 * Prefix increment.
