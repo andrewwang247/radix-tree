@@ -247,8 +247,8 @@ public:
 		std::forward_iterator_tag, // iterator category
 		std::string, // value_type
 		std::ptrdiff_t, // difference_type
-		std::string*, // pointer
-		std::string& // reference
+		const std::string*, // pointer
+		const std::string& // reference
 	> {
 	friend class Trie;
 	private:
