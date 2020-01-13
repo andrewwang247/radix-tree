@@ -570,10 +570,7 @@ bool operator!=( const Trie& lhs, const Trie& rhs ) {
 
 bool operator<( const Trie& lhs, const Trie& rhs ) {
 	if ( lhs.size() >= rhs.size() ) return false;
-	for ( const string& word : lhs ) {
-		if ( rhs.find(word) == rhs.end() ) return false;
-	}
-	return true;
+	return includes(rhs.begin(), rhs.end(), lhs.begin(), lhs.end());
 }
 
 bool operator>( const Trie& lhs, const Trie& rhs ) {
