@@ -388,7 +388,6 @@ public:
 
 	// Private access for == operators to allow efficient deep equality check. See COMPARISON OF TRIES.
 	friend bool operator==( const Trie& lhs, const Trie& rhs );
-	friend bool operator<( const Trie& lhs, const Trie& rhs );
 };
 
 /* --- SYMMETRIC BINARY OPERATIONS --- */
@@ -399,6 +398,7 @@ We say that A == B if A and B have equivalent keys.
 Define A < B as a proper subset relation.
 */
 
+bool operator<( const Trie& lhs, const Trie& rhs );
 bool operator!=( const Trie& lhs, const Trie& rhs );
 bool operator>( const Trie& lhs, const Trie& rhs );
 bool operator<=( const Trie& lhs, const Trie& rhs );
