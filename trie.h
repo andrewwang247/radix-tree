@@ -30,7 +30,6 @@
  *     an empty children map, and nullptr as parent.
  */
 class Trie {
-
 private:
 
 	/**
@@ -386,7 +385,7 @@ public:
 	 */
 	Trie& operator-=( const Trie& rhs );
 
-	// Private access for == operators to allow efficient deep equality check. See COMPARISON OF TRIES.
+	// Private access for == operator to allow efficient deep equality check. See COMPARISON OF TRIES.
 	friend bool operator==( const Trie& lhs, const Trie& rhs );
 };
 
@@ -396,6 +395,8 @@ public:
 COMPARISON OF TRIES.
 We say that A == B if A and B have equivalent keys.
 Define A < B as a proper subset relation.
+Note: operator== is a friend to take advantage of
+the more efficient Trie::are_equal function.
 */
 
 bool operator<( const Trie& lhs, const Trie& rhs );
@@ -423,9 +424,9 @@ Trie::Trie( InputIterator first, InputIterator last ) : Trie() {
 			insert(*iter);
 		}
 	}
-	catch ( std::exception& e ) {
+	catch ( std::exception& ) {
 		recursive_delete(root);
-		throw e;
+		throw;
 	}
 	assert( check_invariant(root) );
 }

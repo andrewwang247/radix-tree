@@ -29,4 +29,4 @@ noopt : clean $(EXECUTABLE).cpp $(LINKED_CPP)
 # Remove executable binary and generated objected files.
 .PHONY : clean
 clean : 
-	rm -f $(EXECUTABLE) $(EXECUTABLE)_debug *.o
+	rm -f $(EXECUTABLE) $(EXECUTABLE)_debug $(EXECUTABLE).o $(LINKED_O)

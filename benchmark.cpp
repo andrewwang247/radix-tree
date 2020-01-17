@@ -36,7 +36,7 @@ namespace Unit_Test {
 
 namespace Perf_Test {
 	// Returns a Container with the words in word_list.
-	template<class Container>
+	template <class Container>
 	Container get_words( const vector<string>& word_list );
 
 	// Prefix counting test.
@@ -50,6 +50,10 @@ namespace Perf_Test {
 	// Prefix erasing test.
 	void Erase_Test( set<string>& words, string prefix );
 	void Erase_Test( Trie& words, string prefix );
+
+	// Iteration speed test.
+	template <typename Container>
+	void Iterate_Test( const Container& words );
 }
 
 int main() {
@@ -100,7 +104,15 @@ int main() {
 	Perf_Test::Erase_Test(word_set, "pr");
 	Perf_Test::Erase_Test(word_trie, "pr");
 
-	cout << "--- FINISHED PERFORMANCE TEST ---" << endl;
+	// Iteration perf
+	Perf_Test::Iterate_Test(word_set);
+	Perf_Test::Iterate_Test(word_trie);
+
+	cout << "--- FINISHED PERFORMANCE TEST ---\n" << endl;
+
+	if ( equal(word_set.begin(), word_set.end(), word_trie.begin(), word_trie.end()) )
+		cout << "--- FINAL COMPARISON CHECK PASSED ---" << endl;
+	else cout << "--- FINAL COMPARISON CHECK FAILED ---" << endl;
 }
 
 bool is_prefix( const string& prf, const string& word ) {
@@ -326,7 +338,7 @@ bool Unit_Test::Arithmetic_Test() {
 	return true;
 }
 
-template<class Container>
+template <class Container>
 Container Perf_Test::get_words( const vector<string>& word_list ) {
 	// Make announcement.
 	if ( is_same<Container, set<string> >::value ) {
@@ -436,5 +448,29 @@ void Perf_Test::Erase_Test( Trie& words, string prefix ) {
 	auto t1 = high_resolution_clock::now();
 
 	cout << "Erased all words with prefix " << prefix << endl;
+	print_duration(t0, t1);
+}
+
+template <class Container>
+void Perf_Test::Iterate_Test( const Container& words ) {
+	if ( is_same<Container, set<string> >::value ) {
+		cout << "Set iteration...\n";
+	} else if ( is_same<Container, Trie >::value ) {
+		cout << "Trie iteration...\n";
+	} else {
+		throw runtime_error("Container must be either set<string> or Trie.");
+	}
+
+	size_t counter = 0;
+	auto t0 = high_resolution_clock::now();
+	for ( const auto& key : words ) {
+		/*
+		Work-around for compiler flags not using the key variable.
+		Branch prediction should optimize out this call.
+		*/
+		if ( !key.empty() ) ++counter;
+	}
+	auto t1 = high_resolution_clock::now();
+	cout << "Finished iterating over " << counter << " keys.\n";
 	print_duration(t0, t1);
 }

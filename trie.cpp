@@ -241,9 +241,9 @@ Trie::Trie( const initializer_list<string>& key_list ) : Trie() {
 			insert(key);
 		}
 	}
-	catch ( exception& e ) {
+	catch ( exception& ) {
 		recursive_delete( root );
-		throw e;
+		throw;
 	}
 	assert( check_invariant(root) );
 }
@@ -254,9 +254,9 @@ Trie::Trie( const Trie& other ) : Trie() {
 		// The default Trie constructor already set root to a node.
 		recursive_copy( root, other.root );
 	}
-	catch ( exception& e ) {
+	catch ( exception& ) {
 		recursive_delete( root );
-		throw e;
+		throw;
 	}
 	assert( check_invariant(root) );
 }

@@ -80,6 +80,7 @@ The performance of `std::set<std::string>` and `Trie` are compared under big dat
 - Determining the size of various prefix subsets.
 - Finding the range of keys with a given prefix.
 - Mass deletion of all keys with a given prefix.
+- Iterating over the entire container.
 
 ## Invariants
 
