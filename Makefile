@@ -1,7 +1,7 @@
 # Personal Makefile Template.
 CXX = g++
 CXX_FLAGS = -std=c++17 -Wconversion -Wall -Werror -Wextra -pedantic
-OPT = -Ofast -DNDEBUG
+OPT = -O3 -DNDEBUG
 DEBUG = -g3 -DDEBUG
 
 EXECUTABLE = benchmark
