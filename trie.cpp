@@ -1,5 +1,7 @@
 /*
 Copyright 2020. Siwei Wang.
+
+Implementation for Trie.
 */
 #include "trie.h"
 #include <algorithm>
@@ -75,8 +77,10 @@ Trie::Node* Trie::prefix_match(const Node* const rt, string& prf) {
   // If the given prf is empty, it's a perfect match.
   if (prf.empty()) return app_ptr;
 
-  // If any of the returned node's children have prf as prefix, return that
-  // child.
+  /*
+  If any of the returned node's children
+  have prf as prefix, return that child.
+  */
   for (const auto& str_ptr_pair : app_ptr->children) {
     assert(str_ptr_pair.second);
     if (is_prefix(prf, str_ptr_pair.first)) {
@@ -104,8 +108,10 @@ Trie::Node* Trie::exact_match(const Node* const rt, string word) {
   // First compute the approximate root.
   Node* app_ptr = approximate_match(rt, word);
   assert(app_ptr);
-  // If the given word is empty, it's a perfect match. Otherwise, there is no
-  // match.
+  /*
+  If the given word is empty, it's a perfect match.
+  Otherwise, there is no match.
+  */
   return word.empty() ? app_ptr : nullptr;
 }
 
@@ -211,7 +217,7 @@ string Trie::underlying_string(const Node* ptr) {
     par = par->parent;
   }
 
-  // If par is root, then ptr must be root. Concatenate strings in reverse.
+  // If par is null, then ptr must be root. Concatenate strings in reverse.
   string str = "";
   while (!history.empty()) {
     str += history.top();
@@ -234,8 +240,10 @@ bool Trie::check_invariant(const Node* const root) {
     if (str_ptr_pair.second->parent != root) return false;
     // Make sure string is not empty.
     if (str_ptr_pair.first.empty()) return false;
-    // Check that string does not share a prefix with other children.
-    // We only really need to check first char.
+    /*
+    Check that string does not share a prefix with other children.
+    We only really need to check first char.
+    */
     if (characters.find(str_ptr_pair.first.front()) != characters.end())
       return false;
     characters.emplace(str_ptr_pair.first.front());
@@ -253,7 +261,7 @@ Trie::Trie() : root(new Node{false, nullptr, map<string, Node*>()}) {
 
 Trie::Trie(const initializer_list<string>& key_list) : Trie() {
   try {
-    for (auto& key : key_list) {
+    for (const auto& key : key_list) {
       insert(key);
     }
   } catch (...) {
@@ -348,63 +356,92 @@ Trie::iterator Trie::insert(string key) {
   If loc has no children, then just make a child.
   */
   if (loc->children.empty()) {
-    loc->children[key] = new Node{true, loc, map<string, Node*>()};
+    auto child = new Node{true, loc, map<string, Node*>()};
+    try {
+      loc->children[key] = child;
+    } catch (...) {
+      // If insertion fails, destructor will not catch child.
+      delete child;
+    }
     assert(check_invariant(root));
-    return iterator(loc->children[key]);
+    return iterator(child);
   }
 
   // Check children of loc for shared prefixes.
   for (const auto& str_ptr_pair : loc->children) {
-    string child_str = str_ptr_pair.first;
+    const string& child_str = str_ptr_pair.first;
     assert(!child_str.empty());
 
-    // Check when the first letter matches.
-    if (child_str.front() == key.front()) {
-      // Use mismatch to compute the spot where the prefix fails.
-      auto iter_pair = mismatch(key.begin(), key.end(), child_str.begin());
-      // Extract the common prefix and unique postfixes of key and child.
-      string common(key.begin(), iter_pair.first);
-      string post_key(iter_pair.first, key.end());
-      string post_child(iter_pair.second, child_str.end());
-      // If remaining key's prefix can match a child, then approximate_match
-      // failed.
-      assert(!post_child.empty());
+    // Keep iterating until a first letter match is found.
+    if (child_str.front() != key.front()) continue;
 
-      // Create a child for the common part. junction's parent is set.
-      auto junction = new Node{post_key.empty(), loc, map<string, Node*>()};
+    // Use mismatch to compute the spot where the prefix fails.
+    auto iter_pair = mismatch(key.begin(), key.end(), child_str.begin());
+    // Extract the common prefix and unique postfixes of key and child.
+    string common(key.begin(), iter_pair.first);
+    string post_key(iter_pair.first, key.end());
+    string post_child(iter_pair.second, child_str.end());
+    /*
+    If remaining key's prefix can match a child,
+    then approximate_match failed.
+    */
+    assert(!post_child.empty());
+
+    // This node will be moved under junction.
+    auto old_child = loc->children[child_str];
+    // Create a child for the common part. junction's parent is set.
+    auto junction = new Node{post_key.empty(), loc, map<string, Node*>()};
+    try {
       // Add junction to loc under common.
       loc->children[common] = junction;
       // loc child is added to junction's children map.
-      junction->children[post_child] = loc->children[child_str];
-      // The original child's parent pointer is set to junction.
-      loc->children[child_str]->parent = junction;
-      // Remove child_str from loc child map.
-      loc->children.erase(child_str);
+      junction->children[post_child] = old_child;
+    } catch (...) {
+      // Roll back changes, clean up memory, and rethrow.
+      loc->children.erase(common);
+      delete junction;
+      throw;
+    }
+    // The original child's parent pointer is set to junction.
+    old_child->parent = junction;
+    // Remove child_str from loc child map.
+    loc->children.erase(child_str);
 
-      if (!post_key.empty()) {
-        // Add an additional node for the split.
-        auto key_node = new Node{true, junction, map<string, Node*>()};
+    if (!post_key.empty()) {
+      // Add an additional node for the split.
+      auto key_node = new Node{true, junction, map<string, Node*>()};
+      try {
         junction->children[post_key] = key_node;
-
-        assert(check_invariant(root));
-        return iterator(key_node);
-      } else {
-        assert(check_invariant(root));
-        return iterator(junction);
+      } catch (...) {
+        // If insertion fails, destructor will not catch key_node.
+        delete key_node;
       }
+
+      assert(check_invariant(root));
+      return iterator(key_node);
+    } else {
+      assert(check_invariant(root));
+      return iterator(junction);
     }
   }
 
   // If there are no shared prefixes, then simply make a new node under loc.
   auto key_node = new Node{true, loc, map<string, Node*>()};
-  loc->children[key] = key_node;
+  try {
+    loc->children[key] = key_node;
+  } catch (...) {
+    // If insertion fails, destructor will not catch key_node.
+    delete key_node;
+  }
   assert(check_invariant(root));
   return iterator(key_node);
 }
 
 void Trie::erase(string key, bool is_prefix) {
-  // If is_prefix flag is set, simply wipe everything at and under the
-  // prefix_match.
+  /*
+  If is_prefix flag is set, wipe everything
+  at and under the prefix_match.
+  */
   if (is_prefix) {
     auto prf_ptr = prefix_match(root, key);
     if (!prf_ptr) return;
@@ -490,9 +527,11 @@ void Trie::clear() {
 Trie::iterator::iterator(const Node* const p) : ptr(p) {}
 
 Trie::iterator& Trie::iterator::operator++() {
-  // If the ptr has children, return the first child.
-  // Otherwise, return the next node that isn't a child.
-  // Elegantly handles the case when the returned value is nullptr.
+  /*
+  If the ptr has children, return the first child.
+  Otherwise, return the next node that isn't a child.
+  Elegantly handles the case when the returned value is nullptr.
+  */
   ptr = ptr->children.empty() ? next_node(ptr) : first_key(ptr);
   return *this;
 }
@@ -523,9 +562,11 @@ Trie::iterator Trie::end(string prefix) const {
   auto app_ptr = approximate_match(root, prefix);
   assert(app_ptr);
 
-  // If prefix is empty, app_ptr is a prefix match and none of its children
-  // work. If all children of app_ptr are less than prefix, nothing under
-  // app_ptr works.
+  /*
+  If prefix is empty, app_ptr is a prefix match and
+  none of its children work. If all children of app_ptr
+  are less than prefix, nothing under app_ptr works.
+  */
   if (prefix.empty() || app_ptr->children.empty() ||
       app_ptr->children.rbegin()->first < prefix)
     return iterator(next_node(app_ptr));

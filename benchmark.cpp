@@ -1,5 +1,7 @@
 /*
 Copyright 2020. Siwei Wang.
+
+Unit and performance tests for Trie.
 */
 #include <chrono>
 #include <fstream>
@@ -27,14 +29,20 @@ using std::chrono::time_point;
 using std::chrono::_V2::system_clock;
 using time_unit = std::chrono::microseconds;
 
-// Checks if prf is a prefix of word.
+/**
+ * Checks if prf is a prefix of word.
+ */
 bool is_prefix(const string& prf, const string& word);
 
-// Reads perf_word_list file into a vector reserved to num_perf_words.
+/**
+ * Reads perf_word_list file into a vector reserved to num_perf_words.
+ */
 vector<string> read_words(const string& perf_word_list, size_t num_perf_words);
 
-// Prints (to cout) and returns the number of time_units elapsed between start
-// and finish.
+/**
+ * Prints (to cout) and returns the number of
+ * time_units elapsed between start and finish.
+ */
 void print_duration(time_point<system_clock, nanoseconds> start,
                     time_point<system_clock, nanoseconds> finish);
 
@@ -90,29 +98,34 @@ int main() {
   }
 
   cout << "Passed " << passed << " out of " << test_cases.size()
-       << " unit tests." << endl;
+       << " unit tests.\n";
   cout << "--- FINISHED UNIT TESTS ---\n" << endl;
 
   cout << "--- EXECUTING PERFORMANCE TEST ---\n";
   //* Make sure that this announcement matches time_units.
   cout << "Time measured in microseconds.\n";
   const auto master_list = read_words("words.txt", 466551);
+  cout << '\n';
 
   // Insert perf
   auto word_set = Perf_Test::get_words<set<string> >(master_list);
   auto word_trie = Perf_Test::get_words<Trie>(master_list);
+  cout << '\n';
 
   // Count perf
   Perf_Test::Count_Test(word_set);
   Perf_Test::Count_Test(word_trie);
+  cout << '\n';
 
   // Find perf
   Perf_Test::Find_Test(word_set, "re");
   Perf_Test::Find_Test(word_trie, "re");
+  cout << '\n';
 
   // Erase perf
   Perf_Test::Erase_Test(word_set, "pr");
   Perf_Test::Erase_Test(word_trie, "pr");
+  cout << '\n';
 
   // Iteration perf
   Perf_Test::Iterate_Test(word_set);

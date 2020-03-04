@@ -1,5 +1,7 @@
 /*
 Copyright 2020. Siwei Wang.
+
+Interface for Trie.
 */
 #pragma once
 #include <cassert>
