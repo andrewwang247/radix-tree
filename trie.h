@@ -188,7 +188,7 @@ class Trie {
    * GUARANTEES: No memory leaks if exception is thrown.
    * @param key_list: The items to initialize the trie with.
    */
-  Trie(const std::initializer_list<std::string>& key_list);
+  explicit Trie(const std::initializer_list<std::string>& key_list);
 
   /**
    * Range constructor inserts strings contained in [first, last) into trie.

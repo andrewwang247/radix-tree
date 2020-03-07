@@ -21,7 +21,7 @@ The class comes equipped with:
 - copy and move constructors
 - range constructor
 
-All constructors are exception safe. The use RAII prevents memory leaks once the `Trie` has already been constructed.
+All constructors are exception safe. The use of RAII prevents memory leaks once the `Trie` has already been constructed.
 
 ### Size
 
@@ -66,7 +66,7 @@ Running `benchmark.cpp` executes all unit and performance tests. In addition, th
 The `Trie` class is validated with 8 black box unit tests. We test the following functions.
 
 - Default, `initializer_list`, copy, and range constructors.
-- Destructor (does not leak memory).
+- Destructor (recursively deletes allocations).
 - `empty`, `size`, `find`, `insert`, and `erase`.
 - Iterator increment and dereference.
 - Traversal with `begin` and `end`.
