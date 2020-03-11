@@ -24,7 +24,7 @@ void Trie::recursive_copy(Node* const rt, const Node* other) {
   rt->is_end = other->is_end;
   // Recursively copy children.
   for (const auto& str_ptr_pair : other->children) {
-    Node* child = new Node{false, rt, map<string, Node*>()};
+    auto child = new Node{false, rt, map<string, Node*>()};
     rt->children[str_ptr_pair.first] = child;
     recursive_copy(child, str_ptr_pair.second);
   }
@@ -72,7 +72,7 @@ Trie::Node* Trie::approximate_match(const Node* const rt, string& key) {
 
 Trie::Node* Trie::prefix_match(const Node* const rt, string& prf) {
   // First compute the approximate root.
-  Node* app_ptr = approximate_match(rt, prf);
+  auto app_ptr = approximate_match(rt, prf);
   assert(app_ptr);
   // If the given prf is empty, it's a perfect match.
   if (prf.empty()) return app_ptr;
@@ -106,7 +106,7 @@ void Trie::key_counter(const Node* const rt, size_t& acc) {
 
 Trie::Node* Trie::exact_match(const Node* const rt, string word) {
   // First compute the approximate root.
-  Node* app_ptr = approximate_match(rt, word);
+  auto app_ptr = approximate_match(rt, word);
   assert(app_ptr);
   /*
   If the given word is empty, it's a perfect match.
@@ -135,14 +135,6 @@ bool Trie::are_equal(const Node* const rt_1, const Node* const rt_2) {
     ++it_2;
   }
   return true;
-}
-
-map<string, Trie::Node*>::const_iterator Trie::value_find(
-    const map<string, Node*>& m, const Node* const val) {
-  for (auto it = m.begin(); it != m.end(); ++it) {
-    if (it->second == val) return it;
-  }
-  return m.end();
 }
 
 Trie::Node* Trie::first_key(const Node* rt) {
@@ -297,7 +289,7 @@ Trie& Trie::operator=(Trie other) {
 }
 
 bool Trie::empty(string prefix) const {
-  const Node* const prf_rt = prefix_match(root, prefix);
+  const auto prf_rt = prefix_match(root, prefix);
   // Check if prefix root is null
   if (!prf_rt) return true;
   // It's empty if prf_rt is not a word and has no children.
@@ -306,7 +298,7 @@ bool Trie::empty(string prefix) const {
 }
 
 size_t Trie::size(string prefix) const {
-  const Node* const prf_rt = prefix_match(root, prefix);
+  const auto prf_rt = prefix_match(root, prefix);
   if (!prf_rt) return size_t(0);
   size_t counter = 0;
   key_counter(prf_rt, counter);
@@ -323,7 +315,7 @@ Trie::iterator Trie::find(string key, bool is_prefix) const {
   }
 
   // In this case, we need only find a word that key is a prefix of.
-  const Node* prf_rt = prefix_match(root, key);
+  const auto prf_rt = prefix_match(root, key);
   // If key is not a prefix of anything, there is no match.
   if (!prf_rt) return iterator();
 

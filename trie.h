@@ -135,10 +135,11 @@ class Trie {
    * RETURNS: An iterator to the position which matches val.
    *     This is the end iterator if val is not in the map.
    * @param m: The map on which to search.
-   * @param val: The Node we are searching for in the map.
+   * @param val: The value we are searching for in the map.
    */
-  static std::map<std::string, Node*>::const_iterator value_find(
-      const std::map<std::string, Node*>& m, const Node* const val);
+  template <typename K, typename V>
+  static typename std::map<K, V*>::const_iterator value_find(
+      const std::map<K, V*>& m, const V* val);
 
   /**
    * RETURNS: The first key that's a child of rt.
@@ -437,4 +438,13 @@ Trie::Trie(InputIterator first, InputIterator last) : Trie() {
     throw;
   }
   assert(check_invariant(root));
+}
+
+template <typename K, typename V>
+typename std::map<K, V*>::const_iterator Trie::value_find(
+    const std::map<K, V*>& m, const V* val) {
+  for (auto it = m.begin(); it != m.end(); ++it) {
+    if (it->second == val) return it;
+  }
+  return m.end();
 }

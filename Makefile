@@ -1,6 +1,6 @@
 # Personal Makefile Template.
-CXX = g++
-CXX_FLAGS = -std=c++17 -Wconversion -Wall -Werror -Wextra -pedantic
+CXX = g++ -std=c++17
+CXX_FLAGS = -Wall -Werror -Wextra -pedantic -Wconversion
 OPT = -O3 -DNDEBUG
 DEBUG = -g3 -DDEBUG
 
@@ -20,11 +20,6 @@ release : $(EXECUTABLE).cpp $(LINKED_CPP)
 debug : $(EXECUTABLE).cpp $(LINKED_CPP)
 	$(CXX) $(CXX_FLAGS) $(DEBUG) -c $(EXECUTABLE).cpp $(LINKED_CPP)
 	$(CXX) $(CXX_FLAGS) $(DEBUG) $(EXECUTABLE).o $(LINKED_O) -o $(EXECUTABLE)_debug
-
-# Build with no compiler optimization - ensure clean slate.
-noopt : clean $(EXECUTABLE).cpp $(LINKED_CPP)
-	$(CXX) $(CXX_FLAGS) -c $(EXECUTABLE).cpp $(LINKED_CPP)
-	$(CXX) $(CXX_FLAGS) $(EXECUTABLE).o $(LINKED_O) -o $(EXECUTABLE)
 
 # Remove executable binary and generated objected files.
 .PHONY : clean
