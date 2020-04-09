@@ -1,6 +1,6 @@
 # Personal Makefile Template.
 CXX = g++ -std=c++17
-CXX_FLAGS = -Wall -Werror -Wextra -pedantic -Wconversion
+CXX_FLAGS = -Wall -Werror -Wextra -Wconversion -pedantic -Wfloat-equal -Wduplicated-branches -Wduplicated-cond -Wshadow -Wdouble-promotion -Wundef
 OPT = -O3 -DNDEBUG
 DEBUG = -g3 -DDEBUG
 
@@ -19,9 +19,9 @@ release : $(EXECUTABLE).cpp $(LINKED_CPP)
 # Build with debug features - ensure clean slate.
 debug : $(EXECUTABLE).cpp $(LINKED_CPP)
 	$(CXX) $(CXX_FLAGS) $(DEBUG) -c $(EXECUTABLE).cpp $(LINKED_CPP)
-	$(CXX) $(CXX_FLAGS) $(DEBUG) $(EXECUTABLE).o $(LINKED_O) -o $(EXECUTABLE)_debug
+	$(CXX) $(CXX_FLAGS) $(DEBUG) $(EXECUTABLE).o $(LINKED_O) -o $(EXECUTABLE)
 
 # Remove executable binary and generated objected files.
 .PHONY : clean
 clean : 
-	rm -f $(EXECUTABLE) $(EXECUTABLE)_debug $(EXECUTABLE).o $(LINKED_O)
+	rm -f $(EXECUTABLE) $(EXECUTABLE).o $(LINKED_O)

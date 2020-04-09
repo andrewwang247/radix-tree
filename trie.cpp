@@ -25,7 +25,7 @@ void Trie::recursive_copy(Node* const rt, const Node* other) {
   // Recursively copy children.
   for (const auto& str_ptr_pair : other->children) {
     auto child = new Node{false, rt, map<string, Node*>()};
-    rt->children[str_ptr_pair.first] = child;
+    rt->children.emplace(str_ptr_pair.first, child);
     recursive_copy(child, str_ptr_pair.second);
   }
 }
@@ -350,10 +350,11 @@ Trie::iterator Trie::insert(string key) {
   if (loc->children.empty()) {
     auto child = new Node{true, loc, map<string, Node*>()};
     try {
-      loc->children[key] = child;
+      loc->children.emplace(key, child);
     } catch (...) {
       // If insertion fails, destructor will not catch child.
       delete child;
+      throw;
     }
     assert(check_invariant(root));
     return iterator(child);
@@ -380,14 +381,14 @@ Trie::iterator Trie::insert(string key) {
     assert(!post_child.empty());
 
     // This node will be moved under junction.
-    auto old_child = loc->children[child_str];
+    auto old_child = str_ptr_pair.second;
     // Create a child for the common part. junction's parent is set.
     auto junction = new Node{post_key.empty(), loc, map<string, Node*>()};
     try {
       // Add junction to loc under common.
-      loc->children[common] = junction;
+      loc->children.emplace(common, junction);
       // loc child is added to junction's children map.
-      junction->children[post_child] = old_child;
+      junction->children.emplace(post_child, old_child);
     } catch (...) {
       // Roll back changes, clean up memory, and rethrow.
       loc->children.erase(common);
@@ -403,10 +404,11 @@ Trie::iterator Trie::insert(string key) {
       // Add an additional node for the split.
       auto key_node = new Node{true, junction, map<string, Node*>()};
       try {
-        junction->children[post_key] = key_node;
+        junction->children.emplace(post_key, key_node);
       } catch (...) {
         // If insertion fails, destructor will not catch key_node.
         delete key_node;
+        throw;
       }
 
       assert(check_invariant(root));
@@ -420,10 +422,11 @@ Trie::iterator Trie::insert(string key) {
   // If there are no shared prefixes, then simply make a new node under loc.
   auto key_node = new Node{true, loc, map<string, Node*>()};
   try {
-    loc->children[key] = key_node;
+    loc->children.emplace(key, key_node);
   } catch (...) {
     // If insertion fails, destructor will not catch key_node.
     delete key_node;
+    throw;
   }
   assert(check_invariant(root));
   return iterator(key_node);
@@ -481,7 +484,7 @@ void Trie::erase(string key, bool is_prefix) {
       string mod_key = par_iter->first + par->children.begin()->first;
       auto child = par->children.begin()->second;
 
-      grand_par->children[mod_key] = child;
+      grand_par->children.emplace(mod_key, child);
       child->parent = grand_par;
       grand_par->children.erase(par_iter);
       delete par;
@@ -495,7 +498,7 @@ void Trie::erase(string key, bool is_prefix) {
     string joined_key = match_iter->first + only_child->first;
 
     only_child->second->parent = par;
-    par->children[joined_key] = only_child->second;
+    par->children.emplace(joined_key, only_child->second);
     par->children.erase(match_iter);
     delete match;
   }
