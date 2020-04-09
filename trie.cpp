@@ -4,6 +4,7 @@ Copyright 2020. Siwei Wang.
 Implementation for Trie.
 */
 #include "trie.h"
+
 #include <algorithm>
 #include <map>
 #include <stack>
