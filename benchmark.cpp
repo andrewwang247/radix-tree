@@ -26,7 +26,6 @@ using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;
 using std::chrono::nanoseconds;
 using std::chrono::time_point;
-using std::chrono::_V2::system_clock;
 using time_unit = std::chrono::microseconds;
 
 /**
@@ -43,8 +42,8 @@ vector<string> read_words(const string& perf_word_list, size_t num_perf_words);
  * Prints (to cout) and returns the number of
  * time_units elapsed between start and finish.
  */
-void print_duration(time_point<system_clock, nanoseconds> start,
-                    time_point<system_clock, nanoseconds> finish);
+void print_duration(time_point<high_resolution_clock, nanoseconds> start,
+                    time_point<high_resolution_clock, nanoseconds> finish);
 
 namespace Unit_Test {
 bool Empty_Test();
@@ -166,8 +165,8 @@ vector<string> read_words(const string& perf_word_list, size_t num_perf_words) {
   return master_list;
 }
 
-void print_duration(time_point<system_clock, nanoseconds> start,
-                    time_point<system_clock, nanoseconds> finish) {
+void print_duration(time_point<high_resolution_clock, nanoseconds> start,
+                    time_point<high_resolution_clock, nanoseconds> finish) {
   cout << "Duration: " << duration_cast<time_unit>(finish - start).count()
        << endl;
 }
