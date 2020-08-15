@@ -5,23 +5,19 @@ OPT = -O3 -DNDEBUG
 DEBUG = -g3 -DDEBUG
 
 EXECUTABLE = benchmark
-LINKED_FILES = trie
-
-# Expand the linked file names into lists of .cpp and .o files.
-LINKED_CPP = $(foreach file, $(LINKED_FILES), $(file).cpp)
-LINKED_O = $(foreach file, $(LINKED_FILES), $(file).o)
+LINKED = trie
 
 # Build optimized executable - ensure clean slate.
-release : $(EXECUTABLE).cpp $(LINKED_CPP)
-	$(CXX) $(CXX_FLAGS) $(OPT) -c $(EXECUTABLE).cpp $(LINKED_CPP)
-	$(CXX) $(CXX_FLAGS) $(OPT) $(EXECUTABLE).o $(LINKED_O) -o $(EXECUTABLE)
+release : $(EXECUTABLE).cpp $(LINKED).cpp
+	$(CXX) $(CXX_FLAGS) $(OPT) -c $(EXECUTABLE).cpp $(LINKED).cpp
+	$(CXX) $(CXX_FLAGS) $(OPT) $(EXECUTABLE).o $(LINKED).o -o $(EXECUTABLE)
 
 # Build with debug features - ensure clean slate.
-debug : $(EXECUTABLE).cpp $(LINKED_CPP)
-	$(CXX) $(CXX_FLAGS) $(DEBUG) -c $(EXECUTABLE).cpp $(LINKED_CPP)
-	$(CXX) $(CXX_FLAGS) $(DEBUG) $(EXECUTABLE).o $(LINKED_O) -o $(EXECUTABLE)
+debug : $(EXECUTABLE).cpp $(LINKED).cpp
+	$(CXX) $(CXX_FLAGS) $(DEBUG) -c $(EXECUTABLE).cpp $(LINKED).cpp
+	$(CXX) $(CXX_FLAGS) $(DEBUG) $(EXECUTABLE).o $(LINKED).o -o $(EXECUTABLE)
 
 # Remove executable binary and generated objected files.
 .PHONY : clean
 clean : 
-	rm -f $(EXECUTABLE) $(EXECUTABLE).o $(LINKED_O)
+	rm -f $(EXECUTABLE) $(EXECUTABLE).o $(LINKED).o
