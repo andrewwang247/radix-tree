@@ -10,6 +10,7 @@ Interface for Trie.
 #include <iostream>
 #include <iterator>
 #include <map>
+#include <memory>
 #include <string>
 
 /**
@@ -42,18 +43,24 @@ class Trie {
    * to a full key, the is_end flag is set to true.
    */
   struct Node {
-    // Flag for when the given Node ends a full word. False by default.
-    bool is_end = false;
-    // Pointer to the parent node, null by default.
-    Node* parent = nullptr;
+    // Flag for when the given Node ends a full word.
+    bool is_end;
+    // Pointer to the parent node.
+    std::weak_ptr<Node> parent;
     // Set of pointers to the children node.
-    std::map<std::string, Node*> children;
+    std::map<std::string, std::shared_ptr<Node>> children;
+    /**
+     * Construct a new node with no children.
+     * @param is_end_in The is_end value.
+     * @param parent_in The parent pointer.
+     */
+    Node(bool is_end_in, std::shared_ptr<Node> const parent_in);
   };
 
   /**
    * Private member variable pointing to the root node.
    */
-  Node* root;
+  std::shared_ptr<Node> root;
 
   /* --- HELPER FUNCTIONS --- */
 
@@ -62,13 +69,8 @@ class Trie {
    * REQUIRES: rt and other are not null but empty.
    * THROWS: std::bad_alloc if @new fails.
    */
-  static void recursive_copy(Node* const rt, const Node* const other);
-
-  /**
-   * Recursively deletes all nodes that are children
-   * of rt as well as rt itself.
-   */
-  static void recursive_delete(Node* rt);
+  static void recursive_copy(std::shared_ptr<Node> const rt,
+                             const std::shared_ptr<Node> other);
 
   /**
    * RETURNS: whether or not prf is a prefix of word.
@@ -89,7 +91,8 @@ class Trie {
    * @param rt: The node at which to start searching.
    * @param key: The key on which to make an approximate match.
    */
-  static Node* approximate_match(const Node* const rt, std::string& key);
+  static std::shared_ptr<Node> approximate_match(const std::shared_ptr<Node> rt,
+                                                 std::string& key);
 
   /**
    * Depth traversing search for the node that serves as a root for prf.
@@ -101,7 +104,8 @@ class Trie {
    * @param rt: The node at which to start searching.
    * @param prf: The prefix which the return node should be a root of.
    */
-  static Node* prefix_match(const Node* const rt, std::string& prf);
+  static std::shared_ptr<Node> prefix_match(const std::shared_ptr<Node> rt,
+                                            std::string& prf);
 
   /**
    * Depth traversing search for the node that matches word.
@@ -111,7 +115,8 @@ class Trie {
    * @param rt: The root node from which to search.
    * @param word: The string we are trying to match.
    */
-  static Node* exact_match(const Node* const rt, std::string word);
+  static std::shared_ptr<Node> exact_match(const std::shared_ptr<Node> rt,
+                                           std::string word);
 
   /**
    * Counts the number of keys stored at or as children of rt added to acc.
@@ -120,7 +125,7 @@ class Trie {
    * @param rt: The root node at which to start counting.
    * @param acc: The value at which to start counting.
    */
-  static void key_counter(const Node* const rt, size_t& acc);
+  static void key_counter(const std::shared_ptr<Node> rt, size_t& acc);
 
   /**
    * RETURNS: Whether or not the tries rooted at rt_1 and rt_2 are equivalent.
@@ -128,7 +133,8 @@ class Trie {
    * @param rt_1: The root of the first trie.
    * @param rt_2: The root of the second trie.
    */
-  static bool are_equal(const Node* const rt_1, const Node* const rt_2);
+  static bool are_equal(const std::shared_ptr<Node> rt_1,
+                        const std::shared_ptr<Node> rt_2);
 
   /**
    * Searches for the the given value in a map.
@@ -138,8 +144,8 @@ class Trie {
    * @param val: The value we are searching for in the map.
    */
   template <typename K, typename V>
-  static typename std::map<K, V*>::const_iterator value_find(
-      const std::map<K, V*>& m, const V* val);
+  static typename std::map<K, std::shared_ptr<V>>::const_iterator value_find(
+      const std::map<K, std::shared_ptr<V>>& m, const std::shared_ptr<V> val);
 
   /**
    * RETURNS: The first key that's a child of rt.
@@ -147,7 +153,7 @@ class Trie {
    * REQUIRES: rt is not null.
    * @param rt: The root node at which to start.
    */
-  static Node* first_key(const Node* rt);
+  static std::shared_ptr<Node> first_key(std::shared_ptr<Node> rt);
 
   /**
    * RETURNS: The first key AFTER ptr that is not a child of ptr.
@@ -156,21 +162,21 @@ class Trie {
    * GUARANTEES: The returned Node is_end (or nullptr).
    * @param ptr: Starting node position.
    */
-  static Node* next_node(const Node* ptr);
+  static std::shared_ptr<Node> next_node(const std::shared_ptr<Node> ptr);
 
   /**
    * RETURNS: The string representation at ptr.
    * REQUIRES: Parent pointers along ptr are not cyclic (infinite loop)
    * @param ptr: The node for which we are trying to construct a string.
    */
-  static std::string underlying_string(const Node* ptr);
+  static std::string underlying_string(std::shared_ptr<Node> ptr);
 
   /**
    * This function is only used for testing!
    * RETURNS: Whether or not the tree at root is valid (satisfies invariants).
    * @param root: The root of the tree to check.
    */
-  static bool check_invariant(const Node* const root);
+  static bool check_invariant(const std::shared_ptr<Node> root);
 
  public:
   /**
@@ -217,11 +223,6 @@ class Trie {
   Trie(Trie&& other);
 
   /**
-   * Destructor.
-   */
-  ~Trie();
-
-  /**
    * Assignment operator.
    * @param other: The trie to assign to this.
    */
@@ -261,14 +262,14 @@ class Trie {
     /**
      * The current Node being pointed at.
      */
-    const Node* ptr;
+    std::shared_ptr<Node> ptr;
 
     /**
      * Constructor, Node ptr is null by default.
      * @param t: The trie reference to assign to tree.
      * @param p: The Node that the iterator is currently pointing at.
      */
-    explicit iterator(const Node* const p = nullptr);
+    explicit iterator(const std::shared_ptr<Node> p = nullptr);
 
    public:
     /**
@@ -429,20 +430,15 @@ std::ostream& operator<<(std::ostream& os, const Trie& tree);
 
 template <typename InputIterator>
 Trie::Trie(InputIterator first, InputIterator last) : Trie() {
-  try {
-    for (InputIterator iter = first; iter != last; ++iter) {
-      insert(*iter);
-    }
-  } catch (...) {
-    recursive_delete(root);
-    throw;
+  for (InputIterator iter = first; iter != last; ++iter) {
+    insert(*iter);
   }
   assert(check_invariant(root));
 }
 
 template <typename K, typename V>
-typename std::map<K, V*>::const_iterator Trie::value_find(
-    const std::map<K, V*>& m, const V* val) {
+typename std::map<K, std::shared_ptr<V>>::const_iterator Trie::value_find(
+    const std::map<K, std::shared_ptr<V>>& m, const std::shared_ptr<V> val) {
   for (auto it = m.begin(); it != m.end(); ++it) {
     if (it->second == val) return it;
   }

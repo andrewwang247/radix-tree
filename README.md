@@ -21,8 +21,6 @@ The class comes equipped with:
 - copy and move constructors
 - range constructor
 
-All constructors are exception safe. The use of RAII prevents memory leaks once the `Trie` has already been constructed.
-
 ### Size
 
 The `empty` and `size` functions take a `prefix` parameter that is empty by default. They return, respectively:

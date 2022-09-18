@@ -7,37 +7,36 @@ Implementation for Trie.
 
 #include <algorithm>
 #include <map>
+#include <memory>
 #include <stack>
 #include <unordered_set>
 #include <utility>
 using std::initializer_list;
+using std::make_shared;
 using std::map;
+using std::move;
 using std::ostream;
 using std::runtime_error;
+using std::shared_ptr;
 using std::stack;
 using std::string;
 using std::swap;
 using std::unordered_set;
 
-void Trie::recursive_copy(Node* const rt, const Node* other) {
+Trie::Node::Node(bool is_end_in, std::shared_ptr<Node> parent_in)
+    : is_end(is_end_in), parent(parent_in), children() {}
+
+void Trie::recursive_copy(std::shared_ptr<Node> rt,
+                          const std::shared_ptr<Node> other) {
   assert(rt && other);
   // Make rt's is_end the same as other's is_end.
   rt->is_end = other->is_end;
   // Recursively copy children.
   for (const auto& str_ptr_pair : other->children) {
-    auto child = new Node{false, rt, map<string, Node*>()};
-    rt->children.emplace(str_ptr_pair.first, child);
+    const auto child = make_shared<Node>(false, rt);
+    rt->children.emplace(str_ptr_pair.first, std::move(child));
     recursive_copy(child, str_ptr_pair.second);
   }
-}
-
-void Trie::recursive_delete(Node* rt) {
-  if (!rt) return;
-  // Recursively delete all children.
-  for (auto& str_ptr_pair : rt->children) {
-    recursive_delete(str_ptr_pair.second);
-  }
-  delete rt;
 }
 
 bool Trie::is_prefix(const string& prf, const string& word) {
@@ -52,10 +51,11 @@ bool Trie::is_prefix(const string& prf, const string& word) {
   return res.first == prf.end();
 }
 
-Trie::Node* Trie::approximate_match(const Node* const rt, string& key) {
+std::shared_ptr<Trie::Node> Trie::approximate_match(
+    const std::shared_ptr<Node> rt, string& key) {
   assert(rt);
   // If the key is empty, return the root node.
-  if (key.empty()) return const_cast<Node*>(rt);
+  if (key.empty()) return rt;
 
   for (const auto& str_ptr_pair : rt->children) {
     assert(str_ptr_pair.second);
@@ -68,10 +68,11 @@ Trie::Node* Trie::approximate_match(const Node* const rt, string& key) {
   }
 
   // If none of the children form a prefix for key, simply return the root.
-  return const_cast<Node*>(rt);
+  return rt;
 }
 
-Trie::Node* Trie::prefix_match(const Node* const rt, string& prf) {
+std::shared_ptr<Trie::Node> Trie::prefix_match(const std::shared_ptr<Node> rt,
+                                               string& prf) {
   // First compute the approximate root.
   auto app_ptr = approximate_match(rt, prf);
   assert(app_ptr);
@@ -94,7 +95,7 @@ Trie::Node* Trie::prefix_match(const Node* const rt, string& prf) {
   return nullptr;
 }
 
-void Trie::key_counter(const Node* const rt, size_t& acc) {
+void Trie::key_counter(const std::shared_ptr<Node> rt, size_t& acc) {
   assert(rt);
   // If root contains a word, increment the counter.
   if (rt->is_end) ++acc;
@@ -105,7 +106,8 @@ void Trie::key_counter(const Node* const rt, size_t& acc) {
   }
 }
 
-Trie::Node* Trie::exact_match(const Node* const rt, string word) {
+std::shared_ptr<Trie::Node> Trie::exact_match(const std::shared_ptr<Node> rt,
+                                              string word) {
   // First compute the approximate root.
   auto app_ptr = approximate_match(rt, word);
   assert(app_ptr);
@@ -116,7 +118,8 @@ Trie::Node* Trie::exact_match(const Node* const rt, string word) {
   return word.empty() ? app_ptr : nullptr;
 }
 
-bool Trie::are_equal(const Node* const rt_1, const Node* const rt_2) {
+bool Trie::are_equal(const std::shared_ptr<Node> rt_1,
+                     const std::shared_ptr<Node> rt_2) {
   assert(rt_1 && rt_2);
   // Check is_end parameters match.
   if (rt_1->is_end != rt_2->is_end) return false;
@@ -138,12 +141,11 @@ bool Trie::are_equal(const Node* const rt_1, const Node* const rt_2) {
   return true;
 }
 
-Trie::Node* Trie::first_key(const Node* rt) {
+std::shared_ptr<Trie::Node> Trie::first_key(std::shared_ptr<Node> rt) {
   assert(rt);
 
   // If rt has no children, nullptr.
   if (rt->children.empty()) return nullptr;
-
   rt = rt->children.begin()->second;
   assert(rt);
 
@@ -154,20 +156,20 @@ Trie::Node* Trie::first_key(const Node* rt) {
     rt = rt->children.begin()->second;
     assert(rt);
   }
-  return const_cast<Node*>(rt);
+  return rt;
 }
 
-Trie::Node* Trie::next_node(const Node* ptr) {
+std::shared_ptr<Trie::Node> Trie::next_node(std::shared_ptr<Node> ptr) {
   assert(ptr);
 
   // Go up once then keep going up until we can move right.
-  auto par = ptr->parent;
+  auto par = ptr->parent.lock();
   // Note that par->children cannot be empty since its a parent.
   assert(!par->children.empty());
   while (par && par->children.rbegin()->second == ptr) {
     // Move up.
     ptr = par;
-    par = par->parent;
+    par = par->parent.lock();
   }
 
   // If par is null, there is nothing to the right. Return null
@@ -191,13 +193,13 @@ Trie::Node* Trie::next_node(const Node* ptr) {
   return first_key(rn);
 }
 
-string Trie::underlying_string(const Node* ptr) {
+string Trie::underlying_string(std::shared_ptr<Node> ptr) {
   assert(ptr);
 
   // As we move up, push string representations onto stack.
   stack<string> history;
   // Move up in trie until we get to root.
-  auto par = ptr->parent;
+  auto par = ptr->parent.lock();
 
   while (par) {
     // We must be able to find ptr in par->children.
@@ -207,7 +209,7 @@ string Trie::underlying_string(const Node* ptr) {
     // Push the string representation onto the stack and go up.
     history.push(iter->first);
     ptr = par;
-    par = par->parent;
+    par = par->parent.lock();
   }
 
   // If par is null, then ptr must be root. Concatenate strings in reverse.
@@ -220,7 +222,7 @@ string Trie::underlying_string(const Node* ptr) {
   return str;
 }
 
-bool Trie::check_invariant(const Node* const root) {
+bool Trie::check_invariant(const shared_ptr<Node> root) {
   // Check that root is non-null.
   if (!root) return false;
   unordered_set<char> characters;
@@ -230,7 +232,7 @@ bool Trie::check_invariant(const Node* const root) {
     // No null nodes in children tree.
     if (!str_ptr_pair.second) return false;
     // Ensure that its parent is root.
-    if (str_ptr_pair.second->parent != root) return false;
+    if (str_ptr_pair.second->parent.lock() != root) return false;
     // Make sure string is not empty.
     if (str_ptr_pair.first.empty()) return false;
     /*
@@ -248,31 +250,20 @@ bool Trie::check_invariant(const Node* const root) {
   return true;
 }
 
-Trie::Trie() : root(new Node{false, nullptr, map<string, Node*>()}) {
+Trie::Trie() : root(make_shared<Node>(false, nullptr)) {
   assert(check_invariant(root));
 }
 
 Trie::Trie(const initializer_list<string>& key_list) : Trie() {
-  try {
-    for (const auto& key : key_list) {
-      insert(key);
-    }
-  } catch (...) {
-    recursive_delete(root);
-    throw;
+  for (const auto& key : key_list) {
+    insert(key);
   }
   assert(check_invariant(root));
 }
 
 Trie::Trie(const Trie& other) : Trie() {
   assert(other.root);
-  try {
-    // The default Trie constructor already set root to a node.
-    recursive_copy(root, other.root);
-  } catch (...) {
-    recursive_delete(root);
-    throw;
-  }
+  recursive_copy(root, other.root);
   assert(check_invariant(root));
 }
 
@@ -280,8 +271,6 @@ Trie::Trie(Trie&& other) : Trie() {
   swap(*this, other);
   assert(check_invariant(root));
 }
-
-Trie::~Trie() { recursive_delete(root); }
 
 Trie& Trie::operator=(Trie other) {
   swap(*this, other);
@@ -349,14 +338,8 @@ Trie::iterator Trie::insert(string key) {
   If loc has no children, then just make a child.
   */
   if (loc->children.empty()) {
-    auto child = new Node{true, loc, map<string, Node*>()};
-    try {
-      loc->children.emplace(key, child);
-    } catch (...) {
-      // If insertion fails, destructor will not catch child.
-      delete child;
-      throw;
-    }
+    auto child = make_shared<Node>(true, loc);
+    loc->children.emplace(key, child);
     assert(check_invariant(root));
     return iterator(child);
   }
@@ -384,18 +367,11 @@ Trie::iterator Trie::insert(string key) {
     // This node will be moved under junction.
     auto old_child = str_ptr_pair.second;
     // Create a child for the common part. junction's parent is set.
-    auto junction = new Node{post_key.empty(), loc, map<string, Node*>()};
-    try {
-      // Add junction to loc under common.
-      loc->children.emplace(common, junction);
-      // loc child is added to junction's children map.
-      junction->children.emplace(post_child, old_child);
-    } catch (...) {
-      // Roll back changes, clean up memory, and rethrow.
-      loc->children.erase(common);
-      delete junction;
-      throw;
-    }
+    auto junction = make_shared<Node>(post_key.empty(), loc);
+    // Add junction to loc under common.
+    loc->children.emplace(common, junction);
+    // loc child is added to junction's children map.
+    junction->children.emplace(post_child, old_child);
     // The original child's parent pointer is set to junction.
     old_child->parent = junction;
     // Remove child_str from loc child map.
@@ -403,14 +379,8 @@ Trie::iterator Trie::insert(string key) {
 
     if (!post_key.empty()) {
       // Add an additional node for the split.
-      auto key_node = new Node{true, junction, map<string, Node*>()};
-      try {
-        junction->children.emplace(post_key, key_node);
-      } catch (...) {
-        // If insertion fails, destructor will not catch key_node.
-        delete key_node;
-        throw;
-      }
+      auto key_node = make_shared<Node>(true, junction);
+      junction->children.emplace(post_key, key_node);
 
       assert(check_invariant(root));
       return iterator(key_node);
@@ -420,15 +390,9 @@ Trie::iterator Trie::insert(string key) {
     }
   }
 
-  // If there are no shared prefixes, then simply make a new node under loc.
-  auto key_node = new Node{true, loc, map<string, Node*>()};
-  try {
-    loc->children.emplace(key, key_node);
-  } catch (...) {
-    // If insertion fails, destructor will not catch key_node.
-    delete key_node;
-    throw;
-  }
+  // If there are no shared prefixes, then simply create a node under loc.
+  auto key_node = make_shared<Node>(true, loc);
+  loc->children.emplace(key, key_node);
   assert(check_invariant(root));
   return iterator(key_node);
 }
@@ -444,10 +408,9 @@ void Trie::erase(string key, bool is_prefix) {
     if (prf_ptr == root) {
       clear();
     } else {
-      auto par = prf_ptr->parent;
+      auto par = prf_ptr->parent.lock();
       assert(par);
       par->children.erase(value_find(par->children, prf_ptr));
-      recursive_delete(prf_ptr);
     }
     assert(check_invariant(root));
     return;
@@ -469,14 +432,13 @@ void Trie::erase(string key, bool is_prefix) {
   }
 
   if (match->children.empty()) {
-    auto par = match->parent;
+    auto par = match->parent.lock();
     auto match_iter = value_find(par->children, match);
     par->children.erase(match_iter);
-    delete match;
 
     // Check for possible joining with grand parent.
     if (par->children.size() == 1 && par != root && !par->is_end) {
-      auto grand_par = par->parent;
+      auto grand_par = par->parent.lock();
       assert(grand_par);
       auto par_iter = value_find(grand_par->children, par);
       assert(par_iter != grand_par->children.end());
@@ -488,12 +450,11 @@ void Trie::erase(string key, bool is_prefix) {
       grand_par->children.emplace(mod_key, child);
       child->parent = grand_par;
       grand_par->children.erase(par_iter);
-      delete par;
     }
   } else if (match->children.size() == 1) {
     // Extract child and parent string to form joined key.
     auto only_child = match->children.begin();
-    auto par = match->parent;
+    auto par = match->parent.lock();
     assert(par);
     auto match_iter = value_find(par->children, match);
     string joined_key = match_iter->first + only_child->first;
@@ -501,7 +462,6 @@ void Trie::erase(string key, bool is_prefix) {
     only_child->second->parent = par;
     par->children.emplace(joined_key, only_child->second);
     par->children.erase(match_iter);
-    delete match;
   }
 
   assert(check_invariant(root));
@@ -510,17 +470,13 @@ void Trie::erase(string key, bool is_prefix) {
 
 void Trie::clear() {
   // Clear everything under root.
-  for (const auto& str_ptr_pair : root->children) {
-    recursive_delete(str_ptr_pair.second);
-  }
   root->children.clear();
-  // Reset the root node to delete empty string.
   root->is_end = false;
-  assert(!root->parent);
+  assert(!root->parent.lock());
   assert(check_invariant(root));
 }
 
-Trie::iterator::iterator(const Node* const p) : ptr(p) {}
+Trie::iterator::iterator(const std::shared_ptr<Node> p) : ptr(p) {}
 
 Trie::iterator& Trie::iterator::operator++() {
   /*

@@ -10,6 +10,7 @@ Unit and performance tests for Trie.
 #include <set>
 #include <type_traits>
 #include <vector>
+
 #include "trie.h"
 
 using std::cout;
@@ -79,7 +80,7 @@ void Iterate_Test(const Container& words);
 }  // namespace Perf_Test
 
 int main() {
-  vector<function<bool()> > test_cases{
+  vector<function<bool()>> test_cases{
       Unit_Test::Empty_Test,      Unit_Test::Find_Test,
       Unit_Test::Insert_Test,     Unit_Test::Erase_Test,
       Unit_Test::Iteration_Test,  Unit_Test::Copy_Test,
@@ -107,7 +108,7 @@ int main() {
   cout << '\n';
 
   // Insert perf
-  auto word_set = Perf_Test::get_words<set<string> >(master_list);
+  auto word_set = Perf_Test::get_words<set<string>>(master_list);
   auto word_trie = Perf_Test::get_words<Trie>(master_list);
   cout << '\n';
 
@@ -378,7 +379,7 @@ bool Unit_Test::Arithmetic_Test() {
 template <class Container>
 Container Perf_Test::get_words(const vector<string>& word_list) {
   // Make announcement.
-  if (is_same<Container, set<string> >::value) {
+  if (is_same<Container, set<string>>::value) {
     cout << "Set insertion...\n";
   } else if (is_same<Container, Trie>::value) {
     cout << "Trie insertion...\n";
@@ -492,7 +493,7 @@ void Perf_Test::Erase_Test(Trie& words, string prefix) {
 
 template <class Container>
 void Perf_Test::Iterate_Test(const Container& words) {
-  if (is_same<Container, set<string> >::value) {
+  if (is_same<Container, set<string>>::value) {
     cout << "Set iteration...\n";
   } else if (is_same<Container, Trie>::value) {
     cout << "Trie iteration...\n";
