@@ -14,8 +14,8 @@ Interface for Trie.
 #include <string>
 
 /**
- * A compact prefix tree with keys as std::basic_string.
- * The empty string is always contained in the trie.
+ * @brief A compact prefix tree with keys as std::basic_string. The empty string
+ * is always contained in the trie.
  *
  * Radix tree invariants.
  * 1. Given a node N, children of N do not share any common non-empty prefixes.
@@ -39,142 +39,126 @@ Interface for Trie.
 class Trie {
  private:
   /**
-   * Defines a singular node in the Trie data structure. If it corresponds
-   * to a full key, the is_end flag is set to true.
+   * @brief Defines a singular node in the Trie data structure.
    */
   struct Node {
-    // Flag for when the given Node ends a full word.
     bool is_end;
-    // Pointer to the parent node.
     std::weak_ptr<Node> parent;
-    // Set of pointers to the children node.
     std::map<std::string, std::shared_ptr<Node>> children;
     /**
-     * Construct a new node with no children.
+     * @brief Construct a new node with no children.
      * @param is_end_in The is_end value.
      * @param parent_in The parent pointer.
      */
     Node(bool is_end_in, std::shared_ptr<Node> const parent_in);
   };
 
-  /**
-   * Private member variable pointing to the root node.
-   */
   std::shared_ptr<Node> root;
 
   /* --- HELPER FUNCTIONS --- */
 
   /**
-   * Recursively copies other into rt.
-   * REQUIRES: rt and other are not null but empty.
-   * THROWS: std::bad_alloc if @new fails.
+   * @brief Recursively copies other into rt.
    */
   static void recursive_copy(std::shared_ptr<Node> const rt,
                              const std::shared_ptr<Node> other);
 
   /**
-   * RETURNS: whether or not prf is a prefix of word.
-   * @param prf: The string to match with the beginning of word.
-   * @param word: The full string for which we are testing existence of a
-   * prefix.
+   * @brief Check for prefixes of words.
+   * @param prf The string to match with the beginning of word.
+   * @param word The full prefix to test.
+   * @return whether or not prf is a prefix of word.
    */
   static bool is_prefix(const std::string& prf, const std::string& word);
 
   /**
-   * Depth traversing search for the deepest node N such that a prefix of
-   *     key matches the string representation at N.
-   * REQUIRES: rt is not null.
-   * RETURNS: The node N described above.
-   * GUARANTEES: Since the root node is equivalent to the empty string,
-   *    this function will never return a nullptr.
-   * MODIFIES: Key such that the string representation at N is removed.
-   * @param rt: The node at which to start searching.
-   * @param key: The key on which to make an approximate match.
+   * @brief Depth traversing search for the deepest node N such that a prefix of
+   * key matches the string representation at N.
+   * @param rt The non-null node at which to start searching.
+   * @param key The key on which to make an approximate match. Modifies key
+   * such that the string representation at N is removed.
+   * @return The node N described above. Since the root node is equivalent to
+   * the empty string, N is never null.
    */
   static std::shared_ptr<Node> approximate_match(const std::shared_ptr<Node> rt,
                                                  std::string& key);
 
   /**
-   * Depth traversing search for the node that serves as a root for prf.
-   * REQUIRES: rt is not null.
-   * RETURNS: The deepest node N such that N and all of N's children have prf as
-   * prefix. If prf is not a prefix, returns a nullptr. MODIFIES: prf so that
-   * the string at prefix_match is removed from prf. Note that if prf is not a
-   * prefix, the modified prf reflects as far as it got.
-   * @param rt: The node at which to start searching.
-   * @param prf: The prefix which the return node should be a root of.
+   * @brief Depth traversing search for the node that serves as a root for prf.
+   * @param rt The non-null node at which to start searching.
+   * @param prf The prefix which the return node should be a root of. Modifies
+   * so that the string at prefix_match is removed from prf. Note that if prf is
+   * not a prefix, the modified prf reflects as far as it got.
+   * @return The deepest node N such that N and all of N's children have prf as
+   * prefix. If prf is not a prefix, returns a nullptr.
    */
   static std::shared_ptr<Node> prefix_match(const std::shared_ptr<Node> rt,
                                             std::string& prf);
 
   /**
-   * Depth traversing search for the node that matches word.
-   * REQUIRES: rt is not null.
-   * RETURNS: The first node that exactly matches the given word.
-   *     If no match is found, returns a nullptr.
-   * @param rt: The root node from which to search.
-   * @param word: The string we are trying to match.
+   * @brief Depth traversing search for the node that matches word.
+   * @param rt The non-null root node from which to search.
+   * @param word The string we are trying to match.
+   * @return The first node that exactly matches the given word. If no match is
+   * found, returns a nullptr.
    */
   static std::shared_ptr<Node> exact_match(const std::shared_ptr<Node> rt,
                                            std::string word);
 
   /**
-   * Counts the number of keys stored at or as children of rt added to acc.
-   * Equivalent to counting the number of true is_end's accessible from rt.
-   * REQUIRES: rt is not null.
-   * @param rt: The root node at which to start counting.
-   * @param acc: The value at which to start counting.
+   * @brief Counts the number of keys stored at or as children of rt added to
+   * acc. Equivalent to counting the number of true is_end's accessible from rt.
+   * @param rt The non-null root node at which to start counting.
+   * @param acc The value at which to start counting.
    */
   static void key_counter(const std::shared_ptr<Node> rt, size_t& acc);
 
   /**
-   * RETURNS: Whether or not the tries rooted at rt_1 and rt_2 are equivalent.
-   * REQUIRES: rt_1 and rt_2 are not null.
-   * @param rt_1: The root of the first trie.
-   * @param rt_2: The root of the second trie.
+   * @brief Deep equality check.
+   * @param rt_1: The non-null root of the first trie.
+   * @param rt_2: The non-null root of the second trie.
+   * @return Whether or not the tries rooted at rt_1 and rt_2 are equivalent.
    */
   static bool are_equal(const std::shared_ptr<Node> rt_1,
                         const std::shared_ptr<Node> rt_2);
 
   /**
-   * Searches for the the given value in a map.
-   * RETURNS: An iterator to the position which matches val.
-   *     This is the end iterator if val is not in the map.
-   * @param m: The map on which to search.
-   * @param val: The value we are searching for in the map.
+   * @brief Searches for the the given value in a map.
+   * @param m The map on which to search.
+   * @param val The value we are searching for in the map.
+   * @return An iterator to the position which matches val. This is the end
+   * iterator if val is not in the map.
    */
   template <typename K, typename V>
   static typename std::map<K, std::shared_ptr<V>>::const_iterator value_find(
       const std::map<K, std::shared_ptr<V>>& m, const std::shared_ptr<V> val);
 
   /**
-   * RETURNS: The first key that's a child of rt.
-   *     If trie is empty, returns a nullptr.
-   * REQUIRES: rt is not null.
-   * @param rt: The root node at which to start.
+   * @brief Find the first child key.
+   * @param rt The non-null root node at which to start.
+   * @return The first key that's a child of rt or nullptr if empty.
    */
   static std::shared_ptr<Node> first_key(std::shared_ptr<Node> rt);
 
   /**
-   * RETURNS: The first key AFTER ptr that is not a child of ptr.
-   *    If there isn't such a key, returns nullptr.
-   * REQUIRES: ptr is not null.
-   * GUARANTEES: The returned Node is_end (or nullptr).
-   * @param ptr: Starting node position.
+   * @brief Get the next need for in-order traversal.
+   * @param ptr The non-null starting node position.
+   * @return The first key AFTER ptr that is not a child of ptr. If there isn't
+   * such a key, returns nullptr.
    */
   static std::shared_ptr<Node> next_node(const std::shared_ptr<Node> ptr);
 
   /**
-   * RETURNS: The string representation at ptr.
-   * REQUIRES: Parent pointers along ptr are not cyclic (infinite loop)
-   * @param ptr: The node for which we are trying to construct a string.
+   * @brief Reconstruct string from node.
+   * @param ptr The node for which we are trying to construct a string.
+   * @return The string representation at ptr.
    */
   static std::string underlying_string(std::shared_ptr<Node> ptr);
 
   /**
-   * This function is only used for testing!
-   * RETURNS: Whether or not the tree at root is valid (satisfies invariants).
-   * @param root: The root of the tree to check.
+   * @brief This function is only used for testing!
+   * @param root The root of the tree to check.
+   * @return Whether or not the tree at root is valid (satisfies invariants).
    */
   static bool check_invariant(const std::shared_ptr<Node> root);
 
@@ -185,24 +169,22 @@ class Trie {
   static constexpr bool PREFIX_FLAG = true;
 
   /**
-   * Default constructor initializes empty trie.
+   * @brief Default constructor initializes empty trie.
    */
   Trie();
 
   /**
-   * Initializer list constructor inserts strings in key_list into trie.
+   * @brief Initializer list constructor inserts strings in key_list into trie.
    * Duplicates are ignored.
-   * GUARANTEES: No memory leaks if exception is thrown.
-   * @param key_list: The items to initialize the trie with.
+   * @param key_list The items to initialize the trie with.
    */
   explicit Trie(const std::initializer_list<std::string>& key_list);
 
   /**
-   * Range constructor inserts strings contained in [first, last) into trie.
-   * Duplicates are ignored.
-   * GUARANTEES: No memory leaks if exception is thrown.
-   * @param first: The starting iterator of the range.
-   * @param last: The ending iterator (one past end) of the range.
+   * @brief Range constructor inserts strings contained in [first, last) into
+   * trie. Duplicates are ignored.
+   * @param first The starting iterator of the range.
+   * @param last The ending iterator (one past end) of the range.
    */
   template <typename InputIterator>
   Trie(InputIterator first, InputIterator last);
@@ -210,44 +192,45 @@ class Trie {
   /* --- DYNAMIC MEMORY: RULE OF 5 */
 
   /**
-   * Copy constructor.
-   * GUARANTEES: No memory leaks if exception is thrown.
-   * @param other: The trie to copy into this.
+   * @brief Copy constructor.
+   * @param other The trie to copy into this.
    */
   Trie(const Trie& other);
 
   /**
-   * Move constructor.
-   * @param other: The trie to move into this.
+   * @brief Move constructor.
+   * @param other The trie to move into this.
    */
   Trie(Trie&& other);
 
   /**
-   * Assignment operator.
-   * @param other: The trie to assign to this.
+   * @brief Assignment operator.
+   * @param other The trie to assign to this.
    */
   Trie& operator=(Trie other);
 
   /* --- CONTAINER SIZE --- */
 
   /**
-   * RETURNS: Whether or not the trie is empty starting at given prefix.
+   * @brief Check if the trie is empty.
+   * @param prefix The prefix on which to check for emptiness.
+   * @return Whether or not the trie is empty starting at given prefix.
    * Prefix defaults to empty string, corresponding to entire trie.
-   * @param prefix: The prefix on which to check for emptiness.
    */
   bool empty(std::string prefix = "") const;
 
   /**
-   * RETURNS: The number of words stored in the trie with given prefix.
+   * @brief Get the size of the trie under the prefix.
+   * @param prefix The prefix on which to check for size.
+   * @return The number of words stored in the trie with given prefix.
    * Default prefix is empty, which means the full trie size is returned.
-   * @param prefix: The prefix on which to check for size.
    */
   size_t size(std::string prefix = "") const;
 
   /* --- ITERATION --- */
 
   /**
-   * Supports const forward iteration over the trie.
+   * @brief Supports const forward iteration over the trie.
    */
   class iterator
       : public std::iterator<std::forward_iterator_tag,  // iterator category
@@ -259,55 +242,70 @@ class Trie {
     friend class Trie;
 
    private:
-    /**
-     * The current Node being pointed at.
-     */
     std::shared_ptr<Node> ptr;
 
     /**
-     * Constructor, Node ptr is null by default.
-     * @param t: The trie reference to assign to tree.
-     * @param p: The Node that the iterator is currently pointing at.
+     * @brief Constructor, Node ptr is null by default.
+     * @param t The trie reference to assign to tree.
+     * @param p The Node that the iterator is currently pointing at.
      */
     explicit iterator(const std::shared_ptr<Node> p = nullptr);
 
    public:
     /**
-     * Prefix increment.
+     * @brief Prefix increment.
+     * @return The next iterator.
      */
     iterator& operator++();
 
     /**
-     * Postfix increment.
+     * @brief Postfix increment.
+     * @return The current iterator.
      */
     iterator operator++(int);
 
     /**
-     * Dereference operator.
+     * @brief Dereference operator.
+     * @return The string referred to by this.
      */
     std::string operator*();
 
     /**
-     * Implicit conversion to bool.
-     * RETURNS: Whether or not the underlying pointer is null.
+     * @brief Implicit conversion to bool.
+     * @return Whether or not the underlying pointer is null.
      */
     operator bool() const;
 
     /* Comparison between iterators performs element-wise comparison. */
 
+    /**
+     * @brief Check if two iterators are equal.
+     * @param lhs The left iterator.
+     * @param rhs The right iterator.
+     * @return Equality between lhs and rhs.
+     */
     friend bool operator==(const Trie::iterator& lhs,
                            const Trie::iterator& rhs);
+
+    /**
+     * @brief Check if two iterators are unequal.
+     * @param lhs The left iterator.
+     * @param rhs The right iterator.
+     * @return Inequality between lhs and rhs.
+     */
     friend bool operator!=(const Trie::iterator& lhs,
                            const Trie::iterator& rhs);
   };
 
   /**
-   * RETURNS: Iterator to the beginning of the trie.
+   * @brief Standard begin iterator getter.
+   * @return Iterator to the beginning of the trie.
    */
   iterator begin() const;
 
   /**
-   * RETURNS: Iterator to one past the end of the trie.
+   * @brief Standard end iterator getter.
+   * @return Iterator to one past the end of the trie.
    */
   iterator end() const;
 
@@ -321,56 +319,54 @@ class Trie {
   */
 
   /**
-   * RETURNS: Iterator to the start of the range with given prefix.
-   * @param prefix: The prefix for which the function returns a begin iterator
-   * to.
+   * @brief Prefix ranged begin iterator.
+   * @param prefix The prefix to obtain a begin iterator for.
+   * @return Iterator to the start of the range with given prefix.
    */
   iterator begin(std::string prefix) const;
 
   /**
-   * RETURNS: Iterator to one past the end of the range with given prefix.
-   * @param prefix: The prefix for which the function returns an end iterator
-   * to.
+   * @brief Prefix ranged end iterator.
+   * @param prefix The prefix to obtain an end iterator fpr.
+   * @return Iterator to one past the end of the range with given prefix.
    */
   iterator end(std::string prefix) const;
 
   /* --- SEARCHING --- */
 
   /**
-   * Searches for key in trie.
-   * RETURNS: An iterator to it if it exists.
-   *     Otherwise, returns a null iterator.
-   * If is_prefix is true, returns an iterator to the first
-   * key that matches the prefix.
-   * @param key: The key used to search the trie.
-   * @param is_prefix: Flags whether or not to treat the key as a prefix.
+   * @brief Searches for key in trie.
+   * @param key The key used to search the trie.
+   * @param is_prefix Flags whether or not to treat the key as a prefix.
+   * @return An iterator to it if it exists. Otherwise, returns a null iterator.
+   * If is_prefix is true, returns an iterator to the first key that matches the
+   * prefix.
    */
   iterator find(std::string key, bool is_prefix = !PREFIX_FLAG) const;
 
   /* --- INSERTION --- */
 
   /**
-   * Inserts key (or key pointed to by iterator) into trie.
-   * GUARANTEES: Idempotent if key in trie.
-   * RETURNS: An iterator to the key (whether inserted or not).
-   * @param key: The key to insert into the trie.
+   * @brief Inserts key (or key pointed to by iterator) into trie. Idempotent if
+   * key already in trie.
+   * @param key The key to insert into the trie.
+   * @return An iterator to the key (whether inserted or not).
    */
   iterator insert(std::string key);
 
   /* --- DELETION --- */
 
   /**
-   * Erases key from trie. If is_prefix, erases all keys that have
-   * the key as prefix from the trie.
-   * GUARANTEES: Idempotent if key ( or prefix ) is not in trie.
-   * @param key: The key to erase from the trie.
-   * @param is_prefix: Flag for treating key as a prefix.
+   * @brief Erases key from trie. If prefix flag is set, erases all keys that
+   * have the key as prefix from the trie. Idempotent if key (or prefix) is not
+   * in trie.
+   * @param key The key to erase from the trie.
+   * @param is_prefix Flag for treating key as a prefix.
    */
   void erase(std::string key, bool is_prefix = !PREFIX_FLAG);
 
   /**
-   * Erases all keys from trie.
-   * GUARANTEES: Idempotent on empty tries.
+   * @brief Erases all keys from trie. Idempotent on empty tries.
    */
   void clear();
 
@@ -382,16 +378,16 @@ class Trie {
   */
 
   /**
-   * Inserts all of rhs's keys into this.
-   * REQUIRES: This and rhs are not the same trie.
-   * @param rhs: The trie to union with this.
+   * @brief Inserts all of rhs's keys into this. Requires that this and rhs are
+   * not the same trie.
+   * @param rhs The trie to union with this.
    */
   Trie& operator+=(const Trie& rhs);
 
   /**
-   * Removes all of rhs's keys from this.
-   * REQUIRES: This and rhs are not the same trie.
-   * @param rhs: The trie to set subtract from this.
+   * @brief Removes all of rhs's keys from this. Requires that this and rhs are
+   * not the same trie.
+   * @param rhs The trie to set subtract from this.
    */
   Trie& operator-=(const Trie& rhs);
 
@@ -422,7 +418,11 @@ Trie operator+(Trie lhs, const Trie& rhs);
 Trie operator-(Trie lhs, const Trie& rhs);
 
 /**
- * Outputs each entry in tree to os. Each entry is given its own line.
+ * @brief Outputs each entry in tree to os. Each entry is given its own line.
+ *
+ * @param os The output stream.
+ * @param tree The tree to write.
+ * @return std::ostream& os
  */
 std::ostream& operator<<(std::ostream& os, const Trie& tree);
 

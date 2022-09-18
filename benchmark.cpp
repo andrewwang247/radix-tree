@@ -29,20 +29,10 @@ using std::chrono::nanoseconds;
 using std::chrono::time_point;
 using time_unit = std::chrono::microseconds;
 
-/**
- * Checks if prf is a prefix of word.
- */
 bool is_prefix(const string& prf, const string& word);
 
-/**
- * Reads perf_word_list file into a vector reserved to num_perf_words.
- */
 vector<string> read_words(const string& perf_word_list, size_t num_perf_words);
 
-/**
- * Prints (to cout) and returns the number of
- * time_units elapsed between start and finish.
- */
 void print_duration(time_point<high_resolution_clock, nanoseconds> start,
                     time_point<high_resolution_clock, nanoseconds> finish);
 
