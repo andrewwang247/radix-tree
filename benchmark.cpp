@@ -61,8 +61,8 @@ void Find_Test(const set<string>& words, string prefix);
 void Find_Test(const Trie& words, string prefix);
 
 // Prefix erasing test.
-void Erase_Test(set<string>& words, string prefix);
-void Erase_Test(Trie& words, string prefix);
+void Erase_Test(set<string> words, string prefix);
+void Erase_Test(Trie words, string prefix);
 
 // Iteration speed test.
 template <typename Container>
@@ -450,7 +450,7 @@ void Perf_Test::Find_Test(const Trie& words, string prefix) {
   print_duration(t0, t1);
 }
 
-void Perf_Test::Erase_Test(set<string>& words, string prefix) {
+void Perf_Test::Erase_Test(set<string> words, string prefix) {
   cout << "Set deletion...\n";
 
   auto t0 = high_resolution_clock::now();
@@ -470,7 +470,7 @@ void Perf_Test::Erase_Test(set<string>& words, string prefix) {
   print_duration(t0, t1);
 }
 
-void Perf_Test::Erase_Test(Trie& words, string prefix) {
+void Perf_Test::Erase_Test(Trie words, string prefix) {
   cout << "Trie deletion...\n";
 
   auto t0 = high_resolution_clock::now();
