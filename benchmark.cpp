@@ -33,6 +33,8 @@ bool is_prefix(const string& prf, const string& word);
 
 vector<string> read_words(const string& perf_word_list, size_t num_perf_words);
 
+vector<string> extract_range(const Trie::iterator& start, const Trie::iterator& finish);
+
 void print_duration(time_point<high_resolution_clock, nanoseconds> start,
                     time_point<high_resolution_clock, nanoseconds> finish);
 
@@ -156,6 +158,14 @@ vector<string> read_words(const string& perf_word_list, size_t num_perf_words) {
   return master_list;
 }
 
+vector<string> extract_range(const Trie::iterator& start, const Trie::iterator& finish) {
+  vector<string> range;
+  for (auto it = start; it != finish; ++it) {
+    range.push_back(*it);
+  }
+  return range;
+}
+
 void print_duration(time_point<high_resolution_clock, nanoseconds> start,
                     time_point<high_resolution_clock, nanoseconds> finish) {
   cout << "Duration: " << duration_cast<time_unit>(finish - start).count()
@@ -276,24 +286,24 @@ bool Unit_Test::Iteration_Test() {
   // Also tests input iterator constructor.
   const Trie tr(words.begin(), words.end());
 
-  vector<string> total_iterated(tr.begin(), tr.end());
+  vector<string> total_iterated = extract_range(tr.begin(), tr.end());
 
   if (words != total_iterated) return false;
 
   // Only iterate over subportion.
   vector<string> co_words{"compute",     "computer", "contain",
                           "contaminate", "corn",     "corner"};
-  vector<string> co_iterated(tr.begin("co"), tr.end("co"));
+  vector<string> co_iterated = extract_range(tr.begin("co"), tr.end("co"));
   if (co_words != co_iterated) return false;
 
   vector<string> ma_words{"mahjong",  "mahogany", "mat",   "material",
                           "maternal", "math",     "matrix"};
-  vector<string> ma_iterated(tr.begin("ma"), tr.end("ma"));
+  vector<string> ma_iterated = extract_range(tr.begin("ma"), tr.end("ma"));
   if (ma_words != ma_iterated) return false;
 
   // Prefix subportion.
   vector<string> mate_words{"material", "maternal"};
-  vector<string> mate_iterated(tr.begin("mate"), tr.end("mate"));
+  vector<string> mate_iterated = extract_range(tr.begin("mate"), tr.end("mate"));
   if (mate_words != mate_iterated) return false;
 
   // Singular word range.
@@ -318,8 +328,8 @@ bool Unit_Test::Copy_Test() {
 
   Trie copied(original);
 
-  vector<string> orig_vec(original.begin(), original.end());
-  vector<string> copy_vec(copied.begin(), copied.end());
+  vector<string> orig_vec = extract_range(original.begin(), original.end());
+  vector<string> copy_vec = extract_range(copied.begin(), copied.end());
 
   return orig_vec == copy_vec;
 }

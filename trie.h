@@ -232,13 +232,12 @@ class Trie {
   /**
    * @brief Supports const forward iteration over the trie.
    */
-  class iterator
-      : public std::iterator<std::forward_iterator_tag,  // iterator category
-                             std::string,                // value_type
-                             std::ptrdiff_t,             // difference_type
-                             const std::string*,         // pointer
-                             const std::string&          // reference
-                             > {
+  class iterator {
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = std::string;
+    using difference_type = std::ptrdiff_t;
+    using pointer = const std::string*;
+    using reference = const std::string&;
     friend class Trie;
 
    private:

@@ -11,6 +11,7 @@ Implementation for Trie.
 #include <stack>
 #include <unordered_set>
 #include <utility>
+using std::includes;
 using std::initializer_list;
 using std::make_shared;
 using std::map;

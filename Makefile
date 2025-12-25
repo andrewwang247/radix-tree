@@ -1,6 +1,6 @@
 # Personal Makefile Template.
 CXX = g++ -std=c++17
-CXX_FLAGS = -Wall -Werror -Wextra -Wconversion -pedantic -Wfloat-equal -Wduplicated-branches -Wduplicated-cond -Wshadow -Wdouble-promotion -Wundef
+CXX_FLAGS = -Wall -Werror -Wextra -Wconversion -pedantic -Wfloat-equal -Wshadow -Wdouble-promotion -Wundef
 OPT = -O3 -DNDEBUG
 DEBUG = -g3 -DDEBUG
 
