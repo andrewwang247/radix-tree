@@ -1,5 +1,5 @@
 /*
-Copyright 2020. Siwei Wang.
+Copyright 2026. Andrew Wang.
 
 Interface for Trie.
 */
