@@ -10,6 +10,7 @@ Unit and performance tests for Trie.
 #include <iomanip>
 #include <ios>
 #include <iostream>
+#include <random>
 #include <set>
 #include <string>
 #include <utility>
@@ -20,14 +21,17 @@ Unit and performance tests for Trie.
 #include "unit_test.h"
 
 using std::cout;
+using std::default_random_engine;
 using std::equal;
 using std::fixed;
 using std::function;
 using std::ifstream;
 using std::ios_base;
+using std::random_device;
 using std::runtime_error;
 using std::set;
 using std::setprecision;
+using std::shuffle;
 using std::string;
 using std::vector;
 
@@ -35,6 +39,8 @@ using std::vector;
 static constexpr auto WORD_LIST_FILE = "words.txt";
 // Number of words in the file.
 static constexpr size_t WORD_LIST_SIZE = 466478;
+// Singleton random device for seed generation.
+static random_device RANDOM_DEVICE{};
 
 /**
  * @brief Reads words from the given file into a vector of strings.
@@ -52,7 +58,7 @@ void show_performance_comparison(timeunit_t set_time, timeunit_t trie_time);
 
 int main() {
   ios_base::sync_with_stdio(false);
-  cout << setprecision(2) << fixed;
+  cout << setprecision(1) << fixed;
 
   vector<function<bool()>> test_cases{
       unit_test::empty,      unit_test::find,      unit_test::insert,
@@ -129,29 +135,32 @@ int main() {
   const bool counts_equal = equal(set_counts.begin(), set_counts.end(),
                                   trie_counts.begin(), trie_counts.end());
   cout << (counts_equal ? "passed\n" : "failed\n");
+
   cout << "--- FINISHED FINAL COMPARISON ---\n";
 }
 
 vector<string> read_words(const string& word_file) {
-  ifstream fin(word_file);
-  if (!fin) throw runtime_error("Could not open words.txt");
-
-  cout << "Reading words.txt...\n";
   vector<string> master_list;
   master_list.reserve(WORD_LIST_SIZE);
+
+  ifstream fin(word_file);
+  if (!fin) throw runtime_error("Could not open words.txt");
   for (string word; fin >> word;) {
     master_list.push_back(word);
   }
-  cout << "Imported " << master_list.size() << " words\n";
+  auto rng = default_random_engine{RANDOM_DEVICE()};
+  shuffle(master_list.begin(), master_list.end(), rng);
+
+  cout << "Imported " << master_list.size() << " randomly shuffled words\n";
   return master_list;
 }
 
 void show_performance_comparison(timeunit_t set_time, timeunit_t trie_time) {
   if (set_time < trie_time) {
     const auto diff = static_cast<double>(trie_time.count()) / set_time.count();
-    cout << "\tSet was faster by a factor of " << diff << '\n';
+    cout << "\tSet was " << diff << " times faster than Trie\n";
   } else {
     const auto diff = static_cast<double>(set_time.count()) / trie_time.count();
-    cout << "\tTrie was faster by a factor of " << diff << '\n';
+    cout << "\tTrie was " << diff << " times faster than Set\n";
   }
 }
