@@ -43,25 +43,25 @@ class Trie {
    */
   struct Node {
     bool is_end;
-    std::weak_ptr<Node> parent;
-    std::map<std::string, std::shared_ptr<Node>> children;
+    const Node* parent;
+    std::map<std::string, std::unique_ptr<Node>> children;
     /**
      * @brief Construct a new node with no children.
      * @param is_end_in The is_end value.
      * @param parent_in The parent pointer.
      */
-    Node(bool is_end_in, std::shared_ptr<Node> const parent_in);
+    Node(bool is_end_in, const Node* parent_in);
   };
 
-  std::shared_ptr<Node> root;
+  std::unique_ptr<Node> root;
 
   /* --- HELPER FUNCTIONS --- */
 
   /**
    * @brief Recursively copies other into rt.
    */
-  static void recursive_copy(std::shared_ptr<Node> const rt,
-                             const std::shared_ptr<Node> other);
+  static void recursive_copy(const std::unique_ptr<Node>& rt,
+                             const std::unique_ptr<Node>& other);
 
   /**
    * @brief Check for prefixes of words.
@@ -80,8 +80,7 @@ class Trie {
    * @return The node N described above. Since the root node is equivalent to
    * the empty string, N is never null.
    */
-  static std::shared_ptr<Node> approximate_match(const std::shared_ptr<Node> rt,
-                                                 std::string& key);
+  static const Node* approximate_match(const Node* rt, std::string& key);
 
   /**
    * @brief Depth traversing search for the node that serves as a root for prf.
@@ -92,8 +91,7 @@ class Trie {
    * @return The deepest node N such that N and all of N's children have prf as
    * prefix. If prf is not a prefix, returns a nullptr.
    */
-  static std::shared_ptr<Node> prefix_match(const std::shared_ptr<Node> rt,
-                                            std::string& prf);
+  static const Node* prefix_match(const Node* rt, std::string& prf);
 
   /**
    * @brief Depth traversing search for the node that matches word.
@@ -102,16 +100,15 @@ class Trie {
    * @return The first node that exactly matches the given word. If no match is
    * found, returns a nullptr.
    */
-  static std::shared_ptr<Node> exact_match(const std::shared_ptr<Node> rt,
-                                           std::string word);
+  static const Node* exact_match(const Node* rt, std::string word);
 
   /**
    * @brief Counts the number of keys stored at or as children of rt added to
    * acc. Equivalent to counting the number of true is_end's accessible from rt.
    * @param rt The non-null root node at which to start counting.
-   * @param acc The value at which to start counting.
+   * @param acc The value at which to start counting. Increments by number of keys.
    */
-  static void key_counter(const std::shared_ptr<Node> rt, size_t& acc);
+  static void key_counter(const Node* rt, size_t& acc);
 
   /**
    * @brief Deep equality check.
@@ -119,8 +116,8 @@ class Trie {
    * @param rt_2: The non-null root of the second trie.
    * @return Whether or not the tries rooted at rt_1 and rt_2 are equivalent.
    */
-  static bool are_equal(const std::shared_ptr<Node> rt_1,
-                        const std::shared_ptr<Node> rt_2);
+  static bool are_equal(const std::unique_ptr<Node>& rt_1,
+                        const std::unique_ptr<Node>& rt_2);
 
   /**
    * @brief Searches for the the given value in a map.
@@ -130,15 +127,15 @@ class Trie {
    * iterator if val is not in the map.
    */
   template <typename K, typename V>
-  static typename std::map<K, std::shared_ptr<V>>::const_iterator value_find(
-      const std::map<K, std::shared_ptr<V>>& m, const std::shared_ptr<V> val);
+  static typename std::map<K, std::unique_ptr<V>>::const_iterator value_find(
+      const std::map<K, std::unique_ptr<V>>& m, const V* val);
 
   /**
    * @brief Find the first child key.
    * @param rt The non-null root node at which to start.
    * @return The first key that's a child of rt or nullptr if empty.
    */
-  static std::shared_ptr<Node> first_key(std::shared_ptr<Node> rt);
+  static const Node* first_key(const Node* rt);
 
   /**
    * @brief Get the next need for in-order traversal.
@@ -146,21 +143,21 @@ class Trie {
    * @return The first key AFTER ptr that is not a child of ptr. If there isn't
    * such a key, returns nullptr.
    */
-  static std::shared_ptr<Node> next_node(const std::shared_ptr<Node> ptr);
+  static const Node* next_node(const Node* ptr);
 
   /**
    * @brief Reconstruct string from node.
    * @param ptr The node for which we are trying to construct a string.
    * @return The string representation at ptr.
    */
-  static std::string underlying_string(std::shared_ptr<Node> ptr);
+  static std::string underlying_string(const Node* ptr);
 
   /**
    * @brief This function is only used for testing!
    * @param root The root of the tree to check.
    * @return Whether or not the tree at root is valid (satisfies invariants).
    */
-  static bool check_invariant(const std::shared_ptr<Node> root);
+  static bool check_invariant(const std::unique_ptr<Node>& root);
 
  public:
   /**
@@ -241,14 +238,14 @@ class Trie {
     friend class Trie;
 
    private:
-    std::shared_ptr<Node> ptr;
+    const Node* ptr;
 
     /**
      * @brief Constructor, Node ptr is null by default.
      * @param t The trie reference to assign to tree.
      * @param p The Node that the iterator is currently pointing at.
      */
-    explicit iterator(const std::shared_ptr<Node> p = nullptr);
+    explicit iterator(const Node* p = nullptr);
 
    public:
     /**
@@ -436,10 +433,10 @@ Trie::Trie(InputIterator first, InputIterator last) : Trie() {
 }
 
 template <typename K, typename V>
-typename std::map<K, std::shared_ptr<V>>::const_iterator Trie::value_find(
-    const std::map<K, std::shared_ptr<V>>& m, const std::shared_ptr<V> val) {
+typename std::map<K, std::unique_ptr<V>>::const_iterator Trie::value_find(
+    const std::map<K, std::unique_ptr<V>>& m, const V* val) {
   for (auto it = m.begin(); it != m.end(); ++it) {
-    if (it->second == val) return it;
+    if (it->second.get() == val) return it;
   }
   return m.end();
 }
