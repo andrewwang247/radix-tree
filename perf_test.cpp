@@ -6,26 +6,27 @@ Performance testing implementation.
 #include "perf_test.h"
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <iostream>
 #include <iterator>
 #include <set>
 #include <string>
-#include <vector>
+#include <utility>
 
+using std::array;
 using std::count_if;
 using std::cout;
 using std::distance;
 using std::lower_bound;
+using std::make_pair;
 using std::mismatch;
+using std::pair;
 using std::runtime_error;
 using std::set;
 using std::string;
-using std::vector;
 using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;
-
-constexpr size_t ALPHABET_SIZE = 26;
 
 bool is_prefix(const string& prf, const string& word) {
   // The empty string is a prefix for every string.
@@ -39,26 +40,25 @@ bool is_prefix(const string& prf, const string& word) {
   return res.first == prf.end();
 }
 
-timeunit_t perf_test::count(const set<string>& words) {
+pair<array<size_t, ALPHABET_SIZE>, timeunit_t> perf_test::count(
+    const set<string>& words) {
   cout << "Set first letter counts: ";
 
-  vector<set<string>::iterator> bounds;
-  bounds.reserve(ALPHABET_SIZE + 1);
-  vector<decltype(bounds)::difference_type> distances;
-  distances.reserve(ALPHABET_SIZE);
+  array<set<string>::iterator, ALPHABET_SIZE + 1> bounds{};
+  array<size_t, ALPHABET_SIZE> distances{};
 
   const auto t0 = high_resolution_clock::now();
   // Get starting iterators on each character.
   for (char c = 'a'; c <= 'z'; ++c) {
     const auto first_of_letter =
         lower_bound(words.begin(), words.end(), string(1, c));
-    bounds.push_back(first_of_letter);
+    bounds[static_cast<size_t>(c - 'a')] = first_of_letter;
   }
-  bounds.push_back(words.end());
+  bounds[ALPHABET_SIZE] = words.end();
   // Compute distances between bounds.
   for (size_t i = 0; i < bounds.size() - 1; ++i) {
     const auto dist = distance(bounds[i], bounds[i + 1]);
-    distances.push_back(dist);
+    distances[i] = static_cast<size_t>(dist);
   }
   const auto t1 = high_resolution_clock::now();
 
@@ -67,19 +67,19 @@ timeunit_t perf_test::count(const set<string>& words) {
   }
   cout << '\n';
 
-  return t1 - t0;
+  return make_pair(distances, t1 - t0);
 }
 
-timeunit_t perf_test::count(const Trie& words) {
+pair<array<size_t, ALPHABET_SIZE>, timeunit_t> perf_test::count(
+    const Trie& words) {
   cout << "Trie first letter counts: ";
 
-  vector<size_t> distances;
-  distances.reserve(ALPHABET_SIZE);
+  array<size_t, ALPHABET_SIZE> distances{};
 
   const auto t0 = high_resolution_clock::now();
   for (char c = 'a'; c <= 'z'; ++c) {
     const auto size = words.size(string(1, c));
-    distances.push_back(size);
+    distances[static_cast<size_t>(c - 'a')] = size;
   }
   const auto t1 = high_resolution_clock::now();
 
@@ -88,7 +88,7 @@ timeunit_t perf_test::count(const Trie& words) {
   }
   cout << '\n';
 
-  return t1 - t0;
+  return make_pair(distances, t1 - t0);
 }
 
 timeunit_t perf_test::find(const set<string>& words, const string& prefix) {

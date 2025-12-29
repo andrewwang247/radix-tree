@@ -5,6 +5,7 @@ Interface for performance testing.
 */
 #pragma once
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <iostream>
 #include <set>
@@ -15,16 +16,18 @@ Interface for performance testing.
 
 #include "trie.h"
 using timeunit_t = std::chrono::nanoseconds;
-
+constexpr size_t ALPHABET_SIZE = 26;
 namespace perf_test {
 // Insertion test. Also constructs the container.
 template <typename Container>
 std::pair<Container, timeunit_t> insert(
     const std::vector<std::string>& word_list);
 
-// Prefix counting test.
-timeunit_t count(const std::set<std::string>& words);
-timeunit_t count(const Trie& words);
+// Prefix counting test. Returns array of prefix counts for 'a' to 'z'.
+std::pair<std::array<size_t, ALPHABET_SIZE>, timeunit_t> count(
+    const std::set<std::string>& words);
+std::pair<std::array<size_t, ALPHABET_SIZE>, timeunit_t> count(
+    const Trie& words);
 
 // Prefix finding text.
 timeunit_t find(const std::set<std::string>& words, const std::string& prefix);

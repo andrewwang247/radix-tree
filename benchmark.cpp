@@ -60,9 +60,9 @@ int main() {
   for (const auto& test : test_cases) {
     if (test()) {
       ++passed;
-      cout << " passed.\n";
+      cout << " passed\n";
     } else {
-      cout << " failed.\n";
+      cout << " failed\n";
     }
   }
 
@@ -88,8 +88,12 @@ int main() {
   // Count perf
   const auto count_set_result = perf_test::count(word_set);
   const auto count_trie_result = perf_test::count(word_trie);
-  show_performance_comparison(count_set_result, count_trie_result);
+  show_performance_comparison(count_set_result.second,
+                              count_trie_result.second);
   cout << '\n';
+
+  const auto& set_counts = count_set_result.first;
+  const auto& trie_counts = count_trie_result.first;
 
   // Find perf
   const auto find_set_result = perf_test::find(word_set, "re");
@@ -110,11 +114,18 @@ int main() {
 
   cout << "--- FINISHED PERFORMANCE TEST ---\n\n";
 
-  if (equal(word_set.begin(), word_set.end(), word_trie.begin(),
-            word_trie.end()))
-    cout << "--- FINAL COMPARISON CHECK PASSED ---\n";
-  else
-    cout << "--- FINAL COMPARISON CHECK FAILED ---\n";
+  cout << "--- EXECUTING FINAL COMPARISON ---\n";
+
+  cout << "Traversal word match test ";
+  const bool words_equal = equal(word_set.begin(), word_set.end(),
+                                 word_trie.begin(), word_trie.end());
+  cout << (words_equal ? "passed\n" : "failed\n");
+
+  cout << "First letter counts test ";
+  const bool counts_equal = equal(set_counts.begin(), set_counts.end(),
+                                  trie_counts.begin(), trie_counts.end());
+  cout << (counts_equal ? "passed\n" : "failed\n");
+  cout << "--- FINISHED FINAL COMPARISON ---\n";
 }
 
 vector<string> read_words(const string& word_file) {
