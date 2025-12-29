@@ -78,13 +78,12 @@ int main() {
   // Insert perf
   const auto insert_set_result = perf_test::insert<set<string>>(master_list);
   const auto insert_trie_result = perf_test::insert<Trie>(master_list);
-  show_performance_comparison(insert_set_result.duration,
-                              insert_trie_result.duration);
+  show_performance_comparison(insert_set_result.second,
+                              insert_trie_result.second);
   cout << '\n';
 
-  const auto word_set = std::move(insert_set_result.container);
-  const auto word_trie = std::move(insert_trie_result.container);
-  // DO NOT REFERENCE MOVED VALUES BEYOND THIS POINT!
+  const auto& word_set = insert_set_result.first;
+  const auto& word_trie = insert_trie_result.first;
 
   // Count perf
   const auto count_set_result = perf_test::count(word_set);

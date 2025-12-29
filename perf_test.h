@@ -16,26 +16,11 @@ Interface for performance testing.
 #include "trie.h"
 using timeunit_t = std::chrono::nanoseconds;
 
-/**
- * @brief Generic return type with a container and the duration to create it.
- */
-template <typename Container>
-struct timed_container {
-  Container container;
-  timeunit_t duration;
-
-  /**
-   * @brief Construct a new container with an associated duration.
-   * @param cont The container to store.
-   * @param dur The input duration.
-   */
-  timed_container(const Container&& cont, timeunit_t dur);
-};
-
 namespace perf_test {
-// Returns a Container with the words in word_list.
+// Insertion test. Also constructs the container.
 template <typename Container>
-timed_container<Container> insert(const std::vector<std::string>& word_list);
+std::pair<Container, timeunit_t> insert(
+    const std::vector<std::string>& word_list);
 
 // Prefix counting test.
 timeunit_t count(const std::set<std::string>& words);
@@ -57,12 +42,7 @@ timeunit_t iterate(const Container& words);
 // TEMPLATED IMPLEMENTATIONS
 
 template <typename Container>
-timed_container<Container>::timed_container(const Container&& cont,
-                                            timeunit_t dur)
-    : container(std::move(cont)), duration(dur){};
-
-template <typename Container>
-timed_container<Container> perf_test::insert(
+std::pair<Container, timeunit_t> perf_test::insert(
     const std::vector<std::string>& word_list) {
   // Make announcement.
   if (std::is_same<Container, std::set<std::string>>::value) {
@@ -79,7 +59,7 @@ timed_container<Container> perf_test::insert(
   const auto t1 = std::chrono::high_resolution_clock::now();
   std::cout << "inserted " << word_list.size() << " words\n";
 
-  return timed_container<Container>(std::move(words), t1 - t0);
+  return std::make_pair(words, t1 - t0);
 }
 
 template <typename Container>
