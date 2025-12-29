@@ -31,6 +31,11 @@ using std::setprecision;
 using std::string;
 using std::vector;
 
+// Name of the word list file.
+static constexpr auto WORD_LIST_FILE = "words.txt";
+// Number of words in the file.
+static constexpr size_t WORD_LIST_SIZE = 466478;
+
 /**
  * @brief Reads words from the given file into a vector of strings.
  * @param word_file The path to the word list file.
@@ -56,7 +61,7 @@ int main() {
 
   cout << "--- EXECUTING UNIT TESTS ---\n";
 
-  __uint16_t passed = 0;
+  auto passed = 0;
   for (const auto& test : test_cases) {
     if (test()) {
       ++passed;
@@ -70,8 +75,7 @@ int main() {
        << " unit tests.\n";
   cout << "--- FINISHED UNIT TESTS ---\n\n";
 
-  // cppcheck-suppress "throwInEntryPoint"
-  const auto master_list = read_words("words.txt");
+  const auto master_list = read_words(WORD_LIST_FILE);
 
   cout << "\n--- EXECUTING PERFORMANCE TEST ---\n";
 
@@ -134,10 +138,10 @@ vector<string> read_words(const string& word_file) {
 
   cout << "Reading words.txt...\n";
   vector<string> master_list;
+  master_list.reserve(WORD_LIST_SIZE);
   for (string word; fin >> word;) {
     master_list.push_back(word);
   }
-  fin.close();
   cout << "Imported " << master_list.size() << " words\n";
   return master_list;
 }
