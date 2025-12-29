@@ -1,23 +1,27 @@
-# Personal Makefile Template.
-CXX = g++ -std=c++17
-CXX_FLAGS = -Wall -Werror -Wextra -Wconversion -pedantic -Wfloat-equal -Wshadow -Wdouble-promotion -Wundef
-OPT = -O3 -DNDEBUG
-DEBUG = -g3 -DDEBUG
+# Compiler and flags.
+CXX := g++ -std=c++17 
+FLAGS := -Wall -Werror -Wextra -Wconversion -pedantic -Wfloat-equal -Wshadow -Wdouble-promotion -Wundef
+OPT := -O3 -DNDEBUG
+DEBUG := -g3 -DDEBUG
 
-EXECUTABLE = benchmark
-LINKED = trie
+# Executable name
+EXE := benchmark
 
-# Build optimized executable - ensure clean slate.
-release : $(EXECUTABLE).cpp $(LINKED).cpp
-	$(CXX) $(CXX_FLAGS) $(OPT) -c $(EXECUTABLE).cpp $(LINKED).cpp
-	$(CXX) $(CXX_FLAGS) $(OPT) $(EXECUTABLE).o $(LINKED).o -o $(EXECUTABLE)
+# Expand the linked file names into lists of .cpp and .o files.
+LINKED_CPP := $(filter-out $(EXE).cpp, $(wildcard *.cpp))
+LINKED_O := $(LINKED_CPP:.cpp=.o)
 
-# Build with debug features - ensure clean slate.
-debug : $(EXECUTABLE).cpp $(LINKED).cpp
-	$(CXX) $(CXX_FLAGS) $(DEBUG) -c $(EXECUTABLE).cpp $(LINKED).cpp
-	$(CXX) $(CXX_FLAGS) $(DEBUG) $(EXECUTABLE).o $(LINKED).o -o $(EXECUTABLE)
+# Build optimized executable.
+release : $(EXE).cpp $(LINKED_CPP)
+	$(CXX) $(FLAGS) $(OPT) -c $(EXE).cpp $(LINKED_CPP)
+	$(CXX) $(FLAGS) $(OPT) $(EXE).o $(LINKED_O) -o $(EXE)
+
+# Build with debug features.
+debug : $(EXE).cpp $(LINKED_CPP)
+	$(CXX) $(FLAGS) $(DEBUG) -c $(EXE).cpp $(LINKED_CPP)
+	$(CXX) $(FLAGS) $(DEBUG) $(EXE).o $(LINKED_O) -o $(EXE)
 
 # Remove executable binary and generated objected files.
 .PHONY : clean
 clean : 
-	rm -f $(EXECUTABLE) $(EXECUTABLE).o $(LINKED).o
+	rm -f $(EXE) $(EXE).o $(LINKED_O)
