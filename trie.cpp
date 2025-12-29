@@ -299,23 +299,21 @@ size_t Trie::size(string prefix) const {
   return counter;
 }
 
-Trie::iterator Trie::find(string key, bool is_prefix) const {
-  // Check if we need an exact match.
-  if (!is_prefix) {
-    // Elegantly handles both match and no match.
-    return iterator(exact_match(root.get(), key));
-  }
+Trie::iterator Trie::find(const string& key) const {
+  return iterator(exact_match(root.get(), key));
+}
 
-  // In this case, we need only find a word that key is a prefix of.
-  const auto prf_rt = prefix_match(root.get(), key);
+Trie::iterator Trie::find_prefix(string prefix) const {
+  // W need only find a word that key is a prefix of.
+  const auto prf_rt = prefix_match(root.get(), prefix);
   // If key is not a prefix of anything, there is no match.
   if (!prf_rt) return iterator();
 
   // Find the first child key rooted at prt_rt.
   assert(check_invariant(root));
   // If key is empty and prf_rt is and end node, then it is the "first key".
-  return key.empty() && prf_rt->is_end ? iterator(prf_rt)
-                                       : iterator(first_key(prf_rt));
+  return prefix.empty() && prf_rt->is_end ? iterator(prf_rt)
+                                          : iterator(first_key(prf_rt));
 }
 
 Trie::iterator Trie::insert(string key) {
@@ -407,25 +405,7 @@ Trie::iterator Trie::insert(string key) {
   return iterator(loc->children[key].get());
 }
 
-void Trie::erase(string key, bool is_prefix) {
-  /*
-  If is_prefix flag is set, wipe everything
-  at and under the prefix_match.
-  */
-  if (is_prefix) {
-    auto prf_ptr = prefix_match(root.get(), key);
-    if (!prf_ptr) return;
-    if (prf_ptr == root.get()) {
-      clear();
-    } else {
-      const auto par = const_cast<Trie::Node*>(prf_ptr->parent);
-      assert(par);
-      par->children.erase(value_find(par->children, prf_ptr));
-    }
-    assert(check_invariant(root));
-    return;
-  }
-
+void Trie::erase(string key) {
   // Must remove exact key.
   const auto match = const_cast<Trie::Node*>(exact_match(root.get(), key));
   // If the key was not in the tree, just return.
@@ -479,6 +459,19 @@ void Trie::erase(string key, bool is_prefix) {
   // If match has multiple children, nothing can be joined.
 }
 
+void Trie::erase_prefix(string prefix) {
+  auto prf_ptr = prefix_match(root.get(), prefix);
+  if (!prf_ptr) return;
+  if (prf_ptr == root.get()) {
+    clear();
+  } else {
+    const auto par = const_cast<Trie::Node*>(prf_ptr->parent);
+    assert(par);
+    par->children.erase(value_find(par->children, prf_ptr));
+  }
+  assert(check_invariant(root));
+}
+
 void Trie::clear() {
   // Clear everything under root.
   root->children.clear();
@@ -517,7 +510,7 @@ Trie::iterator Trie::end() const { return iterator(nullptr); }
 
 Trie::iterator Trie::begin(const string& prefix) const {
   // Find the first key that matches the given prefix.
-  return find(prefix, PREFIX_FLAG);
+  return find_prefix(prefix);
 }
 
 Trie::iterator Trie::end(string prefix) const {

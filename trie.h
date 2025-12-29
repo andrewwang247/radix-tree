@@ -163,11 +163,6 @@ class Trie {
 
  public:
   /**
-   * Used to mark a parameter as passing in a prefix and not a full key.
-   */
-  static constexpr bool PREFIX_FLAG = true;
-
-  /**
    * @brief Default constructor initializes empty trie.
    */
   Trie();
@@ -337,12 +332,18 @@ class Trie {
   /**
    * @brief Searches for key in trie.
    * @param key The key used to search the trie.
-   * @param is_prefix Flags whether or not to treat the key as a prefix.
-   * @return An iterator to it if it exists. Otherwise, returns a null iterator.
-   * If is_prefix is true, returns an iterator to the first key that matches the
-   * prefix.
+   * @return An iterator to key if it exists. Otherwise, returns a null
+   * iterator.
    */
-  iterator find(std::string key, bool is_prefix = !PREFIX_FLAG) const;
+  iterator find(const std::string& key) const;
+
+  /**
+   * @brief Searches for prefix in trie.
+   * @param prefix The prefix used to search the trie.
+   * @return An iterator to the first key that matches the prefix. Otherwise,
+   * null iterator.
+   */
+  iterator find_prefix(std::string prefix) const;
 
   /* --- INSERTION --- */
 
@@ -357,13 +358,17 @@ class Trie {
   /* --- DELETION --- */
 
   /**
-   * @brief Erases key from trie. If prefix flag is set, erases all keys that
-   * have the key as prefix from the trie. Idempotent if key (or prefix) is not
-   * in trie.
+   * @brief Erases key from trie. Idempotent if key is not in trie.
    * @param key The key to erase from the trie.
-   * @param is_prefix Flag for treating key as a prefix.
    */
-  void erase(std::string key, bool is_prefix = !PREFIX_FLAG);
+  void erase(std::string key);
+
+  /**
+   * @brief Erases all keys with prefix from trie. Idempotent if prefix is not
+   * in trie.
+   * @param prefix The prefix to erase from the trie.
+   */
+  void erase_prefix(std::string prefix);
 
   /**
    * @brief Erases all keys from trie. Idempotent on empty tries.

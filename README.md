@@ -10,8 +10,6 @@ Using the included `Makefile`, run `make` to compile `benchmark.cpp`, which cond
 
 ## Documentation
 
-By default, the `prefix` and `is_prefix` function parameters are empty `std::string` and `false` respectively. Best practice is to use the boolean `Trie::PREFIX_FLAG` to specify that an operation works on prefixes.
-
 ### Construction
 
 The class comes equipped with:
@@ -28,13 +26,11 @@ The `empty` and `size` functions take a `prefix` parameter that is empty by defa
 - whether or not the tree contains keys of the given prefix
 - the number of keys with the given prefix
 
-These functions do *not* modify the container.
+Since an empty string is a prefix for *all* strings, default behavior yields the expected container behavior for emptiness and size checking. These functions do *not* modify the container.
 
 ### Searching
 
-The `find` function returns an iterator to the key if it's contained in the tree. If `is_prefix` is set with `Trie::PREFIX_FLAG`, it returns an iterator to the first key that matches the prefix.
-
-This function does *not* modify the container.
+The `find` function returns an iterator to the key if it's contained in the tree. The `find_prefix` function returns an iterator to the first key that matches the prefix. These functions do *not* modify the container.
 
 ### Insertion
 
@@ -42,7 +38,7 @@ The `insert` function adds a single key into the tree and returns an iterator to
 
 ### Deletion
 
-To remove keys from the tree, use `erase`. It removes a single key from the tree. If `is_prefix` is set with `Trie::PREFIX_FLAG`, it erases all keys that match the prefix. To reset the entire tree, simply call `clear`. Both `erase` and `clear` are idempotent.
+To remove keys from the tree, use `erase`. The `erase_prefix` erases all keys that match the prefix. To reset the entire tree, simply call `clear`. Both `erase` variants and `clear` are idempotent.
 
 ### Iteration
 

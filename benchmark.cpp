@@ -146,10 +146,10 @@ bool is_prefix(const string& prf, const string& word) {
   // Assuming non-emptiness of prf, it cannot be longer than word.
   if (prf.length() > word.length()) return false;
   // std::algorithm function that returns iterators to first mismatch.
-  const auto res = mismatch(prf.cbegin(), prf.cend(), word.cbegin());
+  const auto res = mismatch(prf.begin(), prf.end(), word.begin());
 
   // If we reached the end of prf, it's a prefix.
-  return res.first == prf.cend();
+  return res.first == prf.end();
 }
 
 vector<string> read_words(const string& perf_word_list, size_t num_perf_words) {
@@ -203,10 +203,10 @@ bool Unit_Test::Find_Test() {
   const auto exact_iter = tr.find("corn");
   if (exact_iter == tr.end() || *exact_iter != "corn") return false;
 
-  const auto prf_iter = tr.find("mate", Trie::PREFIX_FLAG);
+  const auto prf_iter = tr.find_prefix("mate");
   if (prf_iter == tr.end() || *prf_iter != "material") return false;
 
-  const auto exact_prf_iter = tr.find("contaminate", Trie::PREFIX_FLAG);
+  const auto exact_prf_iter = tr.find_prefix("contaminate");
   if (exact_prf_iter == tr.end() || *exact_prf_iter != "contaminate")
     return false;
 
@@ -246,7 +246,7 @@ bool Unit_Test::Erase_Test() {
           "mat",      "maternal",    "contain"};
 
   // Erase something that does not exist.
-  tr.erase("random", Trie::PREFIX_FLAG);
+  tr.erase_prefix("random");
   tr.erase("cplusplus");
   if (tr.size() != 13) return false;
 
@@ -258,7 +258,7 @@ bool Unit_Test::Erase_Test() {
 
   // Erase non-degenerate internal node.
   tr.erase("mat");
-  auto iter = tr.find("mat", Trie::PREFIX_FLAG);
+  auto iter = tr.find_prefix("mat");
   if (iter == tr.end() || *iter != "material") return false;
   if (tr.size("ma") != 5 || tr.empty("mat")) return false;
 
@@ -268,10 +268,10 @@ bool Unit_Test::Erase_Test() {
   if (iter == tr.end() || *iter != "corner") return false;
   if (tr.size("co") != 5) return false;
 
-  tr.erase("con", Trie::PREFIX_FLAG);
+  tr.erase_prefix("con");
   if (tr.find("contain") != tr.end()) return false;
   if (tr.find("contaminate") != tr.end()) return false;
-  if (tr.find("con", Trie::PREFIX_FLAG) != tr.end()) return false;
+  if (tr.find_prefix("con") != tr.end()) return false;
   if (tr.size("co") != 3) return false;
 
   // Try clearing.
@@ -492,7 +492,7 @@ void Perf_Test::Erase_Test(Trie words, const string& prefix) {
   cout << "Trie deletion...\n";
 
   const auto t0 = high_resolution_clock::now();
-  words.erase(prefix, Trie::PREFIX_FLAG);
+  words.erase_prefix(prefix);
   const auto t1 = high_resolution_clock::now();
 
   cout << "Erased all words with prefix " << prefix << endl;
