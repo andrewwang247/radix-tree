@@ -9,8 +9,10 @@ Implementation for Trie.
 #include <map>
 #include <memory>
 #include <stack>
+#include <string>
 #include <unordered_set>
 #include <utility>
+
 using std::includes;
 using std::initializer_list;
 using std::make_pair;
@@ -55,8 +57,7 @@ bool Trie::is_prefix(const string& prf, const string& word) {
   return res.first == prf.end();
 }
 
-const Trie::Node* Trie::approximate_match(
-    const Trie::Node* rt, string& key) {
+const Trie::Node* Trie::approximate_match(const Trie::Node* rt, string& key) {
   assert(rt);
   // If the key is empty, return the root node.
   if (key.empty()) return rt;
@@ -377,10 +378,12 @@ Trie::iterator Trie::insert(string key) {
     const auto& junction = loc->children[common];
 
     // loc child is added to junction's children map.
-    junction->children.insert(make_pair(post_child, std::move(str_ptr_pair.second)));
+    junction->children.insert(
+        make_pair(post_child, std::move(str_ptr_pair.second)));
     // The original child's parent pointer is set to junction.
     junction->children[post_child]->parent = junction.get();
-    // Remove child_str from loc child map, cleaning up released str_ptr_pair.second.
+    // Remove child_str from loc child map, cleaning up released
+    // str_ptr_pair.second.
     loc->children.erase(child_str);
 
     if (!post_key.empty()) {
@@ -390,7 +393,7 @@ Trie::iterator Trie::insert(string key) {
         junction->children.insert(make_pair(post_key, std::move(key_node)));
       }
       assert(check_invariant(root));
-      return iterator(junction->children[post_key].get());  
+      return iterator(junction->children[post_key].get());
     } else {
       assert(check_invariant(root));
       return iterator(junction.get());
@@ -504,7 +507,7 @@ Trie::iterator Trie::iterator::operator++(int) {
   return temp;
 }
 
-string Trie::iterator::operator*() { return underlying_string(ptr); }
+string Trie::iterator::operator*() const { return underlying_string(ptr); }
 
 Trie::iterator::operator bool() const { return ptr != nullptr; }
 
@@ -514,7 +517,7 @@ Trie::iterator Trie::begin() const {
 
 Trie::iterator Trie::end() const { return iterator(nullptr); }
 
-Trie::iterator Trie::begin(string prefix) const {
+Trie::iterator Trie::begin(const string& prefix) const {
   // Find the first key that matches the given prefix.
   return find(prefix, PREFIX_FLAG);
 }

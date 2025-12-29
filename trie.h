@@ -4,6 +4,7 @@ Copyright 2026. Andrew Wang.
 Interface for Trie.
 */
 #pragma once
+#include <algorithm>
 #include <cassert>
 #include <exception>
 #include <initializer_list>
@@ -106,7 +107,8 @@ class Trie {
    * @brief Counts the number of keys stored at or as children of rt added to
    * acc. Equivalent to counting the number of true is_end's accessible from rt.
    * @param rt The non-null root node at which to start counting.
-   * @param acc The value at which to start counting. Increments by number of keys.
+   * @param acc The value at which to start counting. Modifies reference to
+   * increment by number of keys.
    */
   static void key_counter(const Node* rt, size_t& acc);
 
@@ -230,12 +232,14 @@ class Trie {
    * @brief Supports const forward iteration over the trie.
    */
   class iterator {
+    friend class Trie;
+
+   public:
     using iterator_category = std::forward_iterator_tag;
     using value_type = std::string;
     using difference_type = std::ptrdiff_t;
     using pointer = const std::string*;
     using reference = const std::string&;
-    friend class Trie;
 
    private:
     const Node* ptr;
@@ -264,7 +268,7 @@ class Trie {
      * @brief Dereference operator.
      * @return The string referred to by this.
      */
-    std::string operator*();
+    std::string operator*() const;
 
     /**
      * @brief Implicit conversion to bool.
@@ -319,7 +323,7 @@ class Trie {
    * @param prefix The prefix to obtain a begin iterator for.
    * @return Iterator to the start of the range with given prefix.
    */
-  iterator begin(std::string prefix) const;
+  iterator begin(const std::string& prefix) const;
 
   /**
    * @brief Prefix ranged end iterator.
@@ -435,8 +439,6 @@ Trie::Trie(InputIterator first, InputIterator last) : Trie() {
 template <typename K, typename V>
 typename std::map<K, std::unique_ptr<V>>::const_iterator Trie::value_find(
     const std::map<K, std::unique_ptr<V>>& m, const V* val) {
-  for (auto it = m.begin(); it != m.end(); ++it) {
-    if (it->second.get() == val) return it;
-  }
-  return m.end();
+  return std::find_if(m.begin(), m.end(),
+                      [val](const auto& p) { return p.second.get() == val; });
 }

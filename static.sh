@@ -12,8 +12,16 @@ printf "Running clang-format...\n\n"
 clang-format -i -style=file $cppfiles
 
 printf "Running cppcheck...\n\n"
-cppcheck --language=c++ --std=c++11 --enable=all --quiet \
-    --template=gcc --suppress=missingIncludeSystem $cppfiles
+cppcheck --language=c++ --std=c++17 --quiet \
+    --check-level=exhaustive \
+    --enable=all \
+    --template=gcc \
+    --suppress=checkersReport \
+    --suppress=functionStatic \
+    --suppress=missingIncludeSystem \
+    --suppress=throwInEntryPoint \
+    --suppress=unusedStructMember \
+    $cppfiles
 
 printf "\nRunning cpplint...\n\n"
 cpplint --filter=-build/include_subdir --quiet $cppfiles
