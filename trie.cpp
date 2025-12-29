@@ -15,7 +15,6 @@ Implementation for Trie.
 
 using std::includes;
 using std::initializer_list;
-using std::make_pair;
 using std::make_unique;
 using std::map;
 using std::ostream;
@@ -39,7 +38,7 @@ void Trie::recursive_copy(const std::unique_ptr<Node>& rt,
     const auto& prf = str_ptr_pair.first;
     {
       auto child = make_unique<Node>(false, rt.get());
-      rt->children.insert(make_pair(prf, std::move(child)));
+      rt->children.emplace(prf, std::move(child));
     }
     recursive_copy(rt->children[prf], str_ptr_pair.second);
   }
@@ -343,7 +342,7 @@ Trie::iterator Trie::insert(string key) {
   if (loc->children.empty()) {
     {
       auto child = make_unique<Node>(true, loc);
-      loc->children.emplace(make_pair(key, std::move(child)));
+      loc->children.emplace(key, std::move(child));
     }
     assert(check_invariant(root));
     return iterator(loc->children[key].get());
@@ -373,13 +372,12 @@ Trie::iterator Trie::insert(string key) {
       // Create a child for the common part. junction's parent is set.
       auto junction = make_unique<Node>(post_key.empty(), loc);
       // Add junction to loc under common.
-      loc->children.insert(make_pair(common, std::move(junction)));
+      loc->children.emplace(common, std::move(junction));
     }
     const auto& junction = loc->children[common];
 
     // loc child is added to junction's children map.
-    junction->children.insert(
-        make_pair(post_child, std::move(str_ptr_pair.second)));
+    junction->children.emplace(post_child, std::move(str_ptr_pair.second));
     // The original child's parent pointer is set to junction.
     junction->children[post_child]->parent = junction.get();
     // Remove child_str from loc child map, cleaning up released
@@ -390,7 +388,7 @@ Trie::iterator Trie::insert(string key) {
       // Add an additional node for the split.
       {
         auto key_node = make_unique<Node>(true, junction.get());
-        junction->children.insert(make_pair(post_key, std::move(key_node)));
+        junction->children.emplace(post_key, std::move(key_node));
       }
       assert(check_invariant(root));
       return iterator(junction->children[post_key].get());
@@ -403,7 +401,7 @@ Trie::iterator Trie::insert(string key) {
   // If there are no shared prefixes, then simply create a node under loc.
   {
     auto key_node = make_unique<Node>(true, loc);
-    loc->children.insert(make_pair(key, std::move(key_node)));
+    loc->children.emplace(key, std::move(key_node));
   }
   assert(check_invariant(root));
   return iterator(loc->children[key].get());
@@ -459,7 +457,7 @@ void Trie::erase(string key, bool is_prefix) {
       string mod_key = par_iter->first + par->children.begin()->first;
       {
         auto& child = par->children.begin()->second;
-        grand_par->children.insert(make_pair(mod_key, std::move(child)));
+        grand_par->children.emplace(mod_key, std::move(child));
       }
       grand_par->children[mod_key]->parent = grand_par;
       grand_par->children.erase(par_iter);
@@ -473,7 +471,7 @@ void Trie::erase(string key, bool is_prefix) {
     string joined_key = match_iter->first + only_child->first;
 
     only_child->second->parent = par;
-    par->children.insert(make_pair(joined_key, std::move(only_child->second)));
+    par->children.emplace(joined_key, std::move(only_child->second));
     par->children.erase(match_iter);
   }
 
