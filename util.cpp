@@ -17,11 +17,12 @@ using std::cout;
 using std::default_random_engine;
 using std::ifstream;
 using std::mismatch;
+using std::random_device;
 using std::runtime_error;
 using std::string;
 using std::vector;
 
-bool is_prefix(const string& prf, const string& word) {
+bool util::is_prefix(const string& prf, const string& word) {
   // The empty string is a prefix for every string.
   if (prf.empty()) return true;
   // Assuming non-emptiness of prf, it cannot be longer than word.
@@ -33,7 +34,14 @@ bool is_prefix(const string& prf, const string& word) {
   return res.first == prf.end();
 }
 
-vector<string> read_words() {
+// Name of the word list file.
+static constexpr auto WORD_LIST_FILE = "words.txt";
+// Number of words in the file.
+static constexpr size_t WORD_LIST_SIZE = 466478;
+// Singleton random device for seed generation.
+static random_device RANDOM_DEVICE{};
+
+vector<string> util::read_words() {
   vector<string> master_list;
   master_list.reserve(WORD_LIST_SIZE);
 
@@ -45,6 +53,6 @@ vector<string> read_words() {
   auto rng = default_random_engine{RANDOM_DEVICE()};
   shuffle(master_list.begin(), master_list.end(), rng);
 
-  cout << "Imported " << master_list.size() << " randomly shuffled words\n";
+  cout << "Imported " << master_list.size() << " randomly shuffled words\n\n";
   return master_list;
 }

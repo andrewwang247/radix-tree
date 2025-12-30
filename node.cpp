@@ -68,7 +68,7 @@ const Node* Node::approximate_match(std::string& key) const {
   for (const auto& str_ptr_pair : children) {
     assert(str_ptr_pair.second);
     // If one of the children is a prefix of key, recurse.
-    if (is_prefix(str_ptr_pair.first, key)) {
+    if (util::is_prefix(str_ptr_pair.first, key)) {
       // Remove the child string off the front of key.
       return str_ptr_pair.second->approximate_match(
           key.erase(0, str_ptr_pair.first.length()));
@@ -103,7 +103,7 @@ const Node* Node::prefix_match(std::string& prf) const {
   */
   for (const auto& str_ptr_pair : app_ptr->children) {
     assert(str_ptr_pair.second);
-    if (is_prefix(prf, str_ptr_pair.first)) {
+    if (util::is_prefix(prf, str_ptr_pair.first)) {
       prf.clear();
       return str_ptr_pair.second.get();
     }
@@ -207,10 +207,8 @@ map<string, unique_ptr<Node>>::const_iterator Node::find_child(
 }
 
 bool Node::check_invariant() const {
-  // Check that root is non-null.
   unordered_set<char> characters;
 
-  // Check validity of children.
   for (const auto& str_ptr_pair : children) {
     // No null nodes in children tree.
     if (!str_ptr_pair.second) return false;
@@ -229,6 +227,6 @@ bool Node::check_invariant() const {
     if (!str_ptr_pair.second->check_invariant()) return false;
   }
 
-  // If root passes every single check, the tree is valid.
+  // If this passes every single check, the tree is valid.
   return true;
 }

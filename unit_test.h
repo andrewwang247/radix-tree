@@ -6,12 +6,14 @@ Interface for unit testing.
 #pragma once
 
 namespace unit_test {
-bool empty();
-bool find();
-bool insert();
-bool erase();
-bool iterate();
-bool copy_move();
-bool comparison();
-bool arithmetic();
+void empty();
+void find();
+void insert();
+void erase();
+void iterate();
+void copy_move();
+void comparison();
+void arithmetic();
+
+void run_all();
 }  // namespace unit_test

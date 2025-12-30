@@ -6,7 +6,10 @@ The API defined in `trie.h` is that of a set with prefix operations. The map is 
 
 To use the radix tree, simply put `#include "trie.h"` at the beginning of your file and compile/link with the rest of your program.
 
-Using the included `Makefile`, run `make` to compile `benchmark.cpp`, which conducts unit and performance tests.
+Use the included `Makefile` to build `benchmark`. Run with the:
+
+- `debug` option to run unit tests to assert correctness
+- `release` option to run performance tests against `std::set`
 
 ## Documentation
 
@@ -53,14 +56,14 @@ The tree supports constant forward iterators that traverse the stored keys in al
 
 ## Testing
 
-Running `benchmark.cpp` executes all unit and performance tests. In addition, the code has been checked for memory leaks using valgrind.
+Running `benchmark.cpp` executes either unit or performance tests, depending on the build options. In addition, the code has been checked for memory leaks using valgrind.
 
 ### Unit Tests
 
 The `Trie` class is validated with 8 black box unit tests. We test the following functions.
 
-- Default, `initializer_list`, copy, and range constructors.
-- Destructor (recursively deletes allocations).
+- Default, `initializer_list`, and range constructors.
+- Copy and move semantics.
 - `empty`, `size`, `find`, `insert`, and `erase`.
 - Iterator increment and dereference.
 - Traversal with `begin` and `end`.

@@ -43,6 +43,8 @@ timeunit_t erase(Trie words, const std::string& prefix);
 // Iteration speed test.
 template <typename Container>
 timeunit_t iterate(const Container& words);
+
+void run_all();
 }  // namespace perf_test
 
 // TEMPLATED IMPLEMENTATIONS
@@ -88,10 +90,3 @@ timeunit_t perf_test::iterate(const Container& words) {
 
   return t1 - t0;
 }
-
-/**
- * @brief Display performance comparison between set and Trie operations.
- * @param set_time The time taken by the set.
- * @param trie_time The time taken by the Trie.
- */
-void show_performance_comparison(timeunit_t set_time, timeunit_t trie_time);

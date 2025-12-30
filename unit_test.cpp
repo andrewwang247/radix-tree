@@ -6,6 +6,8 @@ Unit testing implementation.
 #include "unit_test.h"
 
 #include <algorithm>
+#include <cassert>
+#include <functional>
 #include <iostream>
 #include <string>
 #include <utility>
@@ -15,6 +17,7 @@ Unit testing implementation.
 
 using std::copy;
 using std::cout;
+using std::function;
 using std::string;
 using std::vector;
 
@@ -25,67 +28,70 @@ vector<string> extract_range(const Trie::iterator& start,
   return range;
 }
 
-bool unit_test::empty() {
+void unit_test::empty() {
   cout << "Empty test";
   Trie tr;
-  if (!tr.empty()) return false;
-  if (!tr.empty("hello")) return false;
-  if (tr.size() != 0) return false;
-  if (tr.size("world") != 0) return false;
-  if (tr.find("test") != tr.end()) return false;
-  return true;
+  assert(tr.empty());
+  assert(tr.empty("hello"));
+  assert(tr.size() == 0);
+  assert(tr.size("world") == 0);
+  assert(tr.find("test") == tr.end());
 }
 
-bool unit_test::find() {
+void unit_test::find() {
   cout << "Find test";
   Trie tr{"mahogany", "mahjong",     "compute", "computer", "matrix",
           "math",     "contaminate", "corn",    "corner",   "material",
           "mat",      "maternal",    "contain"};
 
-  if (tr.empty()) return false;
-  if (tr.size() != 13) return false;
-  if (tr.size("ma") != 7) return false;
+  assert(!tr.empty());
+  assert(tr.size() == 13);
+  assert(tr.size("ma") == 7);
 
-  const auto exact_iter = tr.find("corn");
-  if (exact_iter == tr.end() || *exact_iter != "corn") return false;
+  [[maybe_unused]] const auto exact_iter = tr.find("corn");
+  assert(exact_iter != tr.end());
+  assert(*exact_iter == "corn");
 
-  const auto prf_iter = tr.find_prefix("mate");
-  if (prf_iter == tr.end() || *prf_iter != "material") return false;
+  [[maybe_unused]] const auto prf_iter = tr.find_prefix("mate");
+  assert(prf_iter != tr.end());
+  assert(*prf_iter == "material");
 
-  const auto exact_prf_iter = tr.find_prefix("contaminate");
-  if (exact_prf_iter == tr.end() || *exact_prf_iter != "contaminate")
-    return false;
+  [[maybe_unused]] const auto exact_prf_iter = tr.find_prefix("contaminate");
+  assert(exact_prf_iter != tr.end());
+  assert(*exact_prf_iter == "contaminate");
 
-  const auto missing_exact_iter = tr.find("testing");
-  if (missing_exact_iter != tr.end()) return false;
+  [[maybe_unused]] const auto missing_exact_iter = tr.find("testing");
+  assert(missing_exact_iter == tr.end());
 
-  const auto missing_prf_iter = tr.find("conk");
-  if (missing_prf_iter != tr.end()) return false;
-
-  return true;
+  [[maybe_unused]] const auto missing_prf_iter = tr.find("conk");
+  assert(missing_prf_iter == tr.end());
 }
 
-bool unit_test::insert() {
+void unit_test::insert() {
   cout << "Insert test";
   Trie tr;
 
-  auto iter = tr.insert("math");
-  if (iter == tr.end() || *iter != "math") return false;
-  if (tr.size("math") != 1 || tr.empty()) return false;
+  [[maybe_unused]] auto iter = tr.insert("math");
+  assert(iter != tr.end());
+  assert(*iter == "math");
+  assert(tr.size("math") == 1);
+  assert(!tr.empty("mat"));
 
   iter = tr.insert("malleable");
-  if (iter == tr.end() || *iter != "malleable") return false;
-  if (tr.size() != 2 || tr.empty()) return false;
+  assert(iter != tr.end());
+  assert(*iter == "malleable");
+  assert(tr.size() == 2);
+  assert(!tr.empty("ma"));
 
   iter = tr.insert("regression");
-  if (iter == tr.end() || *iter != "regression") return false;
-  if (tr.size("m") != 2) return false;
-  if (tr.size() != 3) return false;
-
-  return true;
+  assert(iter != tr.end());
+  assert(*iter == "regression");
+  assert(tr.size("m") == 2);
+  assert(tr.size() == 3);
+  assert(!tr.empty("reg"));
 }
 
-bool unit_test::erase() {
+void unit_test::erase() {
   cout << "Erase test";
   Trie tr{"mahogany", "mahjong",     "compute", "computer", "matrix",
           "math",     "contaminate", "corn",    "corner",   "material",
@@ -94,41 +100,43 @@ bool unit_test::erase() {
   // Erase something that does not exist.
   tr.erase_prefix("random");
   tr.erase("cplusplus");
-  if (tr.size() != 13) return false;
+  assert(tr.size() == 13);
 
   // Erase a leaf node.
   tr.erase("maternal");
-  if (tr.size() != 12 || tr.empty()) return false;
-  if (tr.find("maternal") != tr.end()) return false;
-  if (tr.size("mat") != 4 || !tr.empty("matern")) return false;
+  assert(tr.size() == 12);
+  assert(!tr.empty());
+  assert(tr.find("maternal") == tr.end());
+  assert(tr.size("mat") == 4);
+  assert(tr.empty("matern"));
 
   // Erase non-degenerate internal node.
   tr.erase("mat");
   auto iter = tr.find_prefix("mat");
-  if (iter == tr.end() || *iter != "material") return false;
-  if (tr.size("ma") != 5 || tr.empty("mat")) return false;
+  assert(iter != tr.end());
+  assert(*iter == "material");
+  assert(tr.size("ma") == 5);
+  assert(!tr.empty("mat"));
 
   // Erase degenerate internal node.
   tr.erase("corn");
   iter = tr.find("corner");
-  if (iter == tr.end() || *iter != "corner") return false;
-  if (tr.size("co") != 5) return false;
+  assert(iter != tr.end());
+  assert(*iter == "corner");
+  assert(tr.size("co") == 5);
 
   tr.erase_prefix("con");
-  if (tr.find("contain") != tr.end()) return false;
-  if (tr.find("contaminate") != tr.end()) return false;
-  if (tr.find_prefix("con") != tr.end()) return false;
-  if (tr.size("co") != 3) return false;
+  assert(tr.find("contain") == tr.end());
+  assert(tr.find("contaminate") == tr.end());
+  assert(tr.find_prefix("con") == tr.end());
 
   // Try clearing.
   tr.clear();
-  if (!tr.empty()) return false;
-  if (tr.size() != 0) return false;
-
-  return true;
+  assert(tr.empty());
+  assert(tr.size() == 0);
 }
 
-bool unit_test::iterate() {
+void unit_test::iterate() {
   cout << "Iteration test";
 
   vector<string> words{"compute", "computer", "contain",  "contaminate",
@@ -138,41 +146,39 @@ bool unit_test::iterate() {
 
   // Also tests input iterator constructor.
   const Trie tr(words.begin(), words.end());
-
   const auto total_iterated = extract_range(tr.begin(), tr.end());
-
-  if (words != total_iterated) return false;
+  assert(words == total_iterated);
 
   // Only iterate over subportion.
   vector<string> co_words{"compute",     "computer", "contain",
                           "contaminate", "corn",     "corner"};
   const auto co_iterated = extract_range(tr.begin("co"), tr.end("co"));
-  if (co_words != co_iterated) return false;
+  assert(co_words == co_iterated);
 
   vector<string> ma_words{"mahjong",  "mahogany", "mat",   "material",
                           "maternal", "math",     "matrix"};
   const auto ma_iterated = extract_range(tr.begin("ma"), tr.end("ma"));
-  if (ma_words != ma_iterated) return false;
+  assert(ma_words == ma_iterated);
 
   // Prefix subportion.
   vector<string> mate_words{"material", "maternal"};
   const auto mate_iterated = extract_range(tr.begin("mate"), tr.end("mate"));
-  if (mate_words != mate_iterated) return false;
+  assert(mate_words == mate_iterated);
 
   // Singular word range.
-  const auto single_start = tr.begin("contaminate");
-  const auto single_finish = tr.end("contaminate");
-  if (single_start == tr.end() || *single_start != "contaminate") return false;
-  if (single_finish == tr.end() || *single_finish != "corn") return false;
+  [[maybe_unused]] const auto single_start = tr.begin("contaminate");
+  [[maybe_unused]] const auto single_finish = tr.end("contaminate");
+  assert(single_start != tr.end());
+  assert(*single_start == "contaminate");
+  assert(single_finish != tr.end());
+  assert(*single_finish == "corn");
 
   // Non-existant range.
-  if (tr.begin("cops") != tr.end()) return false;
-  if (*tr.end("cops") != "corn") return false;
-
-  return true;
+  assert(tr.begin("cops") == tr.end());
+  assert(*tr.end("cops") == "corn");
 }
 
-bool unit_test::copy_move() {
+void unit_test::copy_move() {
   cout << "Copy and Move test";
 
   Trie original{"mahogany", "mahjong",     "compute", "computer", "matrix",
@@ -182,33 +188,36 @@ bool unit_test::copy_move() {
 
   Trie copied(original);
   const auto copied_vec = extract_range(copied.begin(), copied.end());
-  if (orig_vec != copied_vec) return false;
+  assert(orig_vec == copied_vec);
 
   Trie moved{std::move(original)};
   const auto moved_vec = extract_range(moved.begin(), moved.end());
-  return orig_vec == moved_vec;
+  assert(orig_vec == moved_vec);
 }
 
-bool unit_test::comparison() {
+void unit_test::comparison() {
   cout << "Comparison test";
 
   Trie t1{"mahogany", "mahjong",     "compute", "computer", "matrix",
           "math",     "contaminate", "corn",    "corner",   "material",
           "mat",      "maternal",    "contain"};
 
-  Trie t2{"mahogany", "mahjong",     "compute", "computer", "matrix",
-          "math",     "contaminate", "corn",    "corner",   "material",
-          "mat",      "maternal",    "contain"};
+  Trie t2{"compute",  "computer", "contain",  "contaminate", "corn",
+          "corner",   "mahjong",  "mahogany", "mat",         "material",
+          "maternal", "math",     "matrix"};
 
   // Test equality
-  if (t1 != t2) return false;
-
+  assert(t1 == t2);
+  assert(!(t1 != t2));
   // Test inequality
   t1.erase("material");
-  return t1 < t2;
+  assert(t1 < t2);
+  assert(t2 > t1);
+  assert(t1 <= t2);
+  assert(t2 >= t1);
 }
 
-bool unit_test::arithmetic() {
+void unit_test::arithmetic() {
   cout << "Arithmetic test";
 
   const Trie tr{"mahogany", "mahjong",     "compute", "computer", "matrix",
@@ -220,13 +229,27 @@ bool unit_test::arithmetic() {
                 "mahogany", "material",    "math"};
   const Trie ex{"some", "extra", "stuff"};
 
-  if (t1 + t2 != tr) return false;
-  if (tr - t2 != t1) return false;
-  if (tr - t1 != t2) return false;
-  if (!(tr - t1 - t2).empty()) return false;
+  assert(t1 + t2 == tr);
+  assert(tr - t2 == t1);
+  assert(tr - t1 == t2);
+  assert((tr - t1 - t2).empty());
 
-  if (tr - ex != tr) return false;
-  if (tr >= tr + ex) return false;
+  assert(tr - ex == tr);
+  assert(tr < tr + ex);
+}
 
-  return true;
+void unit_test::run_all() {
+  vector<function<void()>> test_cases{
+      unit_test::empty,      unit_test::find,      unit_test::insert,
+      unit_test::erase,      unit_test::iterate,   unit_test::copy_move,
+      unit_test::comparison, unit_test::arithmetic};
+  cout << "--- EXECUTING UNIT TESTS ---\n";
+
+  for (const auto& test : test_cases) {
+    test();
+    cout << " passed\n";
+  }
+
+  cout << "\nPassed " << test_cases.size() << " unit tests.\n";
+  cout << "--- FINISHED UNIT TESTS ---\n";
 }
