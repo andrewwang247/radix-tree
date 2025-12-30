@@ -20,6 +20,7 @@ using std::ostream;
 using std::runtime_error;
 using std::string;
 using std::swap;
+using std::unique_ptr;
 
 Trie::Trie() : root(make_unique<Node>(false, nullptr)) {
   assert(root->check_invariant());
@@ -32,22 +33,16 @@ Trie::Trie(const initializer_list<string>& key_list) : Trie() {
   assert(root->check_invariant());
 }
 
-Trie::Trie(const Trie& other) : Trie() {
-  assert(other.root);
-  root->copy_from(other.root.get());
-  assert(root->check_invariant());
-}
-
-Trie::Trie(Trie&& other) : Trie() {
-  swap(*this, other);
+Trie::Trie(const Trie& other) : Trie(other.root->clone()) {
   assert(root->check_invariant());
 }
 
 Trie& Trie::operator=(Trie other) {
-  swap(*this, other);
-  assert(root->check_invariant());
+  swap(root, other.root);
   return *this;
 }
+
+Trie::Trie(unique_ptr<Node>&& cloned) { swap(root, cloned); }
 
 bool Trie::empty(string prefix) const {
   const auto prf_rt = root->prefix_match(prefix);

@@ -34,7 +34,7 @@ int main() {
 
   vector<function<bool()>> test_cases{
       unit_test::empty,      unit_test::find,      unit_test::insert,
-      unit_test::erase,      unit_test::iterate,   unit_test::copy,
+      unit_test::erase,      unit_test::iterate,   unit_test::copy_move,
       unit_test::comparison, unit_test::arithmetic};
 
   cout << "--- EXECUTING UNIT TESTS ---\n";

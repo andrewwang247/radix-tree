@@ -43,7 +43,7 @@ class Trie {
   template <typename InputIterator>
   Trie(InputIterator first, InputIterator last);
 
-  /* --- DYNAMIC MEMORY: RULE OF 5 */
+  /* --- RULE OF 5 --- */
 
   /**
    * @brief Copy constructor.
@@ -52,17 +52,31 @@ class Trie {
   Trie(const Trie& other);
 
   /**
-   * @brief Move constructor.
-   * @param other The trie to move into this.
-   */
-  Trie(Trie&& other);
-
-  /**
-   * @brief Assignment operator.
+   * @brief Copy assignment.
    * @param other The trie to assign to this.
    */
   Trie& operator=(Trie other);
 
+  /**
+   * @brief Move constructor.
+   * @param other The trie to move into this.
+   */
+  Trie(Trie&& other) = default;
+
+  /**
+   * @brief Move assignment.
+   * @param other The trie to move into this.
+   */
+  Trie& operator=(Trie&& other) = default;
+
+ private:
+  /**
+   * @brief Private move constructor from a cloned root node.
+   * @param cloned The cloned root to move into this.
+   */
+  explicit Trie(std::unique_ptr<Node>&& cloned);
+
+ public:
   /* --- CONTAINER SIZE --- */
 
   /**

@@ -8,6 +8,7 @@ Unit testing implementation.
 #include <algorithm>
 #include <iostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "trie.h"
@@ -138,25 +139,24 @@ bool unit_test::iterate() {
   // Also tests input iterator constructor.
   const Trie tr(words.begin(), words.end());
 
-  vector<string> total_iterated = extract_range(tr.begin(), tr.end());
+  const auto total_iterated = extract_range(tr.begin(), tr.end());
 
   if (words != total_iterated) return false;
 
   // Only iterate over subportion.
   vector<string> co_words{"compute",     "computer", "contain",
                           "contaminate", "corn",     "corner"};
-  vector<string> co_iterated = extract_range(tr.begin("co"), tr.end("co"));
+  const auto co_iterated = extract_range(tr.begin("co"), tr.end("co"));
   if (co_words != co_iterated) return false;
 
   vector<string> ma_words{"mahjong",  "mahogany", "mat",   "material",
                           "maternal", "math",     "matrix"};
-  vector<string> ma_iterated = extract_range(tr.begin("ma"), tr.end("ma"));
+  const auto ma_iterated = extract_range(tr.begin("ma"), tr.end("ma"));
   if (ma_words != ma_iterated) return false;
 
   // Prefix subportion.
   vector<string> mate_words{"material", "maternal"};
-  vector<string> mate_iterated =
-      extract_range(tr.begin("mate"), tr.end("mate"));
+  const auto mate_iterated = extract_range(tr.begin("mate"), tr.end("mate"));
   if (mate_words != mate_iterated) return false;
 
   // Singular word range.
@@ -172,19 +172,21 @@ bool unit_test::iterate() {
   return true;
 }
 
-bool unit_test::copy() {
-  cout << "Copy test";
+bool unit_test::copy_move() {
+  cout << "Copy and Move test";
 
   Trie original{"mahogany", "mahjong",     "compute", "computer", "matrix",
                 "math",     "contaminate", "corn",    "corner",   "material",
                 "mat",      "maternal",    "contain"};
+  const auto orig_vec = extract_range(original.begin(), original.end());
 
   Trie copied(original);
+  const auto copied_vec = extract_range(copied.begin(), copied.end());
+  if (orig_vec != copied_vec) return false;
 
-  vector<string> orig_vec = extract_range(original.begin(), original.end());
-  vector<string> copy_vec = extract_range(copied.begin(), copied.end());
-
-  return orig_vec == copy_vec;
+  Trie moved{std::move(original)};
+  const auto moved_vec = extract_range(moved.begin(), moved.end());
+  return orig_vec == moved_vec;
 }
 
 bool unit_test::comparison() {

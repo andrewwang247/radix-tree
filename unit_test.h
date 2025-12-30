@@ -11,7 +11,7 @@ bool find();
 bool insert();
 bool erase();
 bool iterate();
-bool copy();
+bool copy_move();
 bool comparison();
 bool arithmetic();
 }  // namespace unit_test

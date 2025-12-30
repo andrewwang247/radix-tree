@@ -27,19 +27,16 @@ using std::unordered_set;
 Node::Node(bool is_end, const Node* parent)
     : is_end(is_end), parent(parent), children() {}
 
-void Node::copy_from(const Node* other) {
-  assert(other);
-  // Make rt's is_end the same as other's is_end.
-  is_end = other->is_end;
-  // Recursively copy children.
-  for (const auto& str_ptr_pair : other->children) {
-    const auto& prf = str_ptr_pair.first;
-    {
-      auto child = make_unique<Node>(false, this);
-      children.emplace(prf, std::move(child));
-    }
-    children[prf]->copy_from(str_ptr_pair.second.get());
+unique_ptr<Node> Node::clone() const {
+  // Null parent because we do not clone above this node.
+  auto copy = make_unique<Node>(is_end, nullptr);
+  for (const auto& child : children) {
+    auto child_clone = child.second->clone();
+    // Manually set child's parent to the copy.
+    child_clone->parent = copy.get();
+    copy->children.emplace(child.first, std::move(child_clone));
   }
+  return copy;
 }
 
 bool Node::equals(const Node* other) const {

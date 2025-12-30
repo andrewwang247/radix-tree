@@ -25,9 +25,10 @@ class Node {
   Node(bool is_end, const Node* parent);
 
   /**
-   * @brief Recursively copies other into this.
+   * @brief Deep copy of contents rooted at this.
+   * @returns Owning pointer to the clone.
    */
-  void copy_from(const Node* other);
+  std::unique_ptr<Node> clone() const;
 
   /**
    * @brief Deep equality check.
