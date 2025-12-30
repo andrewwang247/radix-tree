@@ -7,14 +7,18 @@ Implementation for Node.
 
 #include <algorithm>
 #include <cassert>
+#include <map>
 #include <memory>
 #include <stack>
 #include <string>
 #include <unordered_set>
 #include <utility>
 
+#include "util.h"
+
+using std::find_if;
 using std::make_unique;
-using std::mismatch;
+using std::map;
 using std::stack;
 using std::string;
 using std::unique_ptr;
@@ -156,7 +160,7 @@ const Node* Node::next_node() const {
   loop is because ptr is not the right-most child.
   Thus, we want to find the child to the right of ptr.
   */
-  auto child_iter = value_find(par->children, ptr);
+  auto child_iter = par->find_child(ptr);
   assert(child_iter != par->children.end());
   ++child_iter;
   assert(child_iter != par->children.end());
@@ -178,7 +182,7 @@ string Node::underlying_string() const {
   auto par = parent;
   while (par) {
     // We must be able to find ptr in par->children.
-    auto iter = value_find(par->children, ptr);
+    auto iter = par->find_child(ptr);
     assert(iter != par->children.end());
 
     // Push the string representation onto the stack.
@@ -197,6 +201,12 @@ string Node::underlying_string() const {
     history.pop();
   }
   return str;
+}
+
+map<string, unique_ptr<Node>>::const_iterator Node::find_child(
+    const Node* other) const {
+  return find_if(children.begin(), children.end(),
+                 [other](const auto& p) { return p.second.get() == other; });
 }
 
 bool Node::check_invariant() const {
@@ -224,16 +234,4 @@ bool Node::check_invariant() const {
 
   // If root passes every single check, the tree is valid.
   return true;
-}
-
-bool is_prefix(const string& prf, const string& word) {
-  // The empty string is a prefix for every string.
-  if (prf.empty()) return true;
-  // Assuming non-emptiness of prf, it cannot be longer than word.
-  if (prf.length() > word.length()) return false;
-  // std::algorithm function that returns iterators to first mismatch.
-  const auto res = mismatch(prf.begin(), prf.end(), word.begin());
-
-  // If we reached the end of prf, it's a prefix.
-  return res.first == prf.end();
 }

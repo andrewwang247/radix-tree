@@ -88,37 +88,16 @@ class Node {
   std::string underlying_string() const;
 
   /**
+   * @brief Searches for the the given node in children.
+   * @param other The Node we are searching for in the map.
+   * @return An iterator to the position which matches other. This is the end
+   * iterator if other is not in the map.
+   */
+  std::map<std::string, std::unique_ptr<Node>>::const_iterator find_child(
+      const Node* other) const;
+
+  /**
    * @brief This function is only used for testing!
    */
   bool check_invariant() const;
 };
-
-/* --- HELPER FUNCTIONS --- */
-
-/**
- * @brief Check for prefixes of words.
- * @param prf The string to match with the beginning of word.
- * @param word The full prefix to test.
- * @return whether or not prf is a prefix of word.
- */
-bool is_prefix(const std::string& prf, const std::string& word);
-
-/**
- * @brief Searches for the the given value in a map.
- * @param m The map on which to search.
- * @param val The value we are searching for in the map.
- * @return An iterator to the position which matches val. This is the end
- * iterator if val is not in the map.
- */
-template <typename K, typename V>
-typename std::map<K, std::unique_ptr<V>>::const_iterator value_find(
-    const std::map<K, std::unique_ptr<V>>& m, const V* val);
-
-// TEMPLATED IMPLEMENTATIONS
-
-template <typename K, typename V>
-typename std::map<K, std::unique_ptr<V>>::const_iterator value_find(
-    const std::map<K, std::unique_ptr<V>>& m, const V* val) {
-  return std::find_if(m.begin(), m.end(),
-                      [val](const auto& p) { return p.second.get() == val; });
-}

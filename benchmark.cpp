@@ -4,57 +4,29 @@ Copyright 2026. Andrew Wang.
 Unit and performance tests for Trie.
 */
 #include <algorithm>
-#include <chrono>
-#include <fstream>
 #include <functional>
 #include <iomanip>
 #include <ios>
 #include <iostream>
-#include <random>
 #include <set>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "perf_test.h"
 #include "trie.h"
 #include "unit_test.h"
+#include "util.h"
 
 using std::cout;
-using std::default_random_engine;
 using std::equal;
 using std::fixed;
 using std::function;
-using std::ifstream;
 using std::ios_base;
-using std::random_device;
 using std::runtime_error;
 using std::set;
 using std::setprecision;
-using std::shuffle;
 using std::string;
 using std::vector;
-
-// Name of the word list file.
-static constexpr auto WORD_LIST_FILE = "words.txt";
-// Number of words in the file.
-static constexpr size_t WORD_LIST_SIZE = 466478;
-// Singleton random device for seed generation.
-static random_device RANDOM_DEVICE{};
-
-/**
- * @brief Reads words from the given file into a vector of strings.
- * @param word_file The path to the word list file.
- * @return A vector of strings containing all words from the file.
- */
-vector<string> read_words(const string& word_file);
-
-/**
- * @brief Display performance comparison between set and Trie operations.
- * @param set_time The time taken by the set.
- * @param trie_time The time taken by the Trie.
- */
-void show_performance_comparison(timeunit_t set_time, timeunit_t trie_time);
 
 int main() {
   ios_base::sync_with_stdio(false);
@@ -81,7 +53,7 @@ int main() {
        << " unit tests.\n";
   cout << "--- FINISHED UNIT TESTS ---\n\n";
 
-  const auto master_list = read_words(WORD_LIST_FILE);
+  const auto master_list = read_words();
 
   cout << "\n--- EXECUTING PERFORMANCE TEST ---\n";
 
@@ -137,30 +109,4 @@ int main() {
   cout << (counts_equal ? "passed\n" : "failed\n");
 
   cout << "--- FINISHED FINAL COMPARISON ---\n";
-}
-
-vector<string> read_words(const string& word_file) {
-  vector<string> master_list;
-  master_list.reserve(WORD_LIST_SIZE);
-
-  ifstream fin(word_file);
-  if (!fin) throw runtime_error("Could not open words.txt");
-  for (string word; fin >> word;) {
-    master_list.push_back(word);
-  }
-  auto rng = default_random_engine{RANDOM_DEVICE()};
-  shuffle(master_list.begin(), master_list.end(), rng);
-
-  cout << "Imported " << master_list.size() << " randomly shuffled words\n";
-  return master_list;
-}
-
-void show_performance_comparison(timeunit_t set_time, timeunit_t trie_time) {
-  if (set_time < trie_time) {
-    const auto diff = static_cast<double>(trie_time.count()) / set_time.count();
-    cout << "\tSet was " << diff << " times faster than Trie\n";
-  } else {
-    const auto diff = static_cast<double>(set_time.count()) / trie_time.count();
-    cout << "\tTrie was " << diff << " times faster than Set\n";
-  }
 }

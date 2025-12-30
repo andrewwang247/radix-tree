@@ -14,18 +14,16 @@ Performance testing implementation.
 #include <string>
 #include <utility>
 
+#include "util.h"
+
 using std::array;
-using std::count_if;
 using std::cout;
 using std::distance;
 using std::lower_bound;
 using std::make_pair;
-using std::mismatch;
 using std::pair;
-using std::runtime_error;
 using std::set;
 using std::string;
-using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;
 
 pair<array<size_t, ALPHABET_SIZE>, timeunit_t> perf_test::count(
@@ -135,4 +133,14 @@ timeunit_t perf_test::erase(Trie words, const string& prefix) {
   cout << "erased all words with prefix " << prefix << '\n';
 
   return t1 - t0;
+}
+
+void show_performance_comparison(timeunit_t set_time, timeunit_t trie_time) {
+  if (set_time < trie_time) {
+    const auto diff = static_cast<double>(trie_time.count()) / set_time.count();
+    cout << "\tSet was " << diff << " times faster than Trie\n";
+  } else {
+    const auto diff = static_cast<double>(set_time.count()) / trie_time.count();
+    cout << "\tTrie was " << diff << " times faster than Set\n";
+  }
 }

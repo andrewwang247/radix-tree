@@ -9,14 +9,17 @@ Interface for performance testing.
 #include <chrono>
 #include <iostream>
 #include <set>
+#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <utility>
 #include <vector>
 
 #include "trie.h"
+
 using timeunit_t = std::chrono::nanoseconds;
 constexpr size_t ALPHABET_SIZE = 26;
+
 namespace perf_test {
 // Insertion test. Also constructs the container.
 template <typename Container>
@@ -85,3 +88,10 @@ timeunit_t perf_test::iterate(const Container& words) {
 
   return t1 - t0;
 }
+
+/**
+ * @brief Display performance comparison between set and Trie operations.
+ * @param set_time The time taken by the set.
+ * @param trie_time The time taken by the Trie.
+ */
+void show_performance_comparison(timeunit_t set_time, timeunit_t trie_time);

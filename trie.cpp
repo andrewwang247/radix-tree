@@ -7,8 +7,9 @@ Implementation for Trie.
 
 #include <algorithm>
 #include <cassert>
-#include <exception>
+#include <initializer_list>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <utility>
 
@@ -186,14 +187,14 @@ void Trie::erase(string key) {
 
   if (match->children.empty()) {
     const auto par = const_cast<Node*>(match->parent);
-    auto match_iter = value_find(par->children, match);
+    auto match_iter = par->find_child(match);
     par->children.erase(match_iter);
 
     // Check for possible joining with grand parent.
     if (par->children.size() == 1 && par != root.get() && !par->is_end) {
       const auto grand_par = const_cast<Node*>(par->parent);
       assert(grand_par);
-      auto par_iter = value_find(grand_par->children, par);
+      auto par_iter = grand_par->find_child(par);
       assert(par_iter != grand_par->children.end());
 
       // Join keys on par_iter and the only child of par.
@@ -210,7 +211,7 @@ void Trie::erase(string key) {
     const auto only_child = match->children.begin();
     const auto par = const_cast<Node*>(match->parent);
     assert(par);
-    const auto match_iter = value_find(par->children, match);
+    const auto match_iter = par->find_child(match);
     string joined_key = match_iter->first + only_child->first;
 
     only_child->second->parent = par;
@@ -230,7 +231,7 @@ void Trie::erase_prefix(string prefix) {
   } else {
     const auto par = const_cast<Node*>(prf_ptr->parent);
     assert(par);
-    par->children.erase(value_find(par->children, prf_ptr));
+    par->children.erase(par->find_child(prf_ptr));
   }
   assert(root->check_invariant());
 }
@@ -344,7 +345,7 @@ bool operator<=(const Trie& lhs, const Trie& rhs) { return !(rhs < lhs); }
 
 bool operator>=(const Trie& lhs, const Trie& rhs) { return !(lhs < rhs); }
 
-ostream& operator<<(std::ostream& os, const Trie& tree) {
+ostream& operator<<(ostream& os, const Trie& tree) {
   for (const auto& str : tree) {
     os << str << '\n';
   }

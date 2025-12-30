@@ -19,7 +19,6 @@ cppcheck --language=c++ --std=c++17 --quiet \
     --suppress=checkersReport \
     --suppress=functionStatic \
     --suppress=missingIncludeSystem \
-    --suppress=throwInEntryPoint \
     --suppress=unusedStructMember \
     $cppfiles
 
