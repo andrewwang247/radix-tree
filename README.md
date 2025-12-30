@@ -4,7 +4,7 @@ The API defined in `trie.h` is that of a set with prefix operations. The map is 
 
 ## Usage
 
-To use the radix tree, simply put `#include "trie.h"` at the beginning of your file and compile/link `trie.cpp` with the rest of your program.
+To use the radix tree, simply put `#include "trie.h"` at the beginning of your file and compile/link with the rest of your program.
 
 Using the included `Makefile`, run `make` to compile `benchmark.cpp`, which conducts unit and performance tests.
 

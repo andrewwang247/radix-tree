@@ -244,7 +244,7 @@ void Trie::clear() {
   assert(root->check_invariant());
 }
 
-Trie::iterator::iterator(const Node* p) : m_ptr(p) {}
+Trie::iterator::iterator(const Node* p) : ptr(p) {}
 
 Trie::iterator& Trie::iterator::operator++() {
   /*
@@ -252,7 +252,7 @@ Trie::iterator& Trie::iterator::operator++() {
   Otherwise, return the next node that isn't a child.
   Elegantly handles the case when the returned value is nullptr.
   */
-  m_ptr = m_ptr->children.empty() ? m_ptr->next_node() : m_ptr->first_key();
+  ptr = ptr->children.empty() ? ptr->next_node() : ptr->first_key();
   return *this;
 }
 
@@ -262,9 +262,9 @@ Trie::iterator Trie::iterator::operator++(int) {
   return temp;
 }
 
-string Trie::iterator::operator*() const { return m_ptr->underlying_string(); }
+string Trie::iterator::operator*() const { return ptr->underlying_string(); }
 
-Trie::iterator::operator bool() const { return m_ptr != nullptr; }
+Trie::iterator::operator bool() const { return ptr != nullptr; }
 
 Trie::iterator Trie::begin() const {
   return root->is_end ? iterator(root.get()) : iterator(root->first_key());
@@ -354,10 +354,10 @@ ostream& operator<<(ostream& os, const Trie& tree) {
 
 bool operator==(const Trie::iterator& lhs, const Trie::iterator& rhs) {
   // Performs element by element.
-  return lhs.m_ptr == rhs.m_ptr;
+  return lhs.ptr == rhs.ptr;
 }
 
 bool operator!=(const Trie::iterator& lhs, const Trie::iterator& rhs) {
   // Performs element by element.
-  return lhs.m_ptr != rhs.m_ptr;
+  return lhs.ptr != rhs.ptr;
 }

@@ -97,11 +97,10 @@ class Trie {
     using reference = const std::string&;
 
    private:
-    const Node* m_ptr;
+    const Node* ptr;
 
     /**
-     * @brief Constructor, Node ptr is null by default.
-     * @param t The trie reference to assign to tree.
+     * @brief Pointer constructor - ptr is null by default.
      * @param p The Node that the iterator is currently pointing at.
      */
     explicit iterator(const Node* p = nullptr);
@@ -256,8 +255,7 @@ class Trie {
    */
   Trie& operator-=(const Trie& rhs);
 
-  // Private access for == operator to allow efficient deep equality check. See
-  // COMPARISON OF TRIES.
+  // Private access for == operator to allow efficient deep equality check.
   friend bool operator==(const Trie& lhs, const Trie& rhs);
 };
 
@@ -268,7 +266,7 @@ COMPARISON OF TRIES.
 We say that A == B if A and B have equivalent keys.
 Define A < B as a proper subset relation.
 Note: operator== is a friend to take advantage of
-the more efficient Trie::are_equal function.
+efficient private functions.
 */
 
 bool operator<(const Trie& lhs, const Trie& rhs);
