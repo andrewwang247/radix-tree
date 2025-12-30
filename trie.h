@@ -88,10 +88,8 @@ class Trie {
    * @brief Counts the number of keys stored at or as children of rt added to
    * acc. Equivalent to counting the number of true is_end's accessible from rt.
    * @param rt The non-null root node at which to start counting.
-   * @param acc The value at which to start counting. Modifies reference to
-   * increment by number of keys.
    */
-  static void key_counter(const Node* rt, size_t& acc);
+  static size_t key_counter(const Node* rt);
 
   /**
    * @brief Deep equality check.
@@ -138,7 +136,6 @@ class Trie {
   /**
    * @brief This function is only used for testing!
    * @param root The root of the tree to check.
-   * @return Whether or not the tree at root is valid (satisfies invariants).
    */
   static bool check_invariant(const std::unique_ptr<Node>& root);
 

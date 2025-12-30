@@ -98,15 +98,16 @@ const Trie::Node* Trie::prefix_match(const Trie::Node* rt, string& prf) {
   return nullptr;
 }
 
-void Trie::key_counter(const Node* rt, size_t& acc) {
+size_t Trie::key_counter(const Node* rt) {
   assert(rt);
-  // If root contains a word, increment the counter.
-  if (rt->is_end) ++acc;
+  // If root is_end, count it as a word.
+  size_t counter = rt->is_end ? 1 : 0;
   // Recursively check for words in children
   for (const auto& str_ptr_pair : rt->children) {
     assert(str_ptr_pair.second);
-    key_counter(str_ptr_pair.second.get(), acc);
+    counter += key_counter(str_ptr_pair.second.get());
   }
+  return counter;
 }
 
 const Trie::Node* Trie::exact_match(const Trie::Node* rt, string word) {
@@ -145,19 +146,15 @@ bool Trie::are_equal(const std::unique_ptr<Node>& rt_1,
 
 const Trie::Node* Trie::first_key(const Trie::Node* rt) {
   assert(rt);
-
   // If rt has no children, nullptr.
   if (rt->children.empty()) return nullptr;
-  rt = rt->children.begin()->second.get();
-  assert(rt);
-
   // Keep moving down the tree along the left side until is_end.
-  while (!rt->is_end) {
+  do {
     // If rt is not an end, its children should not be empty.
     assert(!rt->children.empty());
     rt = rt->children.begin()->second.get();
     assert(rt);
-  }
+  } while (!rt->is_end);
   return rt;
 }
 
@@ -184,8 +181,8 @@ const Trie::Node* Trie::next_node(const Trie::Node* ptr) {
   */
   auto child_iter = value_find(par->children, ptr);
   assert(child_iter != par->children.end());
-  assert(next(child_iter) != par->children.end());
   ++child_iter;
+  assert(child_iter != par->children.end());
   const auto& rn = child_iter->second;
   assert(rn);
 
@@ -198,29 +195,31 @@ const Trie::Node* Trie::next_node(const Trie::Node* ptr) {
 string Trie::underlying_string(const Node* ptr) {
   assert(ptr);
 
-  // As we move up, push string representations onto stack.
   stack<string> history;
+  size_t total_length = 0;
+
   // Move up in trie until we get to root.
   auto par = ptr->parent;
-
   while (par) {
     // We must be able to find ptr in par->children.
     auto iter = value_find(par->children, ptr);
     assert(iter != par->children.end());
 
-    // Push the string representation onto the stack and go up.
+    // Push the string representation onto the stack.
     history.push(iter->first);
+    total_length += iter->first.size();
+
     ptr = par;
     par = par->parent;
   }
 
   // If par is null, then ptr must be root. Concatenate strings in reverse.
-  string str = "";
+  string str{};
+  str.reserve(total_length);
   while (!history.empty()) {
     str += history.top();
     history.pop();
   }
-
   return str;
 }
 
@@ -243,7 +242,7 @@ bool Trie::check_invariant(const unique_ptr<Node>& root) {
     */
     if (characters.find(str_ptr_pair.first.front()) != characters.end())
       return false;
-    characters.emplace(str_ptr_pair.first.front());
+    characters.insert(str_ptr_pair.first.front());
     // Recursively check child node.
     if (!check_invariant(str_ptr_pair.second)) return false;
   }
@@ -291,12 +290,7 @@ bool Trie::empty(string prefix) const {
 
 size_t Trie::size(string prefix) const {
   const auto prf_rt = prefix_match(root.get(), prefix);
-  if (!prf_rt) return size_t(0);
-  size_t counter = 0;
-  key_counter(prf_rt, counter);
-
-  assert(check_invariant(root));
-  return counter;
+  return prf_rt ? key_counter(prf_rt) : size_t(0);
 }
 
 Trie::iterator Trie::find(const string& key) const {
