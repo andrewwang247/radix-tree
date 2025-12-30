@@ -187,12 +187,22 @@ void unit_test::copy_move() {
   const auto orig_vec = extract_range(original.begin(), original.end());
 
   Trie copied(original);
-  const auto copied_vec = extract_range(copied.begin(), copied.end());
-  assert(orig_vec == copied_vec);
+  const auto copy_ctor_vec = extract_range(copied.begin(), copied.end());
+  assert(orig_vec == copy_ctor_vec);
+
+  copied.clear();
+  copied = original;
+  const auto copy_assign_vec = extract_range(copied.begin(), copied.end());
+  assert(orig_vec == copy_assign_vec);
 
   Trie moved{std::move(original)};
-  const auto moved_vec = extract_range(moved.begin(), moved.end());
-  assert(orig_vec == moved_vec);
+  const auto move_ctor_vec = extract_range(moved.begin(), moved.end());
+  assert(orig_vec == move_ctor_vec);
+
+  copied.clear();
+  moved = std::move(copied);
+  const auto move_assign_vec = extract_range(moved.begin(), moved.end());
+  assert(move_assign_vec.empty());
 }
 
 void unit_test::comparison() {

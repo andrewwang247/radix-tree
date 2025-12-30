@@ -43,8 +43,6 @@ class Trie {
   template <typename InputIterator>
   Trie(InputIterator first, InputIterator last);
 
-  /* --- RULE OF 5 --- */
-
   /**
    * @brief Copy constructor.
    * @param other The trie to copy into this.
@@ -52,7 +50,7 @@ class Trie {
   Trie(const Trie& other);
 
   /**
-   * @brief Copy assignment.
+   * @brief Assignment for both copy and move.
    * @param other The trie to assign to this.
    */
   Trie& operator=(Trie other);
@@ -64,10 +62,9 @@ class Trie {
   Trie(Trie&& other) = default;
 
   /**
-   * @brief Move assignment.
-   * @param other The trie to move into this.
+   * @brief Default destructor.
    */
-  Trie& operator=(Trie&& other) = default;
+  ~Trie() = default;
 
  private:
   /**
