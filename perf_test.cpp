@@ -28,18 +28,6 @@ using std::string;
 using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;
 
-bool is_prefix(const string& prf, const string& word) {
-  // The empty string is a prefix for every string.
-  if (prf.empty()) return true;
-  // Assuming non-emptiness of prf, it cannot be longer than word.
-  if (prf.length() > word.length()) return false;
-  // std::algorithm function that returns iterators to first mismatch.
-  const auto res = mismatch(prf.begin(), prf.end(), word.begin());
-
-  // If we reached the end of prf, it's a prefix.
-  return res.first == prf.end();
-}
-
 pair<array<size_t, ALPHABET_SIZE>, timeunit_t> perf_test::count(
     const set<string>& words) {
   cout << "Set first letter counts: ";

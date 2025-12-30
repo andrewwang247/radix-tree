@@ -4,15 +4,14 @@ Copyright 2026. Andrew Wang.
 Interface for Trie.
 */
 #pragma once
-#include <algorithm>
 #include <cassert>
-#include <exception>
 #include <initializer_list>
 #include <iostream>
 #include <iterator>
-#include <map>
 #include <memory>
 #include <string>
+
+#include "node.h"
 
 /**
  * @brief A compact prefix tree with keys as std::basic_string. The empty string
@@ -20,124 +19,7 @@ Interface for Trie.
  */
 class Trie {
  private:
-  /**
-   * @brief Defines a singular node in the Trie data structure.
-   */
-  struct Node {
-    bool is_end;
-    const Node* parent;
-    std::map<std::string, std::unique_ptr<Node>> children;
-    /**
-     * @brief Construct a new node with no children.
-     * @param is_end_in The is_end value.
-     * @param parent_in The parent pointer.
-     */
-    Node(bool is_end_in, const Node* parent_in);
-  };
-
   std::unique_ptr<Node> root;
-
-  /* --- HELPER FUNCTIONS --- */
-
-  /**
-   * @brief Recursively copies other into rt.
-   */
-  static void recursive_copy(const std::unique_ptr<Node>& rt,
-                             const std::unique_ptr<Node>& other);
-
-  /**
-   * @brief Check for prefixes of words.
-   * @param prf The string to match with the beginning of word.
-   * @param word The full prefix to test.
-   * @return whether or not prf is a prefix of word.
-   */
-  static bool is_prefix(const std::string& prf, const std::string& word);
-
-  /**
-   * @brief Depth traversing search for the deepest node N such that a prefix of
-   * key matches the string representation at N.
-   * @param rt The non-null node at which to start searching.
-   * @param key The key on which to make an approximate match. Modifies key
-   * such that the string representation at N is removed.
-   * @return The node N described above. Since the root node is equivalent to
-   * the empty string, N is never null.
-   */
-  static const Node* approximate_match(const Node* rt, std::string& key);
-
-  /**
-   * @brief Depth traversing search for the node that serves as a root for prf.
-   * @param rt The non-null node at which to start searching.
-   * @param prf The prefix which the return node should be a root of. Modifies
-   * so that the string at prefix_match is removed from prf. Note that if prf is
-   * not a prefix, the modified prf reflects as far as it got.
-   * @return The deepest node N such that N and all of N's children have prf as
-   * prefix. If prf is not a prefix, returns a nullptr.
-   */
-  static const Node* prefix_match(const Node* rt, std::string& prf);
-
-  /**
-   * @brief Depth traversing search for the node that matches word.
-   * @param rt The non-null root node from which to search.
-   * @param word The string we are trying to match.
-   * @return The first node that exactly matches the given word. If no match is
-   * found, returns a nullptr.
-   */
-  static const Node* exact_match(const Node* rt, std::string word);
-
-  /**
-   * @brief Counts the number of keys stored at or as children of rt added to
-   * acc. Equivalent to counting the number of true is_end's accessible from rt.
-   * @param rt The non-null root node at which to start counting.
-   */
-  static size_t key_counter(const Node* rt);
-
-  /**
-   * @brief Deep equality check.
-   * @param rt_1: The non-null root of the first trie.
-   * @param rt_2: The non-null root of the second trie.
-   * @return Whether or not the tries rooted at rt_1 and rt_2 are equivalent.
-   */
-  static bool are_equal(const std::unique_ptr<Node>& rt_1,
-                        const std::unique_ptr<Node>& rt_2);
-
-  /**
-   * @brief Searches for the the given value in a map.
-   * @param m The map on which to search.
-   * @param val The value we are searching for in the map.
-   * @return An iterator to the position which matches val. This is the end
-   * iterator if val is not in the map.
-   */
-  template <typename K, typename V>
-  static typename std::map<K, std::unique_ptr<V>>::const_iterator value_find(
-      const std::map<K, std::unique_ptr<V>>& m, const V* val);
-
-  /**
-   * @brief Find the first child key.
-   * @param rt The non-null root node at which to start.
-   * @return The first key that's a child of rt or nullptr if empty.
-   */
-  static const Node* first_key(const Node* rt);
-
-  /**
-   * @brief Get the next need for in-order traversal.
-   * @param ptr The non-null starting node position.
-   * @return The first key AFTER ptr that is not a child of ptr. If there isn't
-   * such a key, returns nullptr.
-   */
-  static const Node* next_node(const Node* ptr);
-
-  /**
-   * @brief Reconstruct string from node.
-   * @param ptr The node for which we are trying to construct a string.
-   * @return The string representation at ptr.
-   */
-  static std::string underlying_string(const Node* ptr);
-
-  /**
-   * @brief This function is only used for testing!
-   * @param root The root of the tree to check.
-   */
-  static bool check_invariant(const std::unique_ptr<Node>& root);
 
  public:
   /**
@@ -215,7 +97,7 @@ class Trie {
     using reference = const std::string&;
 
    private:
-    const Node* ptr;
+    const Node* m_ptr;
 
     /**
      * @brief Constructor, Node ptr is null by default.
@@ -416,12 +298,5 @@ Trie::Trie(InputIterator first, InputIterator last) : Trie() {
   for (InputIterator iter = first; iter != last; ++iter) {
     insert(*iter);
   }
-  assert(check_invariant(root));
-}
-
-template <typename K, typename V>
-typename std::map<K, std::unique_ptr<V>>::const_iterator Trie::value_find(
-    const std::map<K, std::unique_ptr<V>>& m, const V* val) {
-  return std::find_if(m.begin(), m.end(),
-                      [val](const auto& p) { return p.second.get() == val; });
+  assert(root->check_invariant());
 }
