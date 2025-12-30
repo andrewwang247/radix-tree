@@ -243,13 +243,12 @@ void unit_test::run_all() {
       unit_test::empty,      unit_test::find,      unit_test::insert,
       unit_test::erase,      unit_test::iterate,   unit_test::copy_move,
       unit_test::comparison, unit_test::arithmetic};
+  cout << "Collected " << test_cases.size() << " unit tests\n";
   cout << "--- EXECUTING UNIT TESTS ---\n";
 
   for (const auto& test : test_cases) {
     test();
     cout << " passed\n";
   }
-
-  cout << "\nPassed " << test_cases.size() << " unit tests.\n";
   cout << "--- FINISHED UNIT TESTS ---\n";
 }

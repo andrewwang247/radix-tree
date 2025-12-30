@@ -29,7 +29,7 @@ using std::chrono::high_resolution_clock;
 
 pair<array<size_t, ALPHABET_SIZE>, timeunit_t> perf_test::count(
     const set<string>& words) {
-  cout << "Set first letter counts: ";
+  cout << "\tSet count: ";
 
   array<set<string>::iterator, ALPHABET_SIZE + 1> bounds{};
   array<size_t, ALPHABET_SIZE> distances{};
@@ -49,17 +49,13 @@ pair<array<size_t, ALPHABET_SIZE>, timeunit_t> perf_test::count(
   }
   const auto t1 = high_resolution_clock::now();
 
-  for (const auto dist : distances) {
-    cout << dist << ' ';
-  }
-  cout << '\n';
-
+  cout << distances.size() << " prefixes\n";
   return make_pair(distances, t1 - t0);
 }
 
 pair<array<size_t, ALPHABET_SIZE>, timeunit_t> perf_test::count(
     const Trie& words) {
-  cout << "Trie first letter counts: ";
+  cout << "\tTrie count: ";
 
   array<size_t, ALPHABET_SIZE> distances{};
 
@@ -70,16 +66,12 @@ pair<array<size_t, ALPHABET_SIZE>, timeunit_t> perf_test::count(
   }
   const auto t1 = high_resolution_clock::now();
 
-  for (const auto dist : distances) {
-    cout << dist << ' ';
-  }
-  cout << '\n';
-
+  cout << distances.size() << " prefixes\n";
   return make_pair(distances, t1 - t0);
 }
 
 timeunit_t perf_test::find(const set<string>& words, const string& prefix) {
-  cout << "Set find: ";
+  cout << "\tSet find: ";
 
   const auto t0 = high_resolution_clock::now();
 
@@ -95,7 +87,7 @@ timeunit_t perf_test::find(const set<string>& words, const string& prefix) {
 }
 
 timeunit_t perf_test::find(const Trie& words, const string& prefix) {
-  cout << "Trie find: ";
+  cout << "\tTrie find: ";
 
   const auto t0 = high_resolution_clock::now();
   const auto start = words.begin(prefix);
@@ -108,7 +100,7 @@ timeunit_t perf_test::find(const Trie& words, const string& prefix) {
 }
 
 timeunit_t perf_test::erase(set<string> words, const string& prefix) {
-  cout << "Set deletion: ";
+  cout << "\tSet deletion: ";
 
   const auto t0 = high_resolution_clock::now();
 
@@ -126,7 +118,7 @@ timeunit_t perf_test::erase(set<string> words, const string& prefix) {
 }
 
 timeunit_t perf_test::erase(Trie words, const string& prefix) {
-  cout << "Trie deletion: ";
+  cout << "\tTrie deletion: ";
 
   const auto t0 = high_resolution_clock::now();
   words.erase_prefix(prefix);
@@ -144,17 +136,17 @@ timeunit_t perf_test::erase(Trie words, const string& prefix) {
 void show_performance_comparison(timeunit_t set_time, timeunit_t trie_time) {
   if (set_time < trie_time) {
     const auto diff = static_cast<double>(trie_time.count()) / set_time.count();
-    cout << "\tSet was " << diff << " times faster than Trie\n\n";
+    cout << "Set was " << diff << " times faster than Trie\n";
   } else {
     const auto diff = static_cast<double>(set_time.count()) / trie_time.count();
-    cout << "\tTrie was " << diff << " times faster than Set\n\n";
+    cout << "Trie was " << diff << " times faster than Set\n";
   }
 }
 
 void perf_test::run_all() {
   const auto master_list = util::read_words();
 
-  cout << "--- EXECUTING PERFORMANCE TEST ---\n\n";
+  cout << "--- EXECUTING PERFORMANCE TEST ---\n";
 
   // Insert perf
   const auto insert_set_result = perf_test::insert<set<string>>(master_list);
@@ -189,19 +181,25 @@ void perf_test::run_all() {
   const auto iterate_trie_result = perf_test::iterate(word_trie);
   show_performance_comparison(iterate_set_result, iterate_trie_result);
 
-  cout << "--- FINISHED PERFORMANCE TEST ---\n\n";
+  cout << "--- FINISHED PERFORMANCE TEST ---\n";
 
   cout << "--- EXECUTING FINAL VERIFICATION ---\n";
 
-  cout << "Traversal word match test ";
+  cout << "Traversed ranges ";
   const bool words_equal = equal(word_set.begin(), word_set.end(),
                                  word_trie.begin(), word_trie.end());
-  cout << (words_equal ? "passed\n" : "failed\n");
+  cout << (words_equal ? "match\n" : "do not match\n");
 
-  cout << "First letter counts test ";
+  cout << "First letter counts ";
   const bool counts_equal = equal(set_counts.begin(), set_counts.end(),
                                   trie_counts.begin(), trie_counts.end());
-  cout << (counts_equal ? "passed\n" : "failed\n");
+  cout << (counts_equal ? "match\n" : "do not match\n");
+
+  if (words_equal && counts_equal) {
+    cout << "Verification passed\n";
+  } else {
+    cout << "Verification failed\n";
+  }
 
   cout << "--- FINISHED FINAL VERIFICATION ---\n";
 }

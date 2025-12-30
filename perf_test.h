@@ -54,9 +54,9 @@ std::pair<Container, timeunit_t> perf_test::insert(
     const std::vector<std::string>& word_list) {
   // Make announcement.
   if (std::is_same<Container, std::set<std::string>>::value) {
-    std::cout << "Set insertion: ";
+    std::cout << "\tSet insertion: ";
   } else if (std::is_same<Container, Trie>::value) {
-    std::cout << "Trie insertion: ";
+    std::cout << "\tTrie insertion: ";
   } else {
     throw std::runtime_error("Container must be either set<string> or Trie.");
   }
@@ -73,9 +73,9 @@ std::pair<Container, timeunit_t> perf_test::insert(
 template <typename Container>
 timeunit_t perf_test::iterate(const Container& words) {
   if (std::is_same<Container, std::set<std::string>>::value) {
-    std::cout << "Set iteration: ";
+    std::cout << "\tSet iteration: ";
   } else if (std::is_same<Container, Trie>::value) {
-    std::cout << "Trie iteration: ";
+    std::cout << "\tTrie iteration: ";
   } else {
     throw std::runtime_error("Container must be either set<string> or Trie.");
   }

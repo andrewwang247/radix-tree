@@ -310,5 +310,5 @@ Trie::Trie(InputIterator first, InputIterator last) : Trie() {
   for (InputIterator iter = first; iter != last; ++iter) {
     insert(*iter);
   }
-  assert(root->check_invariant());
+  root->assert_invariants();
 }

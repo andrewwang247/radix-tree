@@ -104,5 +104,5 @@ class Node {
    * @brief This function is only used for testing! Asserts that this matches
    * structural invariants.
    */
-  bool check_invariant() const;
+  void assert_invariants() const;
 };

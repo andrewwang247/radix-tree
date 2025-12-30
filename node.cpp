@@ -206,27 +206,26 @@ map<string, unique_ptr<Node>>::const_iterator Node::find_child(
                  [other](const auto& p) { return p.second.get() == other; });
 }
 
-bool Node::check_invariant() const {
+void Node::assert_invariants() const {
+#ifdef DEBUG
   unordered_set<char> characters;
-
   for (const auto& str_ptr_pair : children) {
+    const auto& prf = str_ptr_pair.first;
+    const auto& ptr = str_ptr_pair.second;
     // No null nodes in children tree.
-    if (!str_ptr_pair.second) return false;
+    assert(ptr);
     // Ensure that its parent is root.
-    if (str_ptr_pair.second->parent != this) return false;
+    assert(ptr->parent == this);
     // Make sure string is not empty.
-    if (str_ptr_pair.first.empty()) return false;
+    assert(!prf.empty());
     /*
     Check that string does not share a prefix with other children.
     We only really need to check first char.
     */
-    if (characters.find(str_ptr_pair.first.front()) != characters.end())
-      return false;
-    characters.insert(str_ptr_pair.first.front());
-    // Recursively check child node.
-    if (!str_ptr_pair.second->check_invariant()) return false;
+    assert(characters.find(prf.front()) == characters.end());
+    characters.insert(prf.front());
+    // Recursively check child nodes.
+    ptr->assert_invariants();
   }
-
-  // If this passes every single check, the tree is valid.
-  return true;
+#endif
 }

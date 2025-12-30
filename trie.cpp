@@ -23,18 +23,18 @@ using std::swap;
 using std::unique_ptr;
 
 Trie::Trie() : root(make_unique<Node>(false, nullptr)) {
-  assert(root->check_invariant());
+  root->assert_invariants();
 }
 
 Trie::Trie(const initializer_list<string>& key_list) : Trie() {
   for (const auto& key : key_list) {
     insert(key);
   }
-  assert(root->check_invariant());
+  root->assert_invariants();
 }
 
 Trie::Trie(const Trie& other) : Trie(other.root->clone()) {
-  assert(root->check_invariant());
+  root->assert_invariants();
 }
 
 Trie& Trie::operator=(Trie other) {
@@ -49,7 +49,7 @@ bool Trie::empty(string prefix) const {
   // Check if prefix root is null
   if (!prf_rt) return true;
   // It's empty if prf_rt is not a word and has no children.
-  assert(root->check_invariant());
+  root->assert_invariants();
   return !prf_rt->is_end && prf_rt->children.empty();
 }
 
@@ -69,7 +69,7 @@ Trie::iterator Trie::find_prefix(string prefix) const {
   if (!prf_rt) return iterator();
 
   // Find the first child key rooted at prt_rt.
-  assert(root->check_invariant());
+  root->assert_invariants();
   // If key is empty and prf_rt is and end node, then it is the "first key".
   return prefix.empty() && prf_rt->is_end ? iterator(prf_rt)
                                           : iterator(prf_rt->first_key());
@@ -88,7 +88,7 @@ Trie::iterator Trie::insert(string key) {
   // If the key is now empty, simply set is_end to true.
   if (key.empty()) {
     loc->is_end = true;
-    assert(root->check_invariant());
+    root->assert_invariants();
     return iterator(loc);
   }
 
@@ -101,7 +101,7 @@ Trie::iterator Trie::insert(string key) {
       auto child = make_unique<Node>(true, loc);
       loc->children.emplace(key, std::move(child));
     }
-    assert(root->check_invariant());
+    root->assert_invariants();
     return iterator(loc->children[key].get());
   }
 
@@ -147,10 +147,10 @@ Trie::iterator Trie::insert(string key) {
         auto key_node = make_unique<Node>(true, junction.get());
         junction->children.emplace(post_key, std::move(key_node));
       }
-      assert(root->check_invariant());
+      root->assert_invariants();
       return iterator(junction->children[post_key].get());
     } else {
-      assert(root->check_invariant());
+      root->assert_invariants();
       return iterator(junction.get());
     }
   }
@@ -160,7 +160,7 @@ Trie::iterator Trie::insert(string key) {
     auto key_node = make_unique<Node>(true, loc);
     loc->children.emplace(key, std::move(key_node));
   }
-  assert(root->check_invariant());
+  root->assert_invariants();
   return iterator(loc->children[key].get());
 }
 
@@ -176,7 +176,7 @@ void Trie::erase(string key) {
   if (match == root.get()) {
     // If key was non-empty, exact_match failed.
     assert(key.empty());
-    assert(root->check_invariant());
+    root->assert_invariants();
     return;
   }
 
@@ -214,7 +214,7 @@ void Trie::erase(string key) {
     par->children.erase(match_iter);
   }
 
-  assert(root->check_invariant());
+  root->assert_invariants();
   // If match has multiple children, nothing can be joined.
 }
 
@@ -228,7 +228,7 @@ void Trie::erase_prefix(string prefix) {
     assert(par);
     par->children.erase(par->find_child(prf_ptr));
   }
-  assert(root->check_invariant());
+  root->assert_invariants();
 }
 
 void Trie::clear() {
@@ -236,7 +236,7 @@ void Trie::clear() {
   root->children.clear();
   root->is_end = false;
   assert(!root->parent);
-  assert(root->check_invariant());
+  root->assert_invariants();
 }
 
 Trie::iterator::iterator(const Node* p) : ptr(p) {}
@@ -306,7 +306,7 @@ Trie& Trie::operator+=(const Trie& rhs) {
   for (const string& key : rhs) {
     insert(key);
   }
-  assert(root->check_invariant());
+  root->assert_invariants();
   return *this;
 }
 
@@ -317,7 +317,7 @@ Trie& Trie::operator-=(const Trie& rhs) {
   for (const string& key : rhs) {
     erase(key);
   }
-  assert(root->check_invariant());
+  root->assert_invariants();
   return *this;
 }
 

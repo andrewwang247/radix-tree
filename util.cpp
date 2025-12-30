@@ -53,6 +53,6 @@ vector<string> util::read_words() {
   auto rng = default_random_engine{RANDOM_DEVICE()};
   shuffle(master_list.begin(), master_list.end(), rng);
 
-  cout << "Imported " << master_list.size() << " randomly shuffled words\n\n";
+  cout << "Imported " << master_list.size() << " randomly shuffled words\n";
   return master_list;
 }
