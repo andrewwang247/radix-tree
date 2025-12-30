@@ -6,7 +6,6 @@ Interface for Trie.
 #pragma once
 #include <cassert>
 #include <initializer_list>
-#include <iostream>
 #include <iterator>
 #include <memory>
 #include <string>
@@ -290,15 +289,6 @@ bool operator>=(const Trie& lhs, const Trie& rhs);
 
 Trie operator+(Trie lhs, const Trie& rhs);
 Trie operator-(Trie lhs, const Trie& rhs);
-
-/**
- * @brief Outputs each entry in tree to os. Each entry is given its own line.
- *
- * @param os The output stream.
- * @param tree The tree to write.
- * @return std::ostream& os
- */
-std::ostream& operator<<(std::ostream& os, const Trie& tree);
 
 // TEMPLATED IMPLEMENTATIONS
 

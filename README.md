@@ -1,6 +1,6 @@
 # Radix Tree
 
-The API defined in `trie.h` is that of a set with prefix operations. The map is implemented as a radix tree (a compact prefix tree or trie) in modern C++. See <https://en.wikipedia.org/wiki/Radix_tree> for more information on radix trees.
+The API defined in `trie.h` is that of a set with prefix operations. The map is implemented as a radix tree (a compact prefix tree or trie) in C++17. See <https://en.wikipedia.org/wiki/Radix_tree> for more information on radix trees.
 
 ## Usage
 
@@ -60,18 +60,20 @@ Running `benchmark.cpp` executes either unit or performance tests, depending on 
 
 ### Unit Tests
 
-The `Trie` class is validated with 8 black box unit tests. We test the following functions.
+In the debug build, all assertions are enabled and we frequently validate the structural invariants. The `Trie` class is tested for the following functionality:
 
-- Default, `initializer_list`, and range constructors.
-- Copy and move semantics.
-- `empty`, `size`, `find`, `insert`, and `erase`.
-- Iterator increment and dereference.
-- Traversal with `begin` and `end`.
-- All arithmetic and comparison operators.
+- Default, `initializer_list`, and iterator range constructors.
+- Copy and move semantics for constructors and assignment.
+- `empty` and `size` both with and without a prefix parameter.
+- `find` and `find_prefix` to search for keys and ranges.
+- `insert`, `empty`, and `empty_prefix` to modify the `Trie`.
+- Forward iterator functionality as a return type from other functions.
+- Traversal from `begin` to `end` both with and without a prefix parameter.
+- All arithmetic and comparison operators for 1 or more `Trie`.
 
 ### Performance Tests
 
-The performance of `std::set<std::string>` and `Trie` are compared under big data inputs. The benchmark measures the time it takes for each data structure to complete:
+In the release build, assertions are disabled and we benchmark the performance of `std::set<std::string>` and `Trie` under large inputs. The benchmark measures the time it takes for each data structure to complete:
 
 - Mass insertion of randomly assorted keys.
 - Determining the size of various prefix subsets.

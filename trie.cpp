@@ -16,7 +16,6 @@ Implementation for Trie.
 using std::includes;
 using std::initializer_list;
 using std::make_unique;
-using std::ostream;
 using std::runtime_error;
 using std::string;
 using std::swap;
@@ -339,13 +338,6 @@ bool operator>(const Trie& lhs, const Trie& rhs) { return rhs < lhs; }
 bool operator<=(const Trie& lhs, const Trie& rhs) { return !(rhs < lhs); }
 
 bool operator>=(const Trie& lhs, const Trie& rhs) { return !(lhs < rhs); }
-
-ostream& operator<<(ostream& os, const Trie& tree) {
-  for (const auto& str : tree) {
-    os << str << '\n';
-  }
-  return os;
-}
 
 bool operator==(const Trie::iterator& lhs, const Trie::iterator& rhs) {
   // Performs element by element.
