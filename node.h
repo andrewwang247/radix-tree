@@ -79,11 +79,23 @@ class node {
   const node* first_key() const;
 
   /**
+   * @brief Find the last child key.
+   * @return The last key that's a child of this or nullptr if empty.
+   */
+  const node* last_key() const;
+
+  /**
    * @brief Get the next node after this for in-order traversal.
    * @return The first key after this that is not a child of this. If there
    * isn't such a key, returns nullptr.
    */
   const node* next_node() const;
+
+  /**
+   * @brief Get the next node before this for in-order traversal.
+   * @return The first key before this or nullptr if it doesn't exist.
+   */
+  const node* prev_node() const;
 
   /**
    * @brief Reconstruct string from this.

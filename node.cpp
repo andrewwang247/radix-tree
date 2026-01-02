@@ -136,8 +136,20 @@ const node* node::first_key() const {
   return rt;
 }
 
+const node* node::last_key() const {
+  if (children.empty()) return nullptr;
+  auto rt = this;
+  // Keep moving down the tree along the right side until no children.
+  do {
+    rt = rt->children.rbegin()->second.get();
+    assert(rt);
+  } while (!rt->children.empty());
+  assert(rt->is_end);
+  return rt;
+}
+
 const node* node::next_node() const {
-  // Go up once then keep going up until we can move right.
+  // Go up until we can move right.
   auto ptr = this;
   auto par = parent;
   // Note that par->children cannot be empty since its a parent.
@@ -164,9 +176,55 @@ const node* node::next_node() const {
   assert(rn);
 
   // Return the smallest key rooted at rn.
-  if (rn->is_end) return rn.get();
-  assert(!rn->children.empty());
-  return rn->first_key();
+  // If rn is an end node, it's smaller than its children.
+  if (rn->is_end) {
+    return rn.get();
+  } else {
+    assert(!rn->children.empty());
+    return rn->first_key();
+  }
+}
+
+const node* node::prev_node() const {
+  // Go up until is_end or we can move left.
+  auto ptr = this;
+  auto par = parent;
+  // Note that par->children cannot be empty since its a parent.
+  assert(!par->children.empty());
+  while (par && !par->is_end && par->children.begin()->second.get() == ptr) {
+    // Move up.
+    ptr = par;
+    par = par->parent;
+  }
+
+  // If par is null, there is nothing to the left. Return null
+  if (!par) return nullptr;
+
+  /*
+  If par is non-null, the only way we broke out of the while is:
+  1. par has a children to the left.
+  2. par is an end node and forms a word.
+  Case (1) takes precedence as any of par's children are more immediately prev.
+  */
+  if (par->children.begin()->second.get() != ptr) {
+    auto child_iter = par->find_child(ptr);
+    assert(child_iter != par->children.end());
+    --child_iter;
+    const auto& rn = child_iter->second;
+    assert(rn);
+
+    // Return the largest key rooted at rn.
+    // All children of rn are larger than it.
+    if (rn->children.empty()) {
+      assert(rn->is_end);
+      return rn.get();
+    } else {
+      return rn->last_key();
+    }
+  }
+
+  // par has no children to the left and is an end.
+  return par;
 }
 
 string node::underlying_string() const {
