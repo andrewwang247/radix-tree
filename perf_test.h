@@ -30,15 +30,15 @@ std::pair<Container, timeunit_t> insert(
 std::pair<std::array<size_t, ALPHABET_SIZE>, timeunit_t> count(
     const std::set<std::string>& words);
 std::pair<std::array<size_t, ALPHABET_SIZE>, timeunit_t> count(
-    const Trie& words);
+    const trie& words);
 
 // Prefix finding text.
 timeunit_t find(const std::set<std::string>& words, const std::string& prefix);
-timeunit_t find(const Trie& words, const std::string& prefix);
+timeunit_t find(const trie& words, const std::string& prefix);
 
 // Prefix erasing test.
 timeunit_t erase(std::set<std::string> words, const std::string& prefix);
-timeunit_t erase(Trie words, const std::string& prefix);
+timeunit_t erase(trie words, const std::string& prefix);
 
 // Iteration speed test.
 template <typename Container>
@@ -55,7 +55,7 @@ std::pair<Container, timeunit_t> perf_test::insert(
   // Make announcement.
   if (std::is_same<Container, std::set<std::string>>::value) {
     std::cout << "\tSet insertion: ";
-  } else if (std::is_same<Container, Trie>::value) {
+  } else if (std::is_same<Container, trie>::value) {
     std::cout << "\tTrie insertion: ";
   } else {
     throw std::runtime_error("Container must be either set<string> or Trie.");
@@ -74,7 +74,7 @@ template <typename Container>
 timeunit_t perf_test::iterate(const Container& words) {
   if (std::is_same<Container, std::set<std::string>>::value) {
     std::cout << "\tSet iteration: ";
-  } else if (std::is_same<Container, Trie>::value) {
+  } else if (std::is_same<Container, trie>::value) {
     std::cout << "\tTrie iteration: ";
   } else {
     throw std::runtime_error("Container must be either set<string> or Trie.");

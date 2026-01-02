@@ -21,29 +21,29 @@ using std::string;
 using std::swap;
 using std::unique_ptr;
 
-Trie::Trie() : root(make_unique<Node>(false, nullptr)) {
+trie::trie() : root(make_unique<node>(false, nullptr)) {
   root->assert_invariants();
 }
 
-Trie::Trie(const initializer_list<string>& key_list) : Trie() {
+trie::trie(const initializer_list<string>& key_list) : trie() {
   for (const auto& key : key_list) {
     insert(key);
   }
   root->assert_invariants();
 }
 
-Trie::Trie(const Trie& other) : Trie(other.root->clone()) {
+trie::trie(const trie& other) : trie(other.root->clone()) {
   root->assert_invariants();
 }
 
-Trie& Trie::operator=(Trie other) {
+trie& trie::operator=(trie other) {
   swap(root, other.root);
   return *this;
 }
 
-Trie::Trie(unique_ptr<Node>&& cloned) { swap(root, cloned); }
+trie::trie(unique_ptr<node>&& cloned) { swap(root, cloned); }
 
-bool Trie::empty(string prefix) const {
+bool trie::empty(string prefix) const {
   const auto prf_rt = root->prefix_match(prefix);
   // Check if prefix root is null
   if (!prf_rt) return true;
@@ -52,16 +52,16 @@ bool Trie::empty(string prefix) const {
   return !prf_rt->is_end && prf_rt->children.empty();
 }
 
-size_t Trie::size(string prefix) const {
+size_t trie::size(string prefix) const {
   const auto prf_rt = root->prefix_match(prefix);
   return prf_rt ? prf_rt->key_count() : size_t(0);
 }
 
-Trie::iterator Trie::find(const string& key) const {
+iterator trie::find(const string& key) const {
   return iterator(root->exact_match(key));
 }
 
-Trie::iterator Trie::find_prefix(string prefix) const {
+iterator trie::find_prefix(string prefix) const {
   // W need only find a word that key is a prefix of.
   const auto prf_rt = root->prefix_match(prefix);
   // If key is not a prefix of anything, there is no match.
@@ -74,13 +74,13 @@ Trie::iterator Trie::find_prefix(string prefix) const {
                                           : iterator(prf_rt->first_key());
 }
 
-Trie::iterator Trie::insert(string key) {
+iterator trie::insert(string key) {
   /*
   Note: inserting key at root, is the same
   as inserting reduced key at loc.
   The problem space has been reduced.
   */
-  auto loc = const_cast<Node*>(root->approximate_match(key));
+  auto loc = const_cast<node*>(root->approximate_match(key));
   assert(loc);
   /* INSERT KEY AT LOC */
 
@@ -97,7 +97,7 @@ Trie::iterator Trie::insert(string key) {
   */
   if (loc->children.empty()) {
     {
-      auto child = make_unique<Node>(true, loc);
+      auto child = make_unique<node>(true, loc);
       loc->children.emplace(key, std::move(child));
     }
     root->assert_invariants();
@@ -126,7 +126,7 @@ Trie::iterator Trie::insert(string key) {
 
     {
       // Create a child for the common part. junction's parent is set.
-      auto junction = make_unique<Node>(post_key.empty(), loc);
+      auto junction = make_unique<node>(post_key.empty(), loc);
       // Add junction to loc under common.
       loc->children.emplace(common, std::move(junction));
     }
@@ -143,7 +143,7 @@ Trie::iterator Trie::insert(string key) {
     if (!post_key.empty()) {
       // Add an additional node for the split.
       {
-        auto key_node = make_unique<Node>(true, junction.get());
+        auto key_node = make_unique<node>(true, junction.get());
         junction->children.emplace(post_key, std::move(key_node));
       }
       root->assert_invariants();
@@ -156,16 +156,16 @@ Trie::iterator Trie::insert(string key) {
 
   // If there are no shared prefixes, then simply create a node under loc.
   {
-    auto key_node = make_unique<Node>(true, loc);
+    auto key_node = make_unique<node>(true, loc);
     loc->children.emplace(key, std::move(key_node));
   }
   root->assert_invariants();
   return iterator(loc->children[key].get());
 }
 
-void Trie::erase(string key) {
+void trie::erase(string key) {
   // Must remove exact key.
-  const auto match = const_cast<Node*>(root->exact_match(key));
+  const auto match = const_cast<node*>(root->exact_match(key));
   // If the key was not in the tree, just return.
   if (!match) return;
   // No matter what happens, setting is_end to false is correct.
@@ -180,13 +180,13 @@ void Trie::erase(string key) {
   }
 
   if (match->children.empty()) {
-    const auto par = const_cast<Node*>(match->parent);
+    const auto par = const_cast<node*>(match->parent);
     auto match_iter = par->find_child(match);
     par->children.erase(match_iter);
 
     // Check for possible joining with grand parent.
     if (par->children.size() == 1 && par != root.get() && !par->is_end) {
-      const auto grand_par = const_cast<Node*>(par->parent);
+      const auto grand_par = const_cast<node*>(par->parent);
       assert(grand_par);
       auto par_iter = grand_par->find_child(par);
       assert(par_iter != grand_par->children.end());
@@ -203,7 +203,7 @@ void Trie::erase(string key) {
   } else if (match->children.size() == 1) {
     // Extract child and parent string to form joined key.
     const auto only_child = match->children.begin();
-    const auto par = const_cast<Node*>(match->parent);
+    const auto par = const_cast<node*>(match->parent);
     assert(par);
     const auto match_iter = par->find_child(match);
     string joined_key = match_iter->first + only_child->first;
@@ -217,20 +217,20 @@ void Trie::erase(string key) {
   // If match has multiple children, nothing can be joined.
 }
 
-void Trie::erase_prefix(string prefix) {
+void trie::erase_prefix(string prefix) {
   auto prf_ptr = root->prefix_match(prefix);
   if (!prf_ptr) return;
   if (prf_ptr == root.get()) {
     clear();
   } else {
-    const auto par = const_cast<Node*>(prf_ptr->parent);
+    const auto par = const_cast<node*>(prf_ptr->parent);
     assert(par);
     par->children.erase(par->find_child(prf_ptr));
   }
   root->assert_invariants();
 }
 
-void Trie::clear() {
+void trie::clear() {
   // Clear everything under root.
   root->children.clear();
   root->is_end = false;
@@ -238,40 +238,18 @@ void Trie::clear() {
   root->assert_invariants();
 }
 
-Trie::iterator::iterator(const Node* p) : ptr(p) {}
-
-Trie::iterator& Trie::iterator::operator++() {
-  /*
-  If the ptr has children, return the first child.
-  Otherwise, return the next node that isn't a child.
-  Elegantly handles the case when the returned value is nullptr.
-  */
-  ptr = ptr->children.empty() ? ptr->next_node() : ptr->first_key();
-  return *this;
-}
-
-Trie::iterator Trie::iterator::operator++(int) {
-  auto temp(*this);
-  ++(*this);
-  return temp;
-}
-
-string Trie::iterator::operator*() const { return ptr->underlying_string(); }
-
-Trie::iterator::operator bool() const { return ptr != nullptr; }
-
-Trie::iterator Trie::begin() const {
+iterator trie::begin() const {
   return root->is_end ? iterator(root.get()) : iterator(root->first_key());
 }
 
-Trie::iterator Trie::end() const { return iterator(nullptr); }
+iterator trie::end() const { return iterator(nullptr); }
 
-Trie::iterator Trie::begin(const string& prefix) const {
+iterator trie::begin(const string& prefix) const {
   // Find the first key that matches the given prefix.
   return find_prefix(prefix);
 }
 
-Trie::iterator Trie::end(string prefix) const {
+iterator trie::end(string prefix) const {
   // Perform an approximate match.
   auto app_ptr = root->approximate_match(prefix);
   assert(app_ptr);
@@ -300,7 +278,7 @@ Trie::iterator Trie::end(string prefix) const {
   throw runtime_error("Unexpected bug in Trie::end(string)");
 }
 
-Trie& Trie::operator+=(const Trie& rhs) {
+trie& trie::operator+=(const trie& rhs) {
   assert(this != &rhs);
   for (const string& key : rhs) {
     insert(key);
@@ -309,9 +287,9 @@ Trie& Trie::operator+=(const Trie& rhs) {
   return *this;
 }
 
-Trie operator+(Trie lhs, const Trie& rhs) { return lhs += rhs; }
+trie operator+(trie lhs, const trie& rhs) { return lhs += rhs; }
 
-Trie& Trie::operator-=(const Trie& rhs) {
+trie& trie::operator-=(const trie& rhs) {
   assert(this != &rhs);
   for (const string& key : rhs) {
     erase(key);
@@ -320,31 +298,31 @@ Trie& Trie::operator-=(const Trie& rhs) {
   return *this;
 }
 
-Trie operator-(Trie lhs, const Trie& rhs) { return lhs -= rhs; }
+trie operator-(trie lhs, const trie& rhs) { return lhs -= rhs; }
 
-bool operator==(const Trie& lhs, const Trie& rhs) {
+bool operator==(const trie& lhs, const trie& rhs) {
   return lhs.root->equals(rhs.root.get());
 }
 
-bool operator!=(const Trie& lhs, const Trie& rhs) { return !(lhs == rhs); }
+bool operator!=(const trie& lhs, const trie& rhs) { return !(lhs == rhs); }
 
-bool operator<(const Trie& lhs, const Trie& rhs) {
+bool operator<(const trie& lhs, const trie& rhs) {
   if (lhs.size() >= rhs.size()) return false;
   return includes(rhs.begin(), rhs.end(), lhs.begin(), lhs.end());
 }
 
-bool operator>(const Trie& lhs, const Trie& rhs) { return rhs < lhs; }
+bool operator>(const trie& lhs, const trie& rhs) { return rhs < lhs; }
 
-bool operator<=(const Trie& lhs, const Trie& rhs) { return !(rhs < lhs); }
+bool operator<=(const trie& lhs, const trie& rhs) { return !(rhs < lhs); }
 
-bool operator>=(const Trie& lhs, const Trie& rhs) { return !(lhs < rhs); }
+bool operator>=(const trie& lhs, const trie& rhs) { return !(lhs < rhs); }
 
-bool operator==(const Trie::iterator& lhs, const Trie::iterator& rhs) {
+bool operator==(const iterator& lhs, const iterator& rhs) {
   // Performs element by element.
   return lhs.ptr == rhs.ptr;
 }
 
-bool operator!=(const Trie::iterator& lhs, const Trie::iterator& rhs) {
+bool operator!=(const iterator& lhs, const iterator& rhs) {
   // Performs element by element.
   return lhs.ptr != rhs.ptr;
 }

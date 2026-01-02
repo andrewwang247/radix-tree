@@ -21,8 +21,7 @@ using std::function;
 using std::string;
 using std::vector;
 
-vector<string> extract_range(const Trie::iterator& start,
-                             const Trie::iterator& finish) {
+vector<string> extract_range(const iterator& start, const iterator& finish) {
   vector<string> range;
   copy(start, finish, back_inserter(range));
   return range;
@@ -30,7 +29,7 @@ vector<string> extract_range(const Trie::iterator& start,
 
 void unit_test::empty() {
   cout << "Empty test";
-  Trie tr;
+  trie tr;
   assert(tr.empty());
   assert(tr.empty("hello"));
   assert(tr.size() == 0);
@@ -40,7 +39,7 @@ void unit_test::empty() {
 
 void unit_test::find() {
   cout << "Find test";
-  Trie tr{"mahogany", "mahjong",     "compute", "computer", "matrix",
+  trie tr{"mahogany", "mahjong",     "compute", "computer", "matrix",
           "math",     "contaminate", "corn",    "corner",   "material",
           "mat",      "maternal",    "contain"};
 
@@ -69,7 +68,7 @@ void unit_test::find() {
 
 void unit_test::insert() {
   cout << "Insert test";
-  Trie tr;
+  trie tr;
 
   [[maybe_unused]] auto iter = tr.insert("math");
   assert(iter != tr.end());
@@ -93,7 +92,7 @@ void unit_test::insert() {
 
 void unit_test::erase() {
   cout << "Erase test";
-  Trie tr{"mahogany", "mahjong",     "compute", "computer", "matrix",
+  trie tr{"mahogany", "mahjong",     "compute", "computer", "matrix",
           "math",     "contaminate", "corn",    "corner",   "material",
           "mat",      "maternal",    "contain"};
 
@@ -145,7 +144,7 @@ void unit_test::iterate() {
                        "matrix"};
 
   // Also tests input iterator constructor.
-  const Trie tr(words.begin(), words.end());
+  const trie tr(words.begin(), words.end());
   const auto total_iterated = extract_range(tr.begin(), tr.end());
   assert(words == total_iterated);
 
@@ -181,12 +180,12 @@ void unit_test::iterate() {
 void unit_test::copy_move() {
   cout << "Copy and Move test";
 
-  Trie original{"mahogany", "mahjong",     "compute", "computer", "matrix",
+  trie original{"mahogany", "mahjong",     "compute", "computer", "matrix",
                 "math",     "contaminate", "corn",    "corner",   "material",
                 "mat",      "maternal",    "contain"};
   const auto orig_vec = extract_range(original.begin(), original.end());
 
-  Trie copied(original);
+  trie copied(original);
   const auto copy_ctor_vec = extract_range(copied.begin(), copied.end());
   assert(orig_vec == copy_ctor_vec);
 
@@ -195,7 +194,7 @@ void unit_test::copy_move() {
   const auto copy_assign_vec = extract_range(copied.begin(), copied.end());
   assert(orig_vec == copy_assign_vec);
 
-  Trie moved{std::move(original)};
+  trie moved{std::move(original)};
   const auto move_ctor_vec = extract_range(moved.begin(), moved.end());
   assert(orig_vec == move_ctor_vec);
 
@@ -208,11 +207,11 @@ void unit_test::copy_move() {
 void unit_test::comparison() {
   cout << "Comparison test";
 
-  Trie t1{"mahogany", "mahjong",     "compute", "computer", "matrix",
+  trie t1{"mahogany", "mahjong",     "compute", "computer", "matrix",
           "math",     "contaminate", "corn",    "corner",   "material",
           "mat",      "maternal",    "contain"};
 
-  Trie t2{"compute",  "computer", "contain",  "contaminate", "corn",
+  trie t2{"compute",  "computer", "contain",  "contaminate", "corn",
           "corner",   "mahjong",  "mahogany", "mat",         "material",
           "maternal", "math",     "matrix"};
 
@@ -230,14 +229,14 @@ void unit_test::comparison() {
 void unit_test::arithmetic() {
   cout << "Arithmetic test";
 
-  const Trie tr{"mahogany", "mahjong",     "compute", "computer", "matrix",
+  const trie tr{"mahogany", "mahjong",     "compute", "computer", "matrix",
                 "math",     "contaminate", "corn",    "corner",   "material",
                 "mat",      "maternal",    "contain"};
-  const Trie t1{"compute", "contain",  "corn",  "mahjong",
+  const trie t1{"compute", "contain",  "corn",  "mahjong",
                 "mat",     "maternal", "matrix"};
-  const Trie t2{"computer", "contaminate", "corner",
+  const trie t2{"computer", "contaminate", "corner",
                 "mahogany", "material",    "math"};
-  const Trie ex{"some", "extra", "stuff"};
+  const trie ex{"some", "extra", "stuff"};
 
   assert(t1 + t2 == tr);
   assert(tr - t2 == t1);

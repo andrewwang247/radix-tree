@@ -11,31 +11,31 @@ Interface for Node.
 /**
  * @brief Defines a singular node in the Trie data structure.
  */
-class Node {
+class node {
  public:
   bool is_end;
-  const Node* parent;
-  std::map<std::string, std::unique_ptr<Node>> children;
+  const node* parent;
+  std::map<std::string, std::unique_ptr<node>> children;
 
   /**
    * @brief Construct a new node with no children.
    * @param end The is_end value.
    * @param par The parent pointer.
    */
-  Node(bool end, const Node* par);
+  node(bool end, const node* par);
 
   /**
    * @brief Deep copy of contents rooted at this.
    * @returns Owning pointer to the clone.
    */
-  std::unique_ptr<Node> clone() const;
+  std::unique_ptr<node> clone() const;
 
   /**
    * @brief Deep equality check.
    * @param other The non-null root of the other trie.
    * @return Whether or not the tries rooted at this and other are equivalent.
    */
-  bool equals(const Node* other) const;
+  bool equals(const node* other) const;
 
   /**
    * @brief Depth traversing search for the deepest child N such that a prefix
@@ -45,7 +45,7 @@ class Node {
    * @return The node N described above. Since the root node in a Trie is
    * equivalent to the empty string, N is never null.
    */
-  const Node* approximate_match(std::string& key) const;
+  const node* approximate_match(std::string& key) const;
 
   /**
    * @brief Counts the number of keys stored at this and its children.
@@ -62,7 +62,7 @@ class Node {
    * @return The deepest child N such that N and all of N's children have prf as
    * prefix. If prf is not a prefix, returns a nullptr.
    */
-  const Node* prefix_match(std::string& prf) const;
+  const node* prefix_match(std::string& prf) const;
 
   /**
    * @brief Depth traversing search from this for the node that matches word.
@@ -70,20 +70,20 @@ class Node {
    * @return The first child that exactly matches the given word. If no match is
    * found, returns a nullptr.
    */
-  const Node* exact_match(std::string word) const;
+  const node* exact_match(std::string word) const;
 
   /**
    * @brief Find the first child key.
    * @return The first key that's a child of this or nullptr if empty.
    */
-  const Node* first_key() const;
+  const node* first_key() const;
 
   /**
    * @brief Get the next node after this for in-order traversal.
    * @return The first key after this that is not a child of this. If there
    * isn't such a key, returns nullptr.
    */
-  const Node* next_node() const;
+  const node* next_node() const;
 
   /**
    * @brief Reconstruct string from this.
@@ -97,8 +97,8 @@ class Node {
    * @return An iterator to the position which matches other. This is the end
    * iterator if other is not found.
    */
-  std::map<std::string, std::unique_ptr<Node>>::const_iterator find_child(
-      const Node* other) const;
+  std::map<std::string, std::unique_ptr<node>>::const_iterator find_child(
+      const node* other) const;
 
   /**
    * @brief This function is only used for testing! Asserts that this matches

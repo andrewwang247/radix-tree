@@ -1,0 +1,75 @@
+/*
+Copyright 2026. Andrew Wang.
+
+Interface for Trie iterator.
+*/
+#pragma once
+
+#include <iterator>
+#include <string>
+
+#include "node.h"
+
+/**
+ * @brief Supports const forward iteration over the trie.
+ */
+class iterator {
+ private:
+  const node* ptr;
+
+ public:
+  using iterator_category = std::forward_iterator_tag;
+  using value_type = std::string;
+  using difference_type = std::ptrdiff_t;
+  using pointer = const std::string*;
+  using reference = const std::string&;
+
+  /**
+   * @brief Pointer constructor - ptr is null by default.
+   * @param p The Node that the iterator is currently pointing at.
+   */
+  explicit iterator(const node* p = nullptr);
+
+ public:
+  /**
+   * @brief Prefix increment.
+   * @return The next iterator.
+   */
+  iterator& operator++();
+
+  /**
+   * @brief Postfix increment.
+   * @return The current iterator.
+   */
+  iterator operator++(int);
+
+  /**
+   * @brief Dereference operator.
+   * @return The string referred to by this.
+   */
+  std::string operator*() const;
+
+  /**
+   * @brief Implicit conversion to bool.
+   * @return Whether or not the underlying pointer is null.
+   */
+  operator bool() const;
+
+  /* Comparison between iterators performs element-wise comparison. */
+
+  /**
+   * @brief Check if two iterators are equal.
+   * @param lhs The left iterator.
+   * @param rhs The right iterator.
+   * @return Equality between lhs and rhs.
+   */
+  friend bool operator==(const iterator& lhs, const iterator& rhs);
+
+  /**
+   * @brief Check if two iterators are unequal.
+   * @param lhs The left iterator.
+   * @param rhs The right iterator.
+   * @return Inequality between lhs and rhs.
+   */
+  friend bool operator!=(const iterator& lhs, const iterator& rhs);
+};

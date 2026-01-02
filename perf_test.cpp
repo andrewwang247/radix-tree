@@ -54,7 +54,7 @@ pair<array<size_t, ALPHABET_SIZE>, timeunit_t> perf_test::count(
 }
 
 pair<array<size_t, ALPHABET_SIZE>, timeunit_t> perf_test::count(
-    const Trie& words) {
+    const trie& words) {
   cout << "\tTrie count: ";
 
   array<size_t, ALPHABET_SIZE> distances{};
@@ -86,7 +86,7 @@ timeunit_t perf_test::find(const set<string>& words, const string& prefix) {
   return t1 - t0;
 }
 
-timeunit_t perf_test::find(const Trie& words, const string& prefix) {
+timeunit_t perf_test::find(const trie& words, const string& prefix) {
   cout << "\tTrie find: ";
 
   const auto t0 = high_resolution_clock::now();
@@ -117,7 +117,7 @@ timeunit_t perf_test::erase(set<string> words, const string& prefix) {
   return t1 - t0;
 }
 
-timeunit_t perf_test::erase(Trie words, const string& prefix) {
+timeunit_t perf_test::erase(trie words, const string& prefix) {
   cout << "\tTrie deletion: ";
 
   const auto t0 = high_resolution_clock::now();
@@ -152,7 +152,7 @@ void perf_test::run_all() {
 
   // Insert perf
   const auto insert_set_result = perf_test::insert<set<string>>(master_list);
-  const auto insert_trie_result = perf_test::insert<Trie>(master_list);
+  const auto insert_trie_result = perf_test::insert<trie>(master_list);
   show_performance_comparison(insert_set_result.second,
                               insert_trie_result.second);
 

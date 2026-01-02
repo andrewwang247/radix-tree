@@ -37,7 +37,7 @@ The `find` function returns an iterator to the key if it's contained in the tree
 
 ### Insertion
 
-The `insert` function adds a single key into the tree and returns an iterator to a Node matching the key. The function is idempotent.
+The `insert` function adds a single key into the tree and returns an iterator to a node matching the key. The function is idempotent.
 
 ### Deletion
 
@@ -60,20 +60,20 @@ Running `benchmark.cpp` executes either unit or performance tests, depending on 
 
 ### Unit Tests
 
-In the debug build, all assertions are enabled and we frequently validate the structural invariants. The `Trie` class is tested for the following functionality:
+In the debug build, all assertions are enabled and we frequently validate the structural invariants. The `trie` class is tested for the following functionality:
 
 - Default, `initializer_list`, and iterator range constructors.
 - Copy and move semantics for constructors and assignment.
 - `empty` and `size` both with and without a prefix parameter.
 - `find` and `find_prefix` to search for keys and ranges.
-- `insert`, `empty`, and `empty_prefix` to modify the `Trie`.
+- `insert`, `empty`, and `empty_prefix` to modify the `trie`.
 - Forward iterator functionality as a return type from other functions.
 - Traversal from `begin` to `end` both with and without a prefix parameter.
-- All arithmetic and comparison operators for 1 or more `Trie`.
+- All arithmetic and comparison operators for 1 or more `trie`.
 
 ### Performance Tests
 
-In the release build, assertions are disabled and we benchmark the performance of `std::set<std::string>` and `Trie` under large inputs. The benchmark measures the time it takes for each data structure to complete:
+In the release build, assertions are disabled and we benchmark the performance of `std::set<std::string>` and `trie` under large inputs. The benchmark measures the time it takes for each data structure to complete:
 
 - Mass insertion of randomly assorted keys.
 - Determining the size of various prefix subsets.
