@@ -6,13 +6,16 @@ Implementation for Trie iterator.
 #include "iterator.h"
 
 #include <cassert>
+#include <memory>
 #include <stdexcept>
 #include <string>
 
 using std::runtime_error;
 using std::string;
+using std::unique_ptr;
 
-iterator::iterator(const node* rt, const node* p) : root(rt), ptr(p) {
+iterator::iterator(const unique_ptr<node>& rt, const node* p)
+    : root(rt.get()), ptr(p) {
   assert(rt);
 }
 

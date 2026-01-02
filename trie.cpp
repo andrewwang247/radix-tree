@@ -58,21 +58,24 @@ size_t trie::size(string prefix) const {
 }
 
 iterator trie::find(const string& key) const {
-  return iterator(root.get(), root->exact_match(key));
+  // Handle edge case of key being empty.
+  if (key.empty()) {
+    return root->is_end ? iterator(root, root.get()) : iterator(root, nullptr);
+  }
+  return iterator(root, root->exact_match(key));
 }
 
 iterator trie::find_prefix(string prefix) const {
-  // W need only find a word that key is a prefix of.
+  // We need only find a word that key is a prefix of.
   const auto prf_rt = root->prefix_match(prefix);
   // If key is not a prefix of anything, there is no match.
-  if (!prf_rt) return iterator(root.get(), nullptr);
+  if (!prf_rt) return iterator(root, nullptr);
 
   // Find the first child key rooted at prt_rt.
   root->assert_invariants();
   // If key is empty and prf_rt is and end node, then it is the "first key".
-  return prefix.empty() && prf_rt->is_end
-             ? iterator(root.get(), prf_rt)
-             : iterator(root.get(), prf_rt->first_key());
+  return prefix.empty() && prf_rt->is_end ? iterator(root, prf_rt)
+                                          : iterator(root, prf_rt->first_key());
 }
 
 iterator trie::insert(string key) {
@@ -89,7 +92,7 @@ iterator trie::insert(string key) {
   if (key.empty()) {
     loc->is_end = true;
     root->assert_invariants();
-    return iterator(root.get(), loc);
+    return iterator(root, loc);
   }
 
   /*
@@ -102,7 +105,7 @@ iterator trie::insert(string key) {
       loc->children.emplace(key, std::move(child));
     }
     root->assert_invariants();
-    return iterator(root.get(), loc->children[key].get());
+    return iterator(root, loc->children[key].get());
   }
 
   // Check children of loc for shared prefixes.
@@ -148,10 +151,10 @@ iterator trie::insert(string key) {
         junction->children.emplace(post_key, std::move(key_node));
       }
       root->assert_invariants();
-      return iterator(root.get(), junction->children[post_key].get());
+      return iterator(root, junction->children[post_key].get());
     } else {
       root->assert_invariants();
-      return iterator(root.get(), junction.get());
+      return iterator(root, junction.get());
     }
   }
 
@@ -161,7 +164,7 @@ iterator trie::insert(string key) {
     loc->children.emplace(key, std::move(key_node));
   }
   root->assert_invariants();
-  return iterator(root.get(), loc->children[key].get());
+  return iterator(root, loc->children[key].get());
 }
 
 void trie::erase(string key) {
@@ -240,11 +243,17 @@ void trie::clear() {
 }
 
 iterator trie::begin() const {
-  return root->is_end ? iterator(root.get(), nullptr)
-                      : iterator(root.get(), root->first_key());
+  return root->is_end ? iterator(root, root.get())
+                      : iterator(root, root->first_key());
 }
 
-iterator trie::end() const { return iterator(root.get(), nullptr); }
+iterator trie::end() const { return iterator(root, nullptr); }
+
+// TODO(andrew): implement
+iterator trie::rbegin() const { return iterator(root, nullptr); }
+
+// TODO(andrew): implement
+iterator trie::rend() const { return iterator(root, nullptr); }
 
 iterator trie::begin(const string& prefix) const {
   // Find the first key that matches the given prefix.
@@ -263,7 +272,7 @@ iterator trie::end(string prefix) const {
   */
   if (prefix.empty() || app_ptr->children.empty() ||
       app_ptr->children.rbegin()->first < prefix)
-    return iterator(root.get(), app_ptr->next_node());
+    return iterator(root, app_ptr->next_node());
 
   // Find the first child that is greater than prefix
   for (auto& str_ptr_pair : app_ptr->children) {
@@ -271,8 +280,8 @@ iterator trie::end(string prefix) const {
     assert(str_ptr_pair.first != prefix);
     if (str_ptr_pair.first.front() > prefix.front()) {
       return str_ptr_pair.second->is_end
-                 ? iterator(root.get(), str_ptr_pair.second.get())
-                 : iterator(root.get(), str_ptr_pair.second->first_key());
+                 ? iterator(root, str_ptr_pair.second.get())
+                 : iterator(root, str_ptr_pair.second->first_key());
     }
   }
 

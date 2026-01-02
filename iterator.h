@@ -6,6 +6,7 @@ Interface for Trie iterator.
 #pragma once
 
 #include <iterator>
+#include <memory>
 #include <string>
 
 #include "node.h"
@@ -29,7 +30,7 @@ class iterator {
    * @param rt The root node of the trie.
    * @param p The node that the iterator is currently pointing at.
    */
-  iterator(const node* rt, const node* p);
+  iterator(const std::unique_ptr<node>& rt, const node* p);
 
  public:
   /**

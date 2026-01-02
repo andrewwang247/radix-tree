@@ -25,14 +25,55 @@ vector<string> extract_range(const iterator& start, const iterator& finish) {
   return range;
 }
 
-void unit_test::empty() {
-  cout << "Empty test";
-  trie tr;
-  assert(tr.empty());
-  assert(tr.empty("hello"));
-  assert(tr.size() == 0);
-  assert(tr.size("world") == 0);
-  assert(tr.find("test") == tr.end());
+void unit_test::empty_single() {
+  cout << "Empty and Singleton test";
+  {
+    trie tr;
+    assert(tr.empty());
+    assert(tr.empty("hello"));
+    assert(tr.size() == 0);
+    assert(tr.size("world") == 0);
+
+    assert(tr.begin() == tr.end());
+    assert(tr.find("test") == tr.end());
+    assert(tr.find_prefix("test") == tr.end());
+    assert(tr.find("") == tr.end());
+    assert(tr.find_prefix("") == tr.end());
+  }
+  {
+    trie tr;
+    tr.insert("");
+    assert(!tr.empty());
+    assert(tr.empty("hello"));
+    assert(tr.size() == 1);
+    assert(tr.size("world") == 0);
+
+    assert(*tr.begin() == "");
+    assert(tr.find("test") == tr.end());
+    assert(tr.find_prefix("test") == tr.end());
+    assert(*tr.find("") == "");
+    assert(*tr.find_prefix("") == "");
+  }
+  {
+    trie tr;
+    tr.insert("single");
+    assert(!tr.empty());
+    assert(tr.empty("hello"));
+    assert(!tr.empty("sin"));
+    assert(tr.size() == 1);
+    assert(tr.size("world") == 0);
+    assert(tr.size("si") == 1);
+
+    assert(*tr.begin() == "single");
+    assert(tr.find("test") == tr.end());
+    assert(tr.find_prefix("test") == tr.end());
+    assert(tr.find("") == tr.end());
+    assert(*tr.find_prefix("") == "single");
+    assert(tr.find("sin") == tr.end());
+    assert(*tr.find_prefix("sin") == "single");
+    assert(*tr.find("single") == "single");
+    assert(*tr.find_prefix("single") == "single");
+  }
   cout << " passed\n";
 }
 
@@ -274,7 +315,7 @@ void unit_test::arithmetic() {
 
 void unit_test::run_all() {
   cout << "--- EXECUTING UNIT TESTS ---\n";
-  empty();
+  empty_single();
   find();
   insert();
   erase();

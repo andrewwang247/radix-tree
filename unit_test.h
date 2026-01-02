@@ -6,7 +6,7 @@ Interface for unit testing.
 #pragma once
 
 namespace unit_test {
-void empty();
+void empty_single();
 void find();
 void insert();
 void erase();
