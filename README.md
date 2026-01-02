@@ -45,7 +45,7 @@ To remove keys from the tree, use `erase`. The `erase_prefix` erases all keys th
 
 ### Iteration
 
-The tree supports constant forward iterators that traverse the stored keys in alphabetical order. The class comes with STL style `begin` and `end` functions that range over the entire tree. Use the `begin` and `end` overloads with `prefix` parameter to construct ranges over keys that match prefixes. Make sure to check that `begin(std::string prefix)` is non-null before using as a range. This can be efficiently achieved with `empty(std::string prefix)`.
+The tree supports constant bidirectional iterators that traverse the stored keys in alphabetical order. The class comes with STL style `begin` and `end` functions that range over the entire tree. Use the `begin` and `end` overloads with `prefix` parameter to construct ranges over keys that match prefixes. Make sure to check that `begin(std::string prefix)` is non-null before using as a range. This can be efficiently achieved with `empty(std::string prefix)`.
 
 ### Operators
 
@@ -67,7 +67,7 @@ In the debug build, all assertions are enabled and we frequently validate the st
 - `empty` and `size` both with and without a prefix parameter.
 - `find` and `find_prefix` to search for keys and ranges.
 - `insert`, `empty`, and `empty_prefix` to modify the `trie`.
-- Forward iterator functionality as a return type from other functions.
+- Bidirectional iterator functionality as a return type from other functions.
 - Traversal from `begin` to `end` both with and without a prefix parameter.
 - All arithmetic and comparison operators for 1 or more `trie`.
 

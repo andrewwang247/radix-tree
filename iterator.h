@@ -11,24 +11,25 @@ Interface for Trie iterator.
 #include "node.h"
 
 /**
- * @brief Supports const forward iteration over the trie.
+ * @brief Supports const bidirectional iteration over the trie.
  */
 class iterator {
  private:
-  const node* ptr;
+  const node *root, *ptr;
 
  public:
-  using iterator_category = std::forward_iterator_tag;
+  using iterator_category = std::bidirectional_iterator_tag;
   using value_type = std::string;
   using difference_type = std::ptrdiff_t;
   using pointer = const std::string*;
   using reference = const std::string&;
 
   /**
-   * @brief Pointer constructor - ptr is null by default.
-   * @param p The Node that the iterator is currently pointing at.
+   * @brief Root and pointer constructor.
+   * @param rt The root node of the trie.
+   * @param p The node that the iterator is currently pointing at.
    */
-  explicit iterator(const node* p = nullptr);
+  iterator(const node* rt, const node* p);
 
  public:
   /**
@@ -42,6 +43,18 @@ class iterator {
    * @return The current iterator.
    */
   iterator operator++(int);
+
+  /**
+   * @brief Prefix decrement.
+   * @return The next iterator.
+   */
+  iterator& operator--();
+
+  /**
+   * @brief Postfix decrement.
+   * @return The current iterator.
+   */
+  iterator operator--(int);
 
   /**
    * @brief Dereference operator.

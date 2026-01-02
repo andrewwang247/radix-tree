@@ -7,7 +7,6 @@ Unit testing implementation.
 
 #include <algorithm>
 #include <cassert>
-#include <functional>
 #include <iostream>
 #include <string>
 #include <utility>
@@ -17,7 +16,6 @@ Unit testing implementation.
 
 using std::copy;
 using std::cout;
-using std::function;
 using std::string;
 using std::vector;
 
@@ -35,6 +33,7 @@ void unit_test::empty() {
   assert(tr.size() == 0);
   assert(tr.size("world") == 0);
   assert(tr.find("test") == tr.end());
+  cout << " passed\n";
 }
 
 void unit_test::find() {
@@ -64,6 +63,7 @@ void unit_test::find() {
 
   [[maybe_unused]] const auto missing_prf_iter = tr.find("conk");
   assert(missing_prf_iter == tr.end());
+  cout << " passed\n";
 }
 
 void unit_test::insert() {
@@ -88,6 +88,7 @@ void unit_test::insert() {
   assert(tr.size("m") == 2);
   assert(tr.size() == 3);
   assert(!tr.empty("reg"));
+  cout << " passed\n";
 }
 
 void unit_test::erase() {
@@ -133,10 +134,11 @@ void unit_test::erase() {
   tr.clear();
   assert(tr.empty());
   assert(tr.size() == 0);
+  cout << " passed\n";
 }
 
-void unit_test::iterate() {
-  cout << "Iteration test";
+void unit_test::forward_iterate() {
+  cout << "Forward iteration test";
 
   vector<string> words{"compute", "computer", "contain",  "contaminate",
                        "corn",    "corner",   "mahjong",  "mahogany",
@@ -175,6 +177,26 @@ void unit_test::iterate() {
   // Non-existant range.
   assert(tr.begin("cops") == tr.end());
   assert(*tr.end("cops") == "corn");
+  cout << " passed\n";
+}
+
+void unit_test::reverse_iterate() {
+  cout << "Reverse iteration test";
+
+  vector<string> words{"matrix", "math",        "maternal", "material",
+                       "mat",    "mahogany",    "mahjong",  "corner",
+                       "corn",   "contaminate", "contain",  "computer",
+                       "compute"};
+  // Also tests input iterator constructor.
+  const trie tr(words.begin(), words.end());
+  // TODO(andrew): this test is invalid and relies on implementation details.
+  // It's just here so I can validate this commit.
+  size_t i = 0;
+  for (auto it = tr.find("matrix"); it != tr.end(); --it) {
+    assert(*it == words[i]);
+    ++i;
+  }
+  cout << " passed\n";
 }
 
 void unit_test::copy_move() {
@@ -202,6 +224,7 @@ void unit_test::copy_move() {
   moved = std::move(copied);
   const auto move_assign_vec = extract_range(moved.begin(), moved.end());
   assert(move_assign_vec.empty());
+  cout << " passed\n";
 }
 
 void unit_test::comparison() {
@@ -224,6 +247,7 @@ void unit_test::comparison() {
   assert(t2 > t1);
   assert(t1 <= t2);
   assert(t2 >= t1);
+  cout << " passed\n";
 }
 
 void unit_test::arithmetic() {
@@ -245,19 +269,19 @@ void unit_test::arithmetic() {
 
   assert(tr - ex == tr);
   assert(tr < tr + ex);
+  cout << " passed\n";
 }
 
 void unit_test::run_all() {
-  vector<function<void()>> test_cases{
-      unit_test::empty,      unit_test::find,      unit_test::insert,
-      unit_test::erase,      unit_test::iterate,   unit_test::copy_move,
-      unit_test::comparison, unit_test::arithmetic};
-  cout << "Collected " << test_cases.size() << " unit tests\n";
   cout << "--- EXECUTING UNIT TESTS ---\n";
-
-  for (const auto& test : test_cases) {
-    test();
-    cout << " passed\n";
-  }
+  empty();
+  find();
+  insert();
+  erase();
+  forward_iterate();
+  reverse_iterate();
+  copy_move();
+  comparison();
+  arithmetic();
   cout << "--- FINISHED UNIT TESTS ---\n";
 }

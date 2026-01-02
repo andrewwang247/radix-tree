@@ -5,13 +5,16 @@ Implementation for Trie iterator.
 */
 #include "iterator.h"
 
+#include <cassert>
 #include <stdexcept>
 #include <string>
 
 using std::runtime_error;
 using std::string;
 
-iterator::iterator(const node* p) : ptr(p) {}
+iterator::iterator(const node* rt, const node* p) : root(rt), ptr(p) {
+  assert(rt);
+}
 
 iterator& iterator::operator++() {
   /*
@@ -26,6 +29,21 @@ iterator& iterator::operator++() {
 iterator iterator::operator++(int) {
   auto temp(*this);
   ++(*this);
+  return temp;
+}
+
+iterator& iterator::operator--() {
+  /*
+  Return the prev node that isn't a child.
+  Elegantly handles the case when the returned value is nullptr.
+  */
+  ptr = ptr->prev_node();
+  return *this;
+}
+
+iterator iterator::operator--(int) {
+  auto temp(*this);
+  --(*this);
   return temp;
 }
 
