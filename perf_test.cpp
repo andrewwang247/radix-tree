@@ -135,10 +135,12 @@ timeunit_t perf_test::erase(Trie words, const string& prefix) {
  */
 void show_performance_comparison(timeunit_t set_time, timeunit_t trie_time) {
   if (set_time < trie_time) {
-    const auto diff = static_cast<double>(trie_time.count()) / set_time.count();
+    const auto diff = static_cast<double>(trie_time.count()) /
+                      static_cast<double>(set_time.count());
     cout << "Set was " << diff << " times faster than Trie\n";
   } else {
-    const auto diff = static_cast<double>(set_time.count()) / trie_time.count();
+    const auto diff = static_cast<double>(set_time.count()) /
+                      static_cast<double>(trie_time.count());
     cout << "Trie was " << diff << " times faster than Set\n";
   }
 }

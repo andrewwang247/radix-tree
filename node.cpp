@@ -24,8 +24,7 @@ using std::string;
 using std::unique_ptr;
 using std::unordered_set;
 
-Node::Node(bool is_end, const Node* parent)
-    : is_end(is_end), parent(parent), children() {}
+Node::Node(bool end, const Node* par) : is_end(end), parent(par), children() {}
 
 unique_ptr<Node> Node::clone() const {
   // Null parent because we do not clone above this node.

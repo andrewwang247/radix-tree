@@ -19,10 +19,10 @@ class Node {
 
   /**
    * @brief Construct a new node with no children.
-   * @param is_end The is_end value.
-   * @param parent The parent pointer.
+   * @param end The is_end value.
+   * @param par The parent pointer.
    */
-  Node(bool is_end, const Node* parent);
+  Node(bool end, const Node* par);
 
   /**
    * @brief Deep copy of contents rooted at this.
