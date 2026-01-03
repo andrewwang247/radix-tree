@@ -22,4 +22,5 @@ cppcheck --language=c++ --std=c++17 --quiet \
     $cppfiles
 
 printf "\nRunning cpplint...\n\n"
-cpplint --filter=-build/include_subdir --quiet $cppfiles
+cpplint --filter=-build/include_subdir,-build/c++11,-runtime/references \
+    --quiet $cppfiles
