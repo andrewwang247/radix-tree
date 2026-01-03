@@ -17,6 +17,7 @@ Performance testing implementation.
 #include "util.h"
 
 using std::array;
+using std::count_if;
 using std::cout;
 using std::distance;
 using std::equal;
@@ -128,6 +129,36 @@ timeunit_t perf_test::erase(trie words, const string& prefix) {
   return t1 - t0;
 }
 
+timeunit_t perf_test::reverse_iterate(const std::set<std::string>& words) {
+  cout << "\tSet reverse iteration: ";
+
+  const auto t0 = high_resolution_clock::now();
+  // Work-around for compiler flags not using the key variable.
+  // Branch prediction should optimize out this call.
+  const auto counter = count_if(words.rbegin(), words.rend(),
+                                [](const auto& key) { return !key.empty(); });
+  const auto t1 = high_resolution_clock::now();
+  cout << "finished iterating over " << counter << " words\n";
+
+  return t1 - t0;
+}
+
+timeunit_t perf_test::reverse_iterate(const trie& words) {
+  cout << "\tTrie reverse iteration: ";
+  size_t counter = 0;
+
+  const auto t0 = high_resolution_clock::now();
+  auto it = words.end();
+  do {
+    --it;
+    if (!(*it).empty()) ++counter;
+  } while (it != words.begin());
+  const auto t1 = high_resolution_clock::now();
+  cout << "finished iterating over " << counter << " words\n";
+
+  return t1 - t0;
+}
+
 /**
  * @brief Display performance comparison between set and Trie operations.
  * @param set_time The time taken by the set.
@@ -178,30 +209,41 @@ void perf_test::run_all() {
   const auto erase_trie_result = perf_test::erase(word_trie, "pr");
   show_performance_comparison(erase_set_result, erase_trie_result);
 
-  // Iteration perf
-  const auto iterate_set_result = perf_test::iterate(word_set);
-  const auto iterate_trie_result = perf_test::iterate(word_trie);
-  show_performance_comparison(iterate_set_result, iterate_trie_result);
+  // Forward iteration perf
+  const auto forward_iterate_set_result = perf_test::forward_iterate(word_set);
+  const auto forward_iterate_trie_result =
+      perf_test::forward_iterate(word_trie);
+  show_performance_comparison(forward_iterate_set_result,
+                              forward_iterate_trie_result);
+
+  // Reverse iteration perf
+  const auto reverse_iterate_set_result = perf_test::reverse_iterate(word_set);
+  const auto reverse_iterate_trie_result =
+      perf_test::reverse_iterate(word_trie);
+  show_performance_comparison(reverse_iterate_set_result,
+                              reverse_iterate_trie_result);
 
   cout << "--- FINISHED PERFORMANCE TEST ---\n";
 
   cout << "--- EXECUTING FINAL VERIFICATION ---\n";
 
-  cout << "Traversed ranges ";
-  const bool words_equal = equal(word_set.begin(), word_set.end(),
-                                 word_trie.begin(), word_trie.end());
-  cout << (words_equal ? "match\n" : "do not match\n");
+  cout << "Forward ranges ";
+  const bool words_forward_equal = equal(word_set.begin(), word_set.end(),
+                                         word_trie.begin(), word_trie.end());
+  cout << (words_forward_equal ? "match\n" : "do not match\n");
+
+  cout << "Reverse ranges ";
+  const auto trie_reverse =
+      util::extract_reverse_range(word_trie.begin(), word_trie.end());
+  const bool words_reverse_equal =
+      equal(word_set.rbegin(), word_set.rend(), trie_reverse.begin(),
+            trie_reverse.end());
+  cout << (words_reverse_equal ? "match\n" : "do not match\n");
 
   cout << "First letter counts ";
   const bool counts_equal = equal(set_counts.begin(), set_counts.end(),
                                   trie_counts.begin(), trie_counts.end());
   cout << (counts_equal ? "match\n" : "do not match\n");
-
-  if (words_equal && counts_equal) {
-    cout << "Verification passed\n";
-  } else {
-    cout << "Verification failed\n";
-  }
 
   cout << "--- FINISHED FINAL VERIFICATION ---\n";
 }

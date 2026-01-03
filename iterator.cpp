@@ -20,11 +20,7 @@ iterator::iterator(const unique_ptr<node>& rt, const node* p)
 }
 
 iterator& iterator::operator++() {
-  /*
-  If the ptr has children, return the first child.
-  Otherwise, return the next node that isn't a child.
-  Elegantly handles the case when the returned value is nullptr.
-  */
+  if (!ptr) return *this;
   ptr = ptr->children.empty() ? ptr->next_node() : ptr->first_key();
   return *this;
 }
@@ -36,11 +32,17 @@ iterator iterator::operator++(int) {
 }
 
 iterator& iterator::operator--() {
-  /*
-  Return the prev node that isn't a child.
-  Elegantly handles the case when the returned value is nullptr.
-  */
-  ptr = ptr->prev_node();
+  if (ptr) {
+    // middle of trie
+    ptr = ptr->prev_node();
+  } else if (!root->children.empty()) {
+    // end of trie, multiple keys
+    ptr = root->last_key();
+  } else if (root->is_end) {
+    // end of trie, singleton
+    ptr = root;
+  }
+  // empty trie means no change in ptr
   return *this;
 }
 

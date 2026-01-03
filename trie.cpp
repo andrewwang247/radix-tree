@@ -249,12 +249,6 @@ iterator trie::begin() const {
 
 iterator trie::end() const { return iterator(root, nullptr); }
 
-// TODO(andrew): implement
-iterator trie::rbegin() const { return iterator(root, nullptr); }
-
-// TODO(andrew): implement
-iterator trie::rend() const { return iterator(root, nullptr); }
-
 iterator trie::begin(const string& prefix) const {
   // Find the first key that matches the given prefix.
   return find_prefix(prefix);

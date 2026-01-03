@@ -106,18 +106,6 @@ class trie {
    */
   iterator end() const;
 
-  /**
-   * @brief Reverse begin iterator getter.
-   * @return Iterator to the end of the trie.
-   */
-  iterator rbegin() const;
-
-  /**
-   * @brief Reverse end iterator getter.
-   * @return Iterator to one before the beginning of the trie.
-   */
-  iterator rend() const;
-
   /*
   Prefix traversal by iterator. Returns begin and end iterators to the range of
   items which has prefix given by the parameter. Note that they constitute an

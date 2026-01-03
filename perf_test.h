@@ -40,9 +40,13 @@ timeunit_t find(const trie& words, const std::string& prefix);
 timeunit_t erase(std::set<std::string> words, const std::string& prefix);
 timeunit_t erase(trie words, const std::string& prefix);
 
-// Iteration speed test.
+// Forward iteration test.
 template <typename Container>
-timeunit_t iterate(const Container& words);
+timeunit_t forward_iterate(const Container& words);
+
+// Reverse iteration test.
+timeunit_t reverse_iterate(const std::set<std::string>& words);
+timeunit_t reverse_iterate(const trie& words);
 
 void run_all();
 }  // namespace perf_test
@@ -71,11 +75,11 @@ std::pair<Container, timeunit_t> perf_test::insert(
 }
 
 template <typename Container>
-timeunit_t perf_test::iterate(const Container& words) {
+timeunit_t perf_test::forward_iterate(const Container& words) {
   if (std::is_same<Container, std::set<std::string>>::value) {
-    std::cout << "\tSet iteration: ";
+    std::cout << "\tSet forward iteration: ";
   } else if (std::is_same<Container, trie>::value) {
-    std::cout << "\tTrie iteration: ";
+    std::cout << "\tTrie forward iteration: ";
   } else {
     throw std::runtime_error("Container must be either set<string> or Trie.");
   }

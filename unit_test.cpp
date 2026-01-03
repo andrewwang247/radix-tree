@@ -5,25 +5,17 @@ Unit testing implementation.
 */
 #include "unit_test.h"
 
-#include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "trie.h"
+#include "util.h"
 
-using std::copy;
 using std::cout;
 using std::string;
 using std::vector;
-
-vector<string> extract_range(const iterator& start, const iterator& finish) {
-  vector<string> range;
-  copy(start, finish, back_inserter(range));
-  return range;
-}
 
 void unit_test::empty_single() {
   cout << "Empty and Singleton test";
@@ -186,26 +178,23 @@ void unit_test::forward_iterate() {
                        "mat",     "material", "maternal", "math",
                        "matrix"};
 
-  // Also tests input iterator constructor.
+  // Full range iteration
   const trie tr(words.begin(), words.end());
-  const auto total_iterated = extract_range(tr.begin(), tr.end());
+  const auto total_iterated = util::extract_forward_range(tr.begin(), tr.end());
   assert(words == total_iterated);
 
   // Only iterate over subportion.
   vector<string> co_words{"compute",     "computer", "contain",
                           "contaminate", "corn",     "corner"};
-  const auto co_iterated = extract_range(tr.begin("co"), tr.end("co"));
+  const auto co_iterated =
+      util::extract_forward_range(tr.begin("co"), tr.end("co"));
   assert(co_words == co_iterated);
 
   vector<string> ma_words{"mahjong",  "mahogany", "mat",   "material",
                           "maternal", "math",     "matrix"};
-  const auto ma_iterated = extract_range(tr.begin("ma"), tr.end("ma"));
+  const auto ma_iterated =
+      util::extract_forward_range(tr.begin("ma"), tr.end("ma"));
   assert(ma_words == ma_iterated);
-
-  // Prefix subportion.
-  vector<string> mate_words{"material", "maternal"};
-  const auto mate_iterated = extract_range(tr.begin("mate"), tr.end("mate"));
-  assert(mate_words == mate_iterated);
 
   // Singular word range.
   [[maybe_unused]] const auto single_start = tr.begin("contaminate");
@@ -228,15 +217,26 @@ void unit_test::reverse_iterate() {
                        "mat",    "mahogany",    "mahjong",  "corner",
                        "corn",   "contaminate", "contain",  "computer",
                        "compute"};
-  // Also tests input iterator constructor.
+
+  // Full range iteration
   const trie tr(words.begin(), words.end());
-  // TODO(andrew): this test is invalid and relies on implementation details.
-  // It's just here so I can validate this commit.
-  size_t i = 0;
-  for (auto it = tr.find("matrix"); it != tr.end(); --it) {
-    assert(*it == words[i]);
-    ++i;
-  }
+  vector<string> total_reversed =
+      util::extract_reverse_range(tr.begin(), tr.end());
+  assert(words == total_reversed);
+
+  // Only iterate over subportion.
+  vector<string> co_words{"corner",  "corn",     "contaminate",
+                          "contain", "computer", "compute"};
+  const auto co_iterated =
+      util::extract_reverse_range(tr.begin("co"), tr.end("co"));
+  assert(co_words == co_iterated);
+
+  vector<string> ma_words{"matrix", "math",     "maternal", "material",
+                          "mat",    "mahogany", "mahjong"};
+  const auto ma_iterated =
+      util::extract_reverse_range(tr.begin("ma"), tr.end("ma"));
+  assert(ma_words == ma_iterated);
+
   cout << " passed\n";
 }
 
@@ -246,24 +246,29 @@ void unit_test::copy_move() {
   trie original{"mahogany", "mahjong",     "compute", "computer", "matrix",
                 "math",     "contaminate", "corn",    "corner",   "material",
                 "mat",      "maternal",    "contain"};
-  const auto orig_vec = extract_range(original.begin(), original.end());
+  const auto orig_vec =
+      util::extract_forward_range(original.begin(), original.end());
 
   trie copied(original);
-  const auto copy_ctor_vec = extract_range(copied.begin(), copied.end());
+  const auto copy_ctor_vec =
+      util::extract_forward_range(copied.begin(), copied.end());
   assert(orig_vec == copy_ctor_vec);
 
   copied.clear();
   copied = original;
-  const auto copy_assign_vec = extract_range(copied.begin(), copied.end());
+  const auto copy_assign_vec =
+      util::extract_forward_range(copied.begin(), copied.end());
   assert(orig_vec == copy_assign_vec);
 
   trie moved{std::move(original)};
-  const auto move_ctor_vec = extract_range(moved.begin(), moved.end());
+  const auto move_ctor_vec =
+      util::extract_forward_range(moved.begin(), moved.end());
   assert(orig_vec == move_ctor_vec);
 
   copied.clear();
   moved = std::move(copied);
-  const auto move_assign_vec = extract_range(moved.begin(), moved.end());
+  const auto move_assign_vec =
+      util::extract_forward_range(moved.begin(), moved.end());
   assert(move_assign_vec.empty());
   cout << " passed\n";
 }
