@@ -54,6 +54,57 @@ The tree supports constant bidirectional iterators that traverse the stored keys
 - Trees can be compared using `==, !=, <, >, <=, =>` where inequality implies a subset relation.
 - Printing all keys stored in the tree in alphabetical order can be done using the `<<` operator.
 
+### Representation
+
+The tree and its iterators can output an internal representation of the node structure in JSON format using the `to_json` function. For iterators, the representation is of the sub-tree rooted at itself. This function takes an optional boolean flag that enables showing where end nodes are. For the full data representation, this should be turned on. That said, disabling end markers makes the resulting JSON visually cleaner and more human readable. For example, the words:
+
+- `compute`
+- `computer`
+- `contain`
+- `contaminate`
+- `corn`
+- `corner`
+- `mahjong`
+- `mahogany`
+- `mat`
+- `material`
+- `maternal`
+- `math`
+- `matrix`
+
+are represented internally with the following prefix structure (omitting end markers).
+
+```json
+{
+  "co": {
+    "mpute": {
+      "r": {}
+    },
+    "nta": {
+      "in": {},
+      "minate": {}
+    },
+    "rn": {
+      "er": {}
+    }
+  },
+  "ma": {
+    "h": {
+      "jong": {},
+      "ogany": {}
+    },
+    "t": {
+      "er": {
+        "ial": {},
+        "nal": {}
+      },
+      "h": {},
+      "rix": {}
+    }
+  }
+}
+```
+
 ## Testing
 
 Running `benchmark.cpp` executes either unit or performance tests, depending on the build options. In addition, the code has been checked for memory leaks using valgrind.
@@ -70,6 +121,7 @@ In the debug build, all assertions are enabled and we frequently validate the st
 - Bidirectional iterator functionality as a return type from other functions.
 - Traversal from `begin` to `end` both with and without a prefix parameter.
 - All arithmetic and comparison operators for 1 or more `trie`.
+- `to_json` representation both with and without end markers.
 
 ### Performance Tests
 

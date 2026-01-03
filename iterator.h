@@ -71,9 +71,10 @@ class iterator {
 
   /**
    * @brief Convert the trie rooted at this to a JSON object.
+   * @param include_ends Include is_end markers in the JSON output.
    * @return A JSON object representing the sub-trie at this.
    */
-  std::string to_json() const;
+  std::string to_json(bool include_ends = false) const;
 
   /* Comparison between iterators performs element-wise comparison. */
 

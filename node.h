@@ -114,9 +114,10 @@ class node {
 
   /**
    * @brief Convert the tree structure to a JSON object.
+   * @param include_ends Include is_end markers in the JSON output.
    * @return A JSON object representing the nodes rooted at this.
    */
-  std::string to_json() const;
+  std::string to_json(bool include_ends) const;
 
   /**
    * @brief This function is only used for testing! Asserts that this matches

@@ -181,9 +181,10 @@ class trie {
 
   /**
    * @brief Convert the trie to a JSON object.
+   * @param include_ends Include is_end markers in the JSON output.
    * @return A JSON object representing the trie's structure.
    */
-  std::string to_json() const;
+  std::string to_json(bool include_ends = false) const;
 
   /* --- ASYMMETRIC BINARY OPERATIONS --- */
 

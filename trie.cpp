@@ -238,7 +238,9 @@ void trie::clear() {
   root->assert_invariants();
 }
 
-string trie::to_json() const { return root->to_json(); }
+string trie::to_json(bool include_ends) const {
+  return root->to_json(include_ends);
+}
 
 iterator trie::begin() const {
   return root->is_end ? iterator(root, root.get())

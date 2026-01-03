@@ -32,6 +32,8 @@ void unit_test::empty_single() {
     assert(tr.size() == 0);
     assert(tr.size("world") == 0);
 
+    assert(!tr.begin());
+    assert(!tr.end());
     assert(tr.begin() == tr.end());
     assert(tr.find("test") == tr.end());
     assert(tr.find_prefix("test") == tr.end());
@@ -46,6 +48,8 @@ void unit_test::empty_single() {
     assert(tr.size() == 1);
     assert(tr.size("world") == 0);
 
+    assert(tr.begin());
+    assert(!tr.end());
     assert(*tr.begin() == "");
     assert(tr.find("test") == tr.end());
     assert(tr.find_prefix("test") == tr.end());
@@ -62,6 +66,8 @@ void unit_test::empty_single() {
     assert(tr.size("world") == 0);
     assert(tr.size("si") == 1);
 
+    assert(tr.begin());
+    assert(!tr.end());
     assert(*tr.begin() == "single");
     assert(tr.find("test") == tr.end());
     assert(tr.find_prefix("test") == tr.end());
@@ -208,6 +214,7 @@ void unit_test::forward_iterate() {
   // Non-existant range.
   assert(tr.begin("cops") == tr.end());
   assert(*tr.end("cops") == "corn");
+  assert(!tr.end());
   cout << " passed\n";
 }
 
@@ -308,6 +315,38 @@ void unit_test::arithmetic() {
   cout << " passed\n";
 }
 
+void unit_test::representation() {
+  cout << "Representation test";
+
+  const auto randomized{util::permuted(SORTED_WORDS)};
+  const trie tr(randomized.begin(), randomized.end());
+  assert(tr.end().to_json(true) == "{}");
+
+  [[maybe_unused]] constexpr auto TR_JSON =
+      "{\"co\":{\"mpute\":{\"r\":{}},\"nta\":{\"in\":{},"
+      "\"minate\":{}},\"rn\":{\"er\":{}}},\"ma\":{\"h\":"
+      "{\"jong\":{},\"ogany\":{}},\"t\":{\"er\":{\"ial\":"
+      "{},\"nal\":{}},\"h\":{},\"rix\":{}}}}";
+  assert(tr.to_json() == TR_JSON);
+
+  [[maybe_unused]] const auto com_prf = tr.find_prefix("com");
+  assert(*com_prf == "compute");
+  [[maybe_unused]] constexpr auto COM_JSON =
+      "{\"end\":true,\"children\":"
+      "{\"r\":{\"end\":true,\"children\":"
+      "{}}}}";
+  assert(com_prf.to_json(true) == COM_JSON);
+
+  [[maybe_unused]] const auto mat_iter = tr.find("mat");
+  assert(mat_iter);
+  assert(*mat_iter == "mat");
+  [[maybe_unused]] constexpr auto MAT_JSON =
+      "{\"er\":{\"ial\":{},\"nal\":{}},\"h\":{},\"rix\":{}}";
+  assert(mat_iter.to_json(false) == MAT_JSON);
+
+  cout << " passed\n";
+}
+
 void unit_test::run_all() {
   cout << "--- EXECUTING UNIT TESTS ---\n";
   assert(is_sorted(SORTED_WORDS.begin(), SORTED_WORDS.end()));
@@ -320,5 +359,6 @@ void unit_test::run_all() {
   copy_move();
   comparison();
   arithmetic();
+  representation();
   cout << "--- FINISHED UNIT TESTS ---\n";
 }

@@ -265,18 +265,21 @@ map<string, unique_ptr<node>>::const_iterator node::find_child(
                  [other](const auto& p) { return p.second.get() == other; });
 }
 
-string node::to_json() const {
-  string builder{"{\"end\":"};
-  builder += is_end ? "true," : "false,";
-  builder += "\"children\":{";
+string node::to_json(bool include_ends) const {
+  string builder = include_ends ? "{\"end\":" : "{";
+  if (include_ends) {
+    builder += is_end ? "true," : "false,";
+    builder += "\"children\":{";
+  }
   for (auto iter = children.begin(); iter != children.end(); ++iter) {
     builder += '"';
     builder += iter->first;
     builder += "\":";
-    builder += iter->second->to_json();
+    builder += iter->second->to_json(include_ends);
     if (next(iter) != children.end()) builder += ',';
   }
-  return builder + "}}";
+  builder += include_ends ? "}}" : "}";
+  return builder;
 }
 
 void node::assert_invariants() const {

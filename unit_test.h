@@ -24,6 +24,7 @@ void reverse_iterate();
 void copy_move();
 void comparison();
 void arithmetic();
+void representation();
 
 void run_all();
 }  // namespace unit_test

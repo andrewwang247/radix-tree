@@ -56,4 +56,6 @@ string iterator::operator*() const { return ptr->underlying_string(); }
 
 iterator::operator bool() const { return ptr != nullptr; }
 
-std::string iterator::to_json() const { return ptr ? ptr->to_json() : "{}"; }
+std::string iterator::to_json(bool include_ends) const {
+  return ptr ? ptr->to_json(include_ends) : "{}";
+}
