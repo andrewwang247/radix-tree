@@ -17,7 +17,6 @@ cppcheck --language=c++ --std=c++17 --quiet \
     --enable=all \
     --template=gcc \
     --suppress=checkersReport \
-    --suppress=functionStatic \
     --suppress=missingIncludeSystem \
     --suppress=unusedStructMember \
     $cppfiles
