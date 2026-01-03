@@ -69,6 +69,12 @@ class iterator {
    */
   operator bool() const;
 
+  /**
+   * @brief Convert the trie rooted at this to a JSON object.
+   * @return A JSON object representing the sub-trie at this.
+   */
+  std::string to_json() const;
+
   /* Comparison between iterators performs element-wise comparison. */
 
   /**

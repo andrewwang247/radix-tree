@@ -177,6 +177,14 @@ class trie {
    */
   void clear();
 
+  /* --- REPRESENTATION --- */
+
+  /**
+   * @brief Convert the trie to a JSON object.
+   * @return A JSON object representing the trie's structure.
+   */
+  std::string to_json() const;
+
   /* --- ASYMMETRIC BINARY OPERATIONS --- */
 
   /*

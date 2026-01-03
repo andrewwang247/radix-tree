@@ -7,6 +7,7 @@ Implementation for Node.
 
 #include <algorithm>
 #include <cassert>
+#include <iterator>
 #include <map>
 #include <memory>
 #include <stack>
@@ -19,6 +20,7 @@ Implementation for Node.
 using std::find_if;
 using std::make_unique;
 using std::map;
+using std::next;
 using std::stack;
 using std::string;
 using std::unique_ptr;
@@ -261,6 +263,20 @@ map<string, unique_ptr<node>>::const_iterator node::find_child(
     const node* other) const {
   return find_if(children.begin(), children.end(),
                  [other](const auto& p) { return p.second.get() == other; });
+}
+
+string node::to_json() const {
+  string builder{"{\"end\":"};
+  builder += is_end ? "true," : "false,";
+  builder += "\"children\":{";
+  for (auto iter = children.begin(); iter != children.end(); ++iter) {
+    builder += '"';
+    builder += iter->first;
+    builder += "\":";
+    builder += iter->second->to_json();
+    if (next(iter) != children.end()) builder += ',';
+  }
+  return builder + "}}";
 }
 
 void node::assert_invariants() const {

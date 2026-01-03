@@ -25,30 +25,27 @@ trie::trie() : root(make_unique<node>(false, nullptr)) {
   root->assert_invariants();
 }
 
-trie::trie(const initializer_list<string>& key_list) : trie() {
-  for (const auto& key : key_list) {
-    insert(key);
-  }
-  root->assert_invariants();
-}
+trie::trie(const initializer_list<string>& key_list)
+    : trie(key_list.begin(), key_list.end()) {}
 
-trie::trie(const trie& other) : trie(other.root->clone()) {
-  root->assert_invariants();
-}
+trie::trie(const trie& other) : trie(other.root->clone()) {}
 
 trie& trie::operator=(trie other) {
   swap(root, other.root);
+  root->assert_invariants();
   return *this;
 }
 
-trie::trie(unique_ptr<node>&& cloned) { swap(root, cloned); }
+trie::trie(unique_ptr<node>&& cloned) {
+  swap(root, cloned);
+  root->assert_invariants();
+}
 
 bool trie::empty(string prefix) const {
   const auto prf_rt = root->prefix_match(prefix);
   // Check if prefix root is null
   if (!prf_rt) return true;
   // It's empty if prf_rt is not a word and has no children.
-  root->assert_invariants();
   return !prf_rt->is_end && prf_rt->children.empty();
 }
 
@@ -72,7 +69,6 @@ iterator trie::find_prefix(string prefix) const {
   if (!prf_rt) return iterator(root, nullptr);
 
   // Find the first child key rooted at prt_rt.
-  root->assert_invariants();
   // If key is empty and prf_rt is and end node, then it is the "first key".
   return prefix.empty() && prf_rt->is_end ? iterator(root, prf_rt)
                                           : iterator(root, prf_rt->first_key());
@@ -241,6 +237,8 @@ void trie::clear() {
   assert(!root->parent);
   root->assert_invariants();
 }
+
+string trie::to_json() const { return root->to_json(); }
 
 iterator trie::begin() const {
   return root->is_end ? iterator(root, root.get())

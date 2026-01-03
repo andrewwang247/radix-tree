@@ -5,7 +5,16 @@ Interface for unit testing.
 */
 #pragma once
 
+#include <string>
+#include <vector>
+
 namespace unit_test {
+
+static const std::vector<std::string> SORTED_WORDS{
+    "compute",  "computer", "contain",  "contaminate", "corn",
+    "corner",   "mahjong",  "mahogany", "mat",         "material",
+    "maternal", "math",     "matrix"};
+
 void empty_single();
 void find();
 void insert();

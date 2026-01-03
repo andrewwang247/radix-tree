@@ -228,21 +228,22 @@ void perf_test::run_all() {
   cout << "--- EXECUTING FINAL VERIFICATION ---\n";
 
   cout << "Forward ranges ";
-  const bool words_forward_equal = equal(word_set.begin(), word_set.end(),
-                                         word_trie.begin(), word_trie.end());
+  const bool words_forward_equal = util::ranges_equal(
+      word_set.begin(), word_set.end(), word_trie.begin(), word_trie.end());
   cout << (words_forward_equal ? "match\n" : "do not match\n");
 
   cout << "Reverse ranges ";
   const auto trie_reverse =
-      util::extract_reverse_range(word_trie.begin(), word_trie.end());
+      util::reverse_range(word_trie.begin(), word_trie.end());
   const bool words_reverse_equal =
-      equal(word_set.rbegin(), word_set.rend(), trie_reverse.begin(),
-            trie_reverse.end());
+      util::ranges_equal(word_set.rbegin(), word_set.rend(),
+                         trie_reverse.begin(), trie_reverse.end());
   cout << (words_reverse_equal ? "match\n" : "do not match\n");
 
   cout << "First letter counts ";
-  const bool counts_equal = equal(set_counts.begin(), set_counts.end(),
-                                  trie_counts.begin(), trie_counts.end());
+  const bool counts_equal =
+      util::ranges_equal(set_counts.begin(), set_counts.end(),
+                         trie_counts.begin(), trie_counts.end());
   cout << (counts_equal ? "match\n" : "do not match\n");
 
   cout << "--- FINISHED FINAL VERIFICATION ---\n";

@@ -5,8 +5,10 @@ Unit testing implementation.
 */
 #include "unit_test.h"
 
+#include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <iterator>
 #include <string>
 #include <utility>
 #include <vector>
@@ -15,6 +17,9 @@ Unit testing implementation.
 #include "util.h"
 
 using std::cout;
+using std::find;
+using std::is_sorted;
+using std::next;
 using std::string;
 using std::vector;
 
@@ -72,9 +77,9 @@ void unit_test::empty_single() {
 
 void unit_test::find() {
   cout << "Find test";
-  trie tr{"mahogany", "mahjong",     "compute", "computer", "matrix",
-          "math",     "contaminate", "corn",    "corner",   "material",
-          "mat",      "maternal",    "contain"};
+
+  const auto randomized{util::permuted(SORTED_WORDS)};
+  trie tr(randomized.begin(), randomized.end());
 
   assert(!tr.empty());
   assert(tr.size() == 13);
@@ -127,9 +132,9 @@ void unit_test::insert() {
 
 void unit_test::erase() {
   cout << "Erase test";
-  trie tr{"mahogany", "mahjong",     "compute", "computer", "matrix",
-          "math",     "contaminate", "corn",    "corner",   "material",
-          "mat",      "maternal",    "contain"};
+
+  const auto randomized{util::permuted(SORTED_WORDS)};
+  trie tr(randomized.begin(), randomized.end());
 
   // Erase something that does not exist.
   tr.erase_prefix("random");
@@ -174,28 +179,23 @@ void unit_test::erase() {
 void unit_test::forward_iterate() {
   cout << "Forward iteration test";
 
-  vector<string> words{"compute", "computer", "contain",  "contaminate",
-                       "corn",    "corner",   "mahjong",  "mahogany",
-                       "mat",     "material", "maternal", "math",
-                       "matrix"};
+  const auto randomized{util::permuted(SORTED_WORDS)};
+  const trie tr(randomized.begin(), randomized.end());
 
   // Full range iteration
-  const trie tr(words.begin(), words.end());
-  const auto total_iterated = util::extract_forward_range(tr.begin(), tr.end());
-  assert(words == total_iterated);
+  assert(util::ranges_equal(SORTED_WORDS.begin(), SORTED_WORDS.end(),
+                            tr.begin(), tr.end()));
 
   // Only iterate over subportion.
-  vector<string> co_words{"compute",     "computer", "contain",
-                          "contaminate", "corn",     "corner"};
-  const auto co_iterated =
-      util::extract_forward_range(tr.begin("co"), tr.end("co"));
-  assert(co_words == co_iterated);
+  assert(util::ranges_equal(
+      find(SORTED_WORDS.begin(), SORTED_WORDS.end(), "compute"),
+      next(find(SORTED_WORDS.begin(), SORTED_WORDS.end(), "corner")),
+      tr.begin("co"), tr.end("co")));
 
-  vector<string> ma_words{"mahjong",  "mahogany", "mat",   "material",
-                          "maternal", "math",     "matrix"};
-  const auto ma_iterated =
-      util::extract_forward_range(tr.begin("ma"), tr.end("ma"));
-  assert(ma_words == ma_iterated);
+  assert(util::ranges_equal(
+      find(SORTED_WORDS.begin(), SORTED_WORDS.end(), "mahjong"),
+      next(find(SORTED_WORDS.begin(), SORTED_WORDS.end(), "matrix")),
+      tr.begin("ma"), tr.end("ma")));
 
   // Singular word range.
   [[maybe_unused]] const auto single_start = tr.begin("contaminate");
@@ -214,29 +214,27 @@ void unit_test::forward_iterate() {
 void unit_test::reverse_iterate() {
   cout << "Reverse iteration test";
 
-  vector<string> words{"matrix", "math",        "maternal", "material",
-                       "mat",    "mahogany",    "mahjong",  "corner",
-                       "corn",   "contaminate", "contain",  "computer",
-                       "compute"};
+  const auto randomized{util::permuted(SORTED_WORDS)};
+  const auto backwards{util::reversed(SORTED_WORDS)};
+  const trie tr(randomized.begin(), randomized.end());
 
   // Full range iteration
-  const trie tr(words.begin(), words.end());
-  vector<string> total_reversed =
-      util::extract_reverse_range(tr.begin(), tr.end());
-  assert(words == total_reversed);
+  vector<string> total_iterated = util::reverse_range(tr.begin(), tr.end());
+  assert(util::ranges_equal(SORTED_WORDS.rbegin(), SORTED_WORDS.rend(),
+                            total_iterated.begin(), total_iterated.end()));
 
   // Only iterate over subportion.
-  vector<string> co_words{"corner",  "corn",     "contaminate",
-                          "contain", "computer", "compute"};
-  const auto co_iterated =
-      util::extract_reverse_range(tr.begin("co"), tr.end("co"));
-  assert(co_words == co_iterated);
+  const auto co_iterated = util::reverse_range(tr.begin("co"), tr.end("co"));
+  assert(util::ranges_equal(
+      find(backwards.begin(), backwards.end(), "corner"),
+      next(find(backwards.begin(), backwards.end(), "compute")),
+      co_iterated.begin(), co_iterated.end()));
 
-  vector<string> ma_words{"matrix", "math",     "maternal", "material",
-                          "mat",    "mahogany", "mahjong"};
-  const auto ma_iterated =
-      util::extract_reverse_range(tr.begin("ma"), tr.end("ma"));
-  assert(ma_words == ma_iterated);
+  const auto ma_iterated = util::reverse_range(tr.begin("ma"), tr.end("ma"));
+  assert(util::ranges_equal(
+      find(backwards.begin(), backwards.end(), "matrix"),
+      next(find(backwards.begin(), backwards.end(), "mahjong")),
+      ma_iterated.begin(), ma_iterated.end()));
 
   cout << " passed\n";
 }
@@ -244,46 +242,37 @@ void unit_test::reverse_iterate() {
 void unit_test::copy_move() {
   cout << "Copy and Move test";
 
-  trie original{"mahogany", "mahjong",     "compute", "computer", "matrix",
-                "math",     "contaminate", "corn",    "corner",   "material",
-                "mat",      "maternal",    "contain"};
-  const auto orig_vec =
-      util::extract_forward_range(original.begin(), original.end());
+  const auto randomized{util::permuted(SORTED_WORDS)};
+  const trie original(randomized.begin(), randomized.end());
 
   trie copied(original);
-  const auto copy_ctor_vec =
-      util::extract_forward_range(copied.begin(), copied.end());
-  assert(orig_vec == copy_ctor_vec);
+  assert(util::ranges_equal(original.begin(), original.end(), copied.begin(),
+                            copied.end()));
 
   copied.clear();
   copied = original;
-  const auto copy_assign_vec =
-      util::extract_forward_range(copied.begin(), copied.end());
-  assert(orig_vec == copy_assign_vec);
+  assert(util::ranges_equal(original.begin(), original.end(), copied.begin(),
+                            copied.end()));
 
   trie moved{std::move(original)};
-  const auto move_ctor_vec =
-      util::extract_forward_range(moved.begin(), moved.end());
-  assert(orig_vec == move_ctor_vec);
+  assert(util::ranges_equal(SORTED_WORDS.begin(), SORTED_WORDS.end(),
+                            moved.begin(), moved.end()));
 
   copied.clear();
   moved = std::move(copied);
-  const auto move_assign_vec =
-      util::extract_forward_range(moved.begin(), moved.end());
-  assert(move_assign_vec.empty());
+  assert(moved.begin() == moved.end());
+
   cout << " passed\n";
 }
 
 void unit_test::comparison() {
   cout << "Comparison test";
 
-  trie t1{"mahogany", "mahjong",     "compute", "computer", "matrix",
-          "math",     "contaminate", "corn",    "corner",   "material",
-          "mat",      "maternal",    "contain"};
+  const auto r1{util::permuted(SORTED_WORDS)};
+  trie t1(r1.begin(), r1.end());
 
-  trie t2{"compute",  "computer", "contain",  "contaminate", "corn",
-          "corner",   "mahjong",  "mahogany", "mat",         "material",
-          "maternal", "math",     "matrix"};
+  const auto r2{util::permuted(SORTED_WORDS)};
+  const trie t2{r2.begin(), r2.end()};
 
   // Test equality
   assert(t1 == t2);
@@ -321,6 +310,7 @@ void unit_test::arithmetic() {
 
 void unit_test::run_all() {
   cout << "--- EXECUTING UNIT TESTS ---\n";
+  assert(is_sorted(SORTED_WORDS.begin(), SORTED_WORDS.end()));
   empty_single();
   find();
   insert();

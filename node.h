@@ -113,6 +113,12 @@ class node {
       const node* other) const;
 
   /**
+   * @brief Convert the tree structure to a JSON object.
+   * @return A JSON object representing the nodes rooted at this.
+   */
+  std::string to_json() const;
+
+  /**
    * @brief This function is only used for testing! Asserts that this matches
    * structural invariants.
    */

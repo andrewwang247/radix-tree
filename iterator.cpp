@@ -55,3 +55,5 @@ iterator iterator::operator--(int) {
 string iterator::operator*() const { return ptr->underlying_string(); }
 
 iterator::operator bool() const { return ptr != nullptr; }
+
+std::string iterator::to_json() const { return ptr ? ptr->to_json() : "{}"; }
