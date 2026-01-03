@@ -8,13 +8,12 @@ Interface for unit testing.
 #include <string>
 #include <vector>
 
-namespace unit_test {
-
 static const std::vector<std::string> SORTED_WORDS{
     "compute",  "computer", "contain",  "contaminate", "corn",
     "corner",   "mahjong",  "mahogany", "mat",         "material",
     "maternal", "math",     "matrix"};
 
+namespace unit_test {
 void empty_single();
 void find();
 void insert();
