@@ -5,15 +5,13 @@
 # A .gitignore file will tell git which files and directories to ignore and
 # not add to version control.
 
-# Custom ignores for this project. TODO - insert names here.
-
-# Extensionless files.
+# Extensionless files
 *
 !*/
 !*.*
 !Makefile
 
-# Exectuables and debug files.
+# Exectuables and debug files
 *.exe
 *.dSYM
 *.stackdump
