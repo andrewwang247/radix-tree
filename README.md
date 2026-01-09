@@ -4,13 +4,9 @@ Container library for a sorted set of strings with prefix operations patterned a
 
 ![Peter Piper radix tree](sample.png)
 
-This makes the radix tree particularly well suited for prefix-heavy operations. Benchmarking shows that for these operations, the trie can be several orders of magnitude faster than `std::set`, the standard sorted set container.
+This makes the radix tree particularly well suited for prefix-heavy operations. Benchmarking shows that for these operations, the trie can be several orders of magnitude faster than `std::set`, the standard sorted set container. Use the included `Makefile` to build `benchmark`. Run with the:
 
-## Usage
-
-To use the radix tree, simply include `trie.h` and compile/link with the rest of your program. Use the included `Makefile` to build `benchmark`. Run with the:
-
-- `debug` option to run unit tests to assert correctness
+- `debug` option to run unit tests and assert correctness
 - `release` option to run performance tests against `std::set`
 
 ## Documentation
@@ -109,7 +105,7 @@ are represented internally with the following prefix structure (omitting end mar
 
 ## Testing
 
-Running `benchmark.cpp` executes either unit or performance tests, depending on the build options.
+Running `benchmark` executes either unit or performance tests, depending on the build options.
 
 ### Unit Tests
 

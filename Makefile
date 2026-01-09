@@ -1,27 +1,63 @@
-# Compiler and flags.
-CXX := g++ -std=c++17 
-FLAGS := -Wall -Werror -Wextra -Wconversion -pedantic -Wfloat-equal -Wshadow -Wdouble-promotion -Wundef
+# Executable name
+
+EXE := benchmark
+
+# Compiler flags
+
+CXX := g++
+CPPFLAGS := -MMD
+CXXFLAGS := -std=c++17 -Wall -Werror -Wextra -Wconversion -pedantic -Wfloat-equal -Wshadow -Wdouble-promotion -Wundef
 OPT := -O3 -DNDEBUG
 DEBUG := -g3 -DDEBUG
 
-# Executable name
-EXE := benchmark
+# Directory structure
 
-# Expand the linked file names into lists of .cpp and .o files.
-LINKED_CPP := $(filter-out $(EXE).cpp, $(wildcard *.cpp))
-LINKED_O := $(LINKED_CPP:.cpp=.o)
+SRC_DIR := ./src
+BUILD_DIR := ./build
+RELEASE_DIR := $(BUILD_DIR)/release
+DEBUG_DIR := $(BUILD_DIR)/debug
 
-# Build optimized executable.
-release : $(EXE).cpp $(LINKED_CPP)
-	$(CXX) $(FLAGS) $(OPT) -c $(EXE).cpp $(LINKED_CPP)
-	$(CXX) $(FLAGS) $(OPT) $(EXE).o $(LINKED_O) -o $(EXE)
+# Gather all .cpp files and expected .o and .d files
 
-# Build with debug features.
-debug : $(EXE).cpp $(LINKED_CPP)
-	$(CXX) $(FLAGS) $(DEBUG) -c $(EXE).cpp $(LINKED_CPP)
-	$(CXX) $(FLAGS) $(DEBUG) $(EXE).o $(LINKED_O) -o $(EXE)
+CPP := $(wildcard $(SRC_DIR)/*.cpp)
+RELEASE_OBJS := $(CPP:$(SRC_DIR)/%.cpp=$(RELEASE_DIR)/%.o)
+DEBUG_OBJS := $(CPP:$(SRC_DIR)/%.cpp=$(DEBUG_DIR)/%.o)
 
-# Remove executable binary and generated objected files.
-.PHONY : clean
-clean : 
-	rm -f $(EXE) $(EXE).o $(LINKED_O)
+# Build release or debug executables
+
+.PHONY: release
+release: $(RELEASE_DIR)/$(EXE)
+
+.PHONY: debug
+debug: $(DEBUG_DIR)/$(EXE)
+
+# Link object files
+
+$(RELEASE_DIR)/$(EXE): $(RELEASE_OBJS)
+	$(CXX) $(CXXFLAGS) $(OPT) $^ -o $@ $(LDFLAGS)
+
+$(DEBUG_DIR)/$(EXE): $(DEBUG_OBJS)
+	$(CXX) $(CXXFLAGS) $(DEBUG) $^ -o $@ $(LDFLAGS)
+
+# Compile CPP sources
+
+$(RELEASE_DIR)/%.o: $(SRC_DIR)/%.cpp
+	mkdir -p $(RELEASE_DIR)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(OPT) -c $< -o $@
+
+$(DEBUG_DIR)/%.o: $(SRC_DIR)/%.cpp
+	mkdir -p $(DEBUG_DIR)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(DEBUG) -c $< -o $@
+
+# Remove executable and object files
+
+.PHONY: clean
+clean:
+	rm -rf $(BUILD_DIR)
+
+# Include dependencies
+
+RELEASE_DEPS := $(CPP:$(SRC_DIR)/%.cpp=$(RELEASE_DIR)/%.d)
+DEBUG_DEPS := $(CPP:$(SRC_DIR)/%.cpp=$(DEBUG_DIR)/%.d)
+
+-include $(RELEASE_DEPS) $(DEBUG_DEPS)

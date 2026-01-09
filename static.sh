@@ -6,7 +6,7 @@
 set -Euo pipefail
 
 # List of all C++ files.
-cppfiles="*.h *.cpp"
+cppfiles="src/*.h src/*.cpp"
 
 printf "Running clang-format...\n\n"
 clang-format -i -style=file $cppfiles
