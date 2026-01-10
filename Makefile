@@ -41,31 +41,34 @@ run: release
 test: debug
 	$(DEBUG_DIR)/$(EXE)
 
-# Link object files
+# Link .o object files
 
 $(RELEASE_DIR)/$(EXE): $(RELEASE_OBJS)
-	$(CXX) $(CXXFLAGS) $(OPT) $^ -o $@ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(OPT) $^ -o $@
 
 $(DEBUG_DIR)/$(EXE): $(DEBUG_OBJS)
-	$(CXX) $(CXXFLAGS) $(DEBUG) $^ -o $@ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(DEBUG) $^ -o $@
 
-# Compile CPP sources
+# Compile .cpp sources
 
-$(RELEASE_DIR)/%.o: $(SRC_DIR)/%.cpp
-	mkdir -p $(RELEASE_DIR)
+$(RELEASE_DIR)/%.o: $(SRC_DIR)/%.cpp | $(RELEASE_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(OPT) -c $< -o $@
 
-$(DEBUG_DIR)/%.o: $(SRC_DIR)/%.cpp
-	mkdir -p $(DEBUG_DIR)
+$(DEBUG_DIR)/%.o: $(SRC_DIR)/%.cpp | $(DEBUG_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(DEBUG) -c $< -o $@
 
-# Remove executable and object files
+# Create build directories
+
+$(RELEASE_DIR) $(DEBUG_DIR):
+	mkdir -p $@
+
+# Delete build directory
 
 .PHONY: clean
 clean:
 	rm -rf $(BUILD_DIR)
 
-# Include dependencies
+# Include .d dependencies
 
 RELEASE_DEPS := $(CPP:$(SRC_DIR)/%.cpp=$(RELEASE_DIR)/%.d)
 DEBUG_DEPS := $(CPP:$(SRC_DIR)/%.cpp=$(DEBUG_DIR)/%.d)
