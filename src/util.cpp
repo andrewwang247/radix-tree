@@ -51,7 +51,7 @@ vector<string> util::reversed(vector<string> words) {
 }
 
 // Name of the word list file.
-static constexpr auto WORD_LIST_FILE = "test/words.txt";
+static constexpr auto WORD_LIST_FILE = "words.txt";
 // Number of words in the file.
 static constexpr size_t WORD_LIST_SIZE = 466478;
 

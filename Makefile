@@ -31,6 +31,16 @@ release: $(RELEASE_DIR)/$(EXE)
 .PHONY: debug
 debug: $(DEBUG_DIR)/$(EXE)
 
+# Run application or tests
+
+.PHONY: run
+run: release
+	$(RELEASE_DIR)/$(EXE)
+
+.PHONY: test
+test: debug
+	$(DEBUG_DIR)/$(EXE)
+
 # Link object files
 
 $(RELEASE_DIR)/$(EXE): $(RELEASE_OBJS)

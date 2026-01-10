@@ -4,10 +4,10 @@ Container library for a sorted set of strings with prefix operations patterned a
 
 ![Peter Piper radix tree](sample.png)
 
-This makes the radix tree particularly well suited for prefix-heavy operations. Benchmarking shows that for these operations, the trie can be several orders of magnitude faster than `std::set`, the standard sorted set container. Use the included `Makefile` to build `benchmark`. Run with the:
+This makes the radix tree particularly well suited for prefix-heavy operations. Benchmarking shows that for these operations, the trie can be several orders of magnitude faster than `std::set`, the standard sorted set container. Build and run `benchmark` with the `Makefile` targets:
 
-- `debug` option to run unit tests and assert correctness
-- `release` option to run performance tests against `std::set`
+- `run` / `release` option to run / build performance tests against `std::set`
+- `test` / `debug` option to run / build unit tests and assert correctness
 
 ## Documentation
 
@@ -123,7 +123,7 @@ In the debug build, all assertions are enabled and we frequently validate the st
 
 ### Performance Tests
 
-In the release build, assertions are disabled and we benchmark the performance of `std::set<std::string>` and `trie` under large inputs. The benchmark measures the time it takes for each data structure to complete:
+In the release build, assertions are disabled and we benchmark the performance of `std::set<std::string>` and `trie` under large inputs, i.e. `words.txt`. The benchmark measures the time it takes for each data structure to complete:
 
 - Mass insertion of randomly assorted keys.
 - Determining the size of various prefix subsets.
