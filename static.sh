@@ -3,7 +3,7 @@
 # Copyright 2026. Andrew Wang.
 # Run static checks on all C++ code.
 
-set -Euo pipefail
+set -uo pipefail
 
 # List of all C++ files.
 cppfiles="src/*.h src/*.cpp"
