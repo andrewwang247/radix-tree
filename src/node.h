@@ -14,7 +14,7 @@ Interface for Node.
 class node {
  public:
   bool is_end;
-  const node* parent;
+  node* parent;
   std::map<std::string, std::unique_ptr<node>> children;
 
   /**
@@ -22,7 +22,7 @@ class node {
    * @param end The is_end value.
    * @param par The parent pointer.
    */
-  node(bool end, const node* par);
+  node(bool end, node* par);
 
   /**
    * @brief Deep copy of contents rooted at this.
@@ -38,6 +38,13 @@ class node {
   bool equals(const node* other) const;
 
   /**
+   * @brief Counts the number of keys stored at this and its children.
+   * Equivalent to counting the number of true is_end's accessible from this.
+   * @return The number of keys stored at or under this.
+   */
+  size_t key_count() const;
+
+  /**
    * @brief Depth traversing search for the deepest child N such that a prefix
    * of key matches the string representation at N when starting from this.
    * @param key The key on which to make an approximate match. Modifies key
@@ -45,14 +52,7 @@ class node {
    * @return The node N described above. Since the root node in a Trie is
    * equivalent to the empty string, N is never null.
    */
-  const node* approximate_match(std::string& key) const;
-
-  /**
-   * @brief Counts the number of keys stored at this and its children.
-   * Equivalent to counting the number of true is_end's accessible from this.
-   * @return The number of keys stored at or under this.
-   */
-  size_t key_count() const;
+  node* approximate_match(std::string& key);
 
   /**
    * @brief Depth traversing search from this for prf.
@@ -62,7 +62,7 @@ class node {
    * @return The deepest child N such that N and all of N's children have prf as
    * prefix. If prf is not a prefix, returns a nullptr.
    */
-  const node* prefix_match(std::string& prf) const;
+  const node* prefix_match(std::string& prf);
 
   /**
    * @brief Depth traversing search from this for the node that matches word.
@@ -70,7 +70,7 @@ class node {
    * @return The first child that exactly matches the given word. If no match is
    * found, returns a nullptr.
    */
-  const node* exact_match(std::string word) const;
+  node* exact_match(std::string word);
 
   /**
    * @brief Find the first child key.

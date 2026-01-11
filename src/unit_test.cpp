@@ -250,7 +250,7 @@ void unit_test::copy_move() {
   cout << "Copy and Move test";
 
   const auto randomized{util::permuted(SORTED_WORDS)};
-  const trie original(randomized.begin(), randomized.end());
+  trie original(randomized.begin(), randomized.end());
 
   trie copied(original);
   assert(util::ranges_equal(original.begin(), original.end(), copied.begin(),

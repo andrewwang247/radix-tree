@@ -80,7 +80,7 @@ iterator trie::insert(string key) {
   as inserting reduced key at loc.
   The problem space has been reduced.
   */
-  auto loc = const_cast<node*>(root->approximate_match(key));
+  const auto loc = root->approximate_match(key);
   assert(loc);
   /* INSERT KEY AT LOC */
 
@@ -165,7 +165,7 @@ iterator trie::insert(string key) {
 
 void trie::erase(string key) {
   // Must remove exact key.
-  const auto match = const_cast<node*>(root->exact_match(key));
+  const auto match = root->exact_match(key);
   // If the key was not in the tree, just return.
   if (!match) return;
   // No matter what happens, setting is_end to false is correct.
@@ -180,13 +180,13 @@ void trie::erase(string key) {
   }
 
   if (match->children.empty()) {
-    const auto par = const_cast<node*>(match->parent);
+    const auto par = match->parent;
     auto match_iter = par->find_child(match);
     par->children.erase(match_iter);
 
     // Check for possible joining with grand parent.
     if (par->children.size() == 1 && par != root.get() && !par->is_end) {
-      const auto grand_par = const_cast<node*>(par->parent);
+      const auto grand_par = par->parent;
       assert(grand_par);
       auto par_iter = grand_par->find_child(par);
       assert(par_iter != grand_par->children.end());
@@ -203,7 +203,7 @@ void trie::erase(string key) {
   } else if (match->children.size() == 1) {
     // Extract child and parent string to form joined key.
     const auto only_child = match->children.begin();
-    const auto par = const_cast<node*>(match->parent);
+    const auto par = match->parent;
     assert(par);
     const auto match_iter = par->find_child(match);
     string joined_key = match_iter->first + only_child->first;
@@ -218,12 +218,12 @@ void trie::erase(string key) {
 }
 
 void trie::erase_prefix(string prefix) {
-  auto prf_ptr = root->prefix_match(prefix);
+  const auto prf_ptr = root->prefix_match(prefix);
   if (!prf_ptr) return;
   if (prf_ptr == root.get()) {
     clear();
   } else {
-    const auto par = const_cast<node*>(prf_ptr->parent);
+    const auto par = prf_ptr->parent;
     assert(par);
     par->children.erase(par->find_child(prf_ptr));
   }

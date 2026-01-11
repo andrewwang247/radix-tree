@@ -26,7 +26,7 @@ using std::string;
 using std::unique_ptr;
 using std::unordered_set;
 
-node::node(bool end, const node* par) : is_end(end), parent(par), children() {}
+node::node(bool end, node* par) : is_end(end), parent(par), children() {}
 
 unique_ptr<node> node::clone() const {
   // Null parent because we do not clone above this node.
@@ -62,7 +62,18 @@ bool node::equals(const node* other) const {
   return true;
 }
 
-const node* node::approximate_match(std::string& key) const {
+size_t node::key_count() const {
+  // If is_end, count it as a word.
+  size_t counter = is_end ? 1 : 0;
+  // Recursively check for words in children
+  for (const auto& str_ptr_pair : children) {
+    assert(str_ptr_pair.second);
+    counter += str_ptr_pair.second->key_count();
+  }
+  return counter;
+}
+
+node* node::approximate_match(std::string& key) {
   // If the key is empty, return this.
   if (key.empty()) return this;
 
@@ -80,18 +91,7 @@ const node* node::approximate_match(std::string& key) const {
   return this;
 }
 
-size_t node::key_count() const {
-  // If is_end, count it as a word.
-  size_t counter = is_end ? 1 : 0;
-  // Recursively check for words in children
-  for (const auto& str_ptr_pair : children) {
-    assert(str_ptr_pair.second);
-    counter += str_ptr_pair.second->key_count();
-  }
-  return counter;
-}
-
-const node* node::prefix_match(std::string& prf) const {
+const node* node::prefix_match(std::string& prf) {
   // First compute the approximate root.
   const auto app_ptr = approximate_match(prf);
   assert(app_ptr);
@@ -114,7 +114,7 @@ const node* node::prefix_match(std::string& prf) const {
   return nullptr;
 }
 
-const node* node::exact_match(string word) const {
+node* node::exact_match(string word) {
   // First compute the approximate root.
   const auto app_ptr = approximate_match(word);
   assert(app_ptr);
