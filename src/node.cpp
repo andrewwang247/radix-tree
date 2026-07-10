@@ -1,0 +1,306 @@
+/*
+Copyright 2026. Andrew Wang.
+
+Implementation for Node.
+*/
+#include "node.h"
+
+#include <algorithm>
+#include <cassert>
+#include <iterator>
+#include <map>
+#include <memory>
+#include <stack>
+#include <string>
+#include <unordered_set>
+#include <utility>
+
+using std::make_unique;
+using std::map;
+using std::next;
+using std::stack;
+using std::string;
+using std::unique_ptr;
+using std::unordered_set;
+
+namespace ranges = std::ranges;
+
+node::node(bool end, node* par) : is_end(end), parent(par), children() {}
+
+unique_ptr<node> node::clone() const {
+  // Null parent because we do not clone above this node.
+  auto copy = make_unique<node>(is_end, nullptr);
+  for (const auto& child : children) {
+    auto child_clone = child.second->clone();
+    // Manually set child's parent to the copy.
+    child_clone->parent = copy.get();
+    copy->children.emplace(child.first, std::move(child_clone));
+  }
+  return copy;
+}
+
+bool node::equals(const node* other) const {
+  assert(other);
+  // Check is_end parameters match.
+  if (is_end != other->is_end) return false;
+  // If neither have children, we're all good to go.
+  if (children.empty() && other->children.empty()) return true;
+  // Check that number of children are the same.
+  if (children.size() != other->children.size()) return false;
+  // Since the number of children match, we can iterate in parallel.
+  auto it_1 = children.begin();
+  auto it_2 = other->children.begin();
+  while (it_1 != children.end()) {
+    // Check that the strings on the branches match.
+    if (it_1->first != it_2->first) return false;
+    // Recursively check for equality.
+    if (!it_1->second->equals(it_2->second.get())) return false;
+    ++it_1;
+    ++it_2;
+  }
+  return true;
+}
+
+size_t node::key_count() const {
+  // If is_end, count it as a word.
+  size_t counter = is_end ? 1 : 0;
+  // Recursively check for words in children
+  for (const auto& str_ptr_pair : children) {
+    assert(str_ptr_pair.second);
+    counter += str_ptr_pair.second->key_count();
+  }
+  return counter;
+}
+
+node* node::approximate_match(std::string& key) {
+  // If the key is empty, return this.
+  if (key.empty()) return this;
+
+  for (const auto& str_ptr_pair : children) {
+    assert(str_ptr_pair.second);
+    // If one of the children is a prefix of key, recurse.
+    if (key.starts_with(str_ptr_pair.first)) {
+      // Remove the child string off the front of key.
+      return str_ptr_pair.second->approximate_match(
+          key.erase(0, str_ptr_pair.first.length()));
+    }
+  }
+
+  // If none of the children form a prefix for key, simply return this.
+  return this;
+}
+
+const node* node::prefix_match(std::string& prf) {
+  // First compute the approximate root.
+  const auto app_ptr = approximate_match(prf);
+  assert(app_ptr);
+  // If the given prf is empty, it's a perfect match.
+  if (prf.empty()) return app_ptr;
+
+  /*
+  If any of the returned node's children
+  have prf as prefix, return that child.
+  */
+  for (const auto& str_ptr_pair : app_ptr->children) {
+    assert(str_ptr_pair.second);
+    if (str_ptr_pair.first.starts_with(prf)) {
+      prf.clear();
+      return str_ptr_pair.second.get();
+    }
+  }
+
+  // No way to make prf a prefix. Return null.
+  return nullptr;
+}
+
+node* node::exact_match(string word) {
+  // First compute the approximate root.
+  const auto app_ptr = approximate_match(word);
+  assert(app_ptr);
+  /*
+  If the given word is empty, it's a perfect match.
+  Otherwise, there is no match.
+  */
+  return word.empty() ? app_ptr : nullptr;
+}
+
+const node* node::first_key() const {
+  if (children.empty()) return nullptr;
+  auto rt = this;
+  // Keep moving down the tree along the left side until is_end.
+  do {
+    // If rt is not an end, its children should not be empty.
+    assert(!rt->children.empty());
+    rt = rt->children.begin()->second.get();
+    assert(rt);
+  } while (!rt->is_end);
+  return rt;
+}
+
+const node* node::last_key() const {
+  if (children.empty()) return nullptr;
+  auto rt = this;
+  // Keep moving down the tree along the right side until no children.
+  do {
+    rt = rt->children.rbegin()->second.get();
+    assert(rt);
+  } while (!rt->children.empty());
+  assert(rt->is_end);
+  return rt;
+}
+
+const node* node::next_node() const {
+  // Go up until we can move right.
+  auto ptr = this;
+  auto par = parent;
+  // Note that par->children cannot be empty since its a parent.
+  assert(!par->children.empty());
+  while (par && par->children.rbegin()->second.get() == ptr) {
+    // Move up.
+    ptr = par;
+    par = par->parent;
+  }
+
+  // If par is null, there is nothing to the right. Return null
+  if (!par) return nullptr;
+
+  /*
+  If par is non-null, the only way we broke out of the while
+  loop is because ptr is not the right-most child.
+  Thus, we want to find the child to the right of ptr.
+  */
+  auto child_iter = par->find_child(ptr);
+  assert(child_iter != par->children.end());
+  ++child_iter;
+  assert(child_iter != par->children.end());
+  const auto& rn = child_iter->second;
+  assert(rn);
+
+  // Return the smallest key rooted at rn.
+  // If rn is an end node, it's smaller than its children.
+  if (rn->is_end) {
+    return rn.get();
+  } else {
+    assert(!rn->children.empty());
+    return rn->first_key();
+  }
+}
+
+const node* node::prev_node() const {
+  // Go up until is_end or we can move left.
+  auto ptr = this;
+  auto par = parent;
+  // Note that par->children cannot be empty since its a parent.
+  assert(!par->children.empty());
+  while (par && !par->is_end && par->children.begin()->second.get() == ptr) {
+    // Move up.
+    ptr = par;
+    par = par->parent;
+  }
+
+  // If par is null, there is nothing to the left. Return null
+  if (!par) return nullptr;
+
+  /*
+  If par is non-null, the only way we broke out of the while is:
+  1. par has a children to the left.
+  2. par is an end node and forms a word.
+  Case (1) takes precedence as any of par's children are more immediately prev.
+  */
+  if (par->children.begin()->second.get() != ptr) {
+    auto child_iter = par->find_child(ptr);
+    assert(child_iter != par->children.end());
+    --child_iter;
+    const auto& rn = child_iter->second;
+    assert(rn);
+
+    // Return the largest key rooted at rn.
+    // All children of rn are larger than it.
+    if (rn->children.empty()) {
+      assert(rn->is_end);
+      return rn.get();
+    } else {
+      return rn->last_key();
+    }
+  }
+
+  // par has no children to the left and is an end.
+  return par;
+}
+
+string node::underlying_string() const {
+  stack<string> history;
+  size_t total_length = 0;
+
+  // Move up in trie until we get to root.
+  auto ptr = this;
+  auto par = parent;
+  while (par) {
+    // We must be able to find ptr in par->children.
+    auto iter = par->find_child(ptr);
+    assert(iter != par->children.end());
+
+    // Push the string representation onto the stack.
+    history.push(iter->first);
+    total_length += iter->first.size();
+
+    ptr = par;
+    par = par->parent;
+  }
+
+  // If par is null, then ptr must be root. Concatenate strings in reverse.
+  string str{};
+  str.reserve(total_length);
+  while (!history.empty()) {
+    str += history.top();
+    history.pop();
+  }
+  return str;
+}
+
+map<string, unique_ptr<node>>::const_iterator node::find_child(
+    const node* other) const {
+  return ranges::find_if(
+      children, [other](const auto& p) { return p.second.get() == other; });
+}
+
+string node::to_json(bool include_ends) const {
+  string builder = include_ends ? "{\"end\":" : "{";
+  if (include_ends) {
+    builder += is_end ? "true," : "false,";
+    builder += "\"children\":{";
+  }
+  for (auto iter = children.begin(); iter != children.end(); ++iter) {
+    builder += '"';
+    builder += iter->first;
+    builder += "\":";
+    builder += iter->second->to_json(include_ends);
+    if (next(iter) != children.end()) builder += ',';
+  }
+  builder += include_ends ? "}}" : "}";
+  return builder;
+}
+
+void node::assert_invariants() const {
+#ifdef DEBUG
+  unordered_set<char> characters;
+  for (const auto& str_ptr_pair : children) {
+    const auto& prf = str_ptr_pair.first;
+    const auto& ptr = str_ptr_pair.second;
+    // No null nodes in children tree.
+    assert(ptr);
+    // Ensure that its parent is root.
+    assert(ptr->parent == this);
+    // Make sure string is not empty.
+    assert(!prf.empty());
+    /*
+    Check that string does not share a prefix with other children.
+    We only really need to check first char.
+    */
+    assert(characters.find(prf.front()) == characters.end());
+    characters.insert(prf.front());
+    // Recursively check child nodes.
+    ptr->assert_invariants();
+  }
+#endif
+}
