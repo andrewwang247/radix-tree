@@ -145,8 +145,8 @@ void show_performance_comparison(timeunit_t set_time, timeunit_t trie_time) {
 }
 
 vector<string> perf_test::read_words() {
-  random_device random_device{};
-  default_random_engine rng{random_device()};
+  random_device rdev{};
+  default_random_engine rng{rdev()};
   vector<string> master_list;
   master_list.reserve(WORD_LIST_SIZE);
 
