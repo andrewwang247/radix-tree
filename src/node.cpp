@@ -30,11 +30,11 @@ node::node(bool end, node* par) : is_end(end), parent(par), children() {}
 unique_ptr<node> node::clone() const {
   // Null parent because we do not clone above this node.
   auto copy = make_unique<node>(is_end, nullptr);
-  for (const auto& child : children) {
-    auto child_clone = child.second->clone();
+  for (const auto& [str, ptr] : children) {
+    auto child_clone = ptr->clone();
     // Manually set child's parent to the copy.
     child_clone->parent = copy.get();
-    copy->children.emplace(child.first, std::move(child_clone));
+    copy->children.emplace(str, std::move(child_clone));
   }
   return copy;
 }
@@ -65,9 +65,9 @@ size_t node::key_count() const {
   // If is_end, count it as a word.
   size_t counter = is_end ? 1 : 0;
   // Recursively check for words in children
-  for (const auto& str_ptr_pair : children) {
-    assert(str_ptr_pair.second);
-    counter += str_ptr_pair.second->key_count();
+  for (const auto& [_, ptr] : children) {
+    assert(ptr);
+    counter += ptr->key_count();
   }
   return counter;
 }
@@ -76,13 +76,12 @@ node* node::approximate_match(std::string& key) {
   // If the key is empty, return this.
   if (key.empty()) return this;
 
-  for (const auto& str_ptr_pair : children) {
-    assert(str_ptr_pair.second);
+  for (const auto& [str, ptr] : children) {
+    assert(ptr);
     // If one of the children is a prefix of key, recurse.
-    if (key.starts_with(str_ptr_pair.first)) {
+    if (key.starts_with(str)) {
       // Remove the child string off the front of key.
-      return str_ptr_pair.second->approximate_match(
-          key.erase(0, str_ptr_pair.first.length()));
+      return ptr->approximate_match(key.erase(0, str.length()));
     }
   }
 
@@ -101,11 +100,11 @@ const node* node::prefix_match(std::string& prf) {
   If any of the returned node's children
   have prf as prefix, return that child.
   */
-  for (const auto& str_ptr_pair : app_ptr->children) {
-    assert(str_ptr_pair.second);
-    if (str_ptr_pair.first.starts_with(prf)) {
+  for (const auto& [str, ptr] : app_ptr->children) {
+    assert(ptr);
+    if (str.starts_with(prf)) {
       prf.clear();
-      return str_ptr_pair.second.get();
+      return ptr.get();
     }
   }
 
@@ -284,21 +283,19 @@ string node::to_json(bool include_ends) const {
 void node::assert_invariants() const {
 #ifdef DEBUG
   unordered_set<char> characters;
-  for (const auto& str_ptr_pair : children) {
-    const auto& prf = str_ptr_pair.first;
-    const auto& ptr = str_ptr_pair.second;
+  for (const auto& [str, ptr] : children) {
     // No null nodes in children tree.
     assert(ptr);
     // Ensure that its parent is root.
     assert(ptr->parent == this);
     // Make sure string is not empty.
-    assert(!prf.empty());
+    assert(!str.empty());
     /*
     Check that string does not share a prefix with other children.
     We only really need to check first char.
     */
-    assert(characters.find(prf.front()) == characters.end());
-    characters.insert(prf.front());
+    assert(characters.find(str.front()) == characters.end());
+    characters.insert(str.front());
     // Recursively check child nodes.
     ptr->assert_invariants();
   }

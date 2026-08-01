@@ -105,8 +105,7 @@ iterator trie::insert(string key) {
   }
 
   // Check children of loc for shared prefixes.
-  for (auto& str_ptr_pair : loc->children) {
-    const string& child_str = str_ptr_pair.first;
+  for (auto& [child_str, child_ptr] : loc->children) {
     assert(!child_str.empty());
 
     // Keep iterating until a first letter match is found.
@@ -133,11 +132,10 @@ iterator trie::insert(string key) {
     const auto& junction = loc->children[common];
 
     // loc child is added to junction's children map.
-    junction->children.emplace(post_child, std::move(str_ptr_pair.second));
+    junction->children.emplace(post_child, std::move(child_ptr));
     // The original child's parent pointer is set to junction.
     junction->children[post_child]->parent = junction.get();
-    // Remove child_str from loc child map, cleaning up released
-    // str_ptr_pair.second.
+    // Remove child_str from loc child map, cleaning up released child_ptr.
     loc->children.erase(child_str);
 
     if (!post_key.empty()) {
@@ -269,13 +267,12 @@ iterator trie::end(string prefix) const {
     return iterator(root, app_ptr->next_node());
 
   // Find the first child that is greater than prefix
-  for (auto& str_ptr_pair : app_ptr->children) {
+  for (auto& [str, ptr] : app_ptr->children) {
     // If equality, then approximate_match failed.
-    assert(str_ptr_pair.first != prefix);
-    if (str_ptr_pair.first.front() > prefix.front()) {
-      return str_ptr_pair.second->is_end
-                 ? iterator(root, str_ptr_pair.second.get())
-                 : iterator(root, str_ptr_pair.second->first_key());
+    assert(str != prefix);
+    if (str.front() > prefix.front()) {
+      return ptr->is_end ? iterator(root, ptr.get())
+                         : iterator(root, ptr->first_key());
     }
   }
 
