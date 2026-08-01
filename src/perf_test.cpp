@@ -175,13 +175,9 @@ void perf_test::run_all() {
   show_performance_comparison(insert_set_result, insert_trie_result);
 
   cout << "Count\n";
-  const auto count_set_result = set_benchmark.count();
-  const auto count_trie_result = trie_benchmark.count();
-  show_performance_comparison(count_set_result.second,
-                              count_trie_result.second);
-
-  const auto& set_counts = count_set_result.first;
-  const auto& trie_counts = count_trie_result.first;
+  const auto [set_counts, count_set_result] = set_benchmark.count();
+  const auto [trie_counts, count_trie_result] = trie_benchmark.count();
+  show_performance_comparison(count_set_result, count_trie_result);
 
   cout << "Find\n";
   const auto find_set_result = set_benchmark.find("re");
