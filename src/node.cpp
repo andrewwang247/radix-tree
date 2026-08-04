@@ -12,6 +12,7 @@ Implementation for Node.
 #include <memory>
 #include <stack>
 #include <string>
+#include <string_view>
 #include <unordered_set>
 #include <utility>
 
@@ -20,6 +21,7 @@ using std::map;
 using std::next;
 using std::stack;
 using std::string;
+using std::string_view;
 using std::unique_ptr;
 using std::unordered_set;
 
@@ -72,29 +74,29 @@ size_t node::key_count() const {
   return counter;
 }
 
-node* node::approximate_match(std::string& key) {
+node::positional node::approximate_match(string_view key_view) {
   // If the key is empty, return this.
-  if (key.empty()) return this;
+  if (key_view.empty()) return positional{this, key_view};
 
   for (const auto& [str, ptr] : children) {
     assert(ptr);
     // If one of the children is a prefix of key, recurse.
-    if (key.starts_with(str)) {
+    if (key_view.starts_with(str)) {
       // Remove the child string off the front of key.
-      return ptr->approximate_match(key.erase(0, str.length()));
+      return ptr->approximate_match(key_view.substr(str.length()));
     }
   }
 
   // If none of the children form a prefix for key, simply return this.
-  return this;
+  return positional{this, key_view};
 }
 
-const node* node::prefix_match(std::string& prf) {
+node::positional node::prefix_match(string_view prf_view) {
   // First compute the approximate root.
-  const auto app_ptr = approximate_match(prf);
+  const auto [app_ptr, prf] = approximate_match(prf_view);
   assert(app_ptr);
   // If the given prf is empty, it's a perfect match.
-  if (prf.empty()) return app_ptr;
+  if (prf.empty()) return positional{app_ptr, prf};
 
   /*
   If any of the returned node's children
@@ -103,18 +105,17 @@ const node* node::prefix_match(std::string& prf) {
   for (const auto& [str, ptr] : app_ptr->children) {
     assert(ptr);
     if (str.starts_with(prf)) {
-      prf.clear();
-      return ptr.get();
+      return positional{ptr.get(), string_view{}};
     }
   }
 
   // No way to make prf a prefix. Return null.
-  return nullptr;
+  return positional{nullptr, prf};
 }
 
-node* node::exact_match(string word) {
+node* node::exact_match(string_view word_view) {
   // First compute the approximate root.
-  const auto app_ptr = approximate_match(word);
+  const auto [app_ptr, word] = approximate_match(word_view);
   assert(app_ptr);
   /*
   If the given word is empty, it's a perfect match.

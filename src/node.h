@@ -7,11 +7,18 @@ Interface for Node.
 #include <map>
 #include <memory>
 #include <string>
+#include <string_view>
 
 /**
  * @brief Defines a singular node in the Trie data structure.
  */
 class node {
+ private:
+  struct positional {
+    node* ptr;
+    std::string_view pos;
+  };
+
  public:
   bool is_end;
   node* parent;
@@ -52,7 +59,7 @@ class node {
    * @return The node N described above. Since the root node in a Trie is
    * equivalent to the empty string, N is never null.
    */
-  node* approximate_match(std::string& key);
+  positional approximate_match(std::string_view key);
 
   /**
    * @brief Depth traversing search from this for prf.
@@ -62,7 +69,7 @@ class node {
    * @return The deepest child N such that N and all of N's children have prf as
    * prefix. If prf is not a prefix, returns a nullptr.
    */
-  const node* prefix_match(std::string& prf);
+  positional prefix_match(std::string_view prf);
 
   /**
    * @brief Depth traversing search from this for the node that matches word.
@@ -70,7 +77,7 @@ class node {
    * @return The first child that exactly matches the given word. If no match is
    * found, returns a nullptr.
    */
-  node* exact_match(std::string word);
+  node* exact_match(std::string_view word);
 
   /**
    * @brief Find the first child key.
