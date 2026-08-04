@@ -10,22 +10,24 @@ Implementation for Node.
 #include <iterator>
 #include <map>
 #include <memory>
-#include <stack>
+#include <ranges>
 #include <string>
 #include <string_view>
 #include <unordered_set>
 #include <utility>
+#include <vector>
 
 using std::make_unique;
 using std::map;
 using std::next;
-using std::stack;
 using std::string;
 using std::string_view;
 using std::unique_ptr;
 using std::unordered_set;
+using std::vector;
 
 namespace ranges = std::ranges;
+namespace views = std::views;
 
 node::node(bool end, node* par) : is_end(end), parent(par), children() {}
 
@@ -229,31 +231,26 @@ const node* node::prev_node() const {
 }
 
 string node::underlying_string() const {
-  stack<string> history;
+  vector<string> history;
   size_t total_length = 0;
 
   // Move up in trie until we get to root.
-  auto ptr = this;
-  auto par = parent;
-  while (par) {
+  for (auto ptr = this; ptr->parent; ptr = ptr->parent) {
+    const auto par = ptr->parent;
     // We must be able to find ptr in par->children.
     auto iter = par->find_child(ptr);
     assert(iter != par->children.end());
 
     // Push the string representation onto the stack.
-    history.push(iter->first);
+    history.push_back(iter->first);
     total_length += iter->first.size();
-
-    ptr = par;
-    par = par->parent;
   }
 
   // If par is null, then ptr must be root. Concatenate strings in reverse.
   string str{};
   str.reserve(total_length);
-  while (!history.empty()) {
-    str += history.top();
-    history.pop();
+  for (const auto& segment : history | views::reverse) {
+    str += segment;
   }
   return str;
 }
