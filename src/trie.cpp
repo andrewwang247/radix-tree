@@ -97,12 +97,10 @@ iterator trie::insert(string_view key_view) {
   If loc has no children, then just make a child.
   */
   if (loc->children.empty()) {
-    {
-      auto child = make_unique<node>(true, loc);
-      loc->children.emplace(key, std::move(child));
-    }
+    auto child = make_unique<node>(true, loc);
+    const auto [result_iter, _1] = loc->children.emplace(key, std::move(child));
     root->assert_invariants();
-    return iterator(root, loc->children[string{key}].get());
+    return iterator(root, result_iter->second.get());
   }
 
   // Check children of loc for shared prefixes.
@@ -115,38 +113,37 @@ iterator trie::insert(string_view key_view) {
     // Use mismatch to compute the spot where the prefix fails.
     auto iter_pair = ranges::mismatch(key, child_str);
     // Extract the common prefix and unique postfixes of key and child.
-    string common{key.begin(), iter_pair.in1};
-    string post_key{iter_pair.in1, key.end()};
-    string post_child{iter_pair.in2, child_str.end()};
+    string_view common{key.begin(), iter_pair.in1};
+    string_view post_key{iter_pair.in1, key.end()};
+    string_view post_child{iter_pair.in2, child_str.end()};
     /*
     If remaining key's prefix can match a child,
     then approximate_match failed.
     */
     assert(!post_child.empty());
 
-    {
-      // Create a child for the common part. junction's parent is set.
-      auto junction = make_unique<node>(post_key.empty(), loc);
-      // Add junction to loc under common.
-      loc->children.emplace(common, std::move(junction));
-    }
-    const auto& junction = loc->children[common];
+    // Create a child for the common part. junction's parent is set.
+    auto junction_node = make_unique<node>(post_key.empty(), loc);
+    // Add junction to loc under common.
+    const auto [common_iter, _2] =
+        loc->children.emplace(common, std::move(junction_node));
+    const auto& junction = common_iter->second;
 
     // loc child is added to junction's children map.
-    junction->children.emplace(post_child, std::move(child_ptr));
+    auto [post_iter, _3] =
+        junction->children.emplace(post_child, std::move(child_ptr));
     // The original child's parent pointer is set to junction.
-    junction->children[post_child]->parent = junction.get();
+    post_iter->second->parent = junction.get();
     // Remove child_str from loc child map, cleaning up released child_ptr.
     loc->children.erase(child_str);
 
     if (!post_key.empty()) {
       // Add an additional node for the split.
-      {
-        auto key_node = make_unique<node>(true, junction.get());
-        junction->children.emplace(post_key, std::move(key_node));
-      }
+      auto key_node = make_unique<node>(true, junction.get());
+      const auto [junction_iter, _4] =
+          junction->children.emplace(post_key, std::move(key_node));
       root->assert_invariants();
-      return iterator(root, junction->children[post_key].get());
+      return iterator(root, junction_iter->second.get());
     } else {
       root->assert_invariants();
       return iterator(root, junction.get());
@@ -154,12 +151,10 @@ iterator trie::insert(string_view key_view) {
   }
 
   // If there are no shared prefixes, then simply create a node under loc.
-  {
-    auto key_node = make_unique<node>(true, loc);
-    loc->children.emplace(key, std::move(key_node));
-  }
+  auto key_node = make_unique<node>(true, loc);
+  const auto [key_iter, _5] = loc->children.emplace(key, std::move(key_node));
   root->assert_invariants();
-  return iterator(root, loc->children[string{key}].get());
+  return iterator(root, key_iter->second.get());
 }
 
 void trie::erase(string_view key) {
@@ -191,12 +186,11 @@ void trie::erase(string_view key) {
       assert(par_iter != grand_par->children.end());
 
       // Join keys on par_iter and the only child of par.
-      string mod_key = par_iter->first + par->children.begin()->first;
-      {
-        auto& child = par->children.begin()->second;
-        grand_par->children.emplace(mod_key, std::move(child));
-      }
-      grand_par->children[mod_key]->parent = grand_par;
+      const auto mod_key = par_iter->first + par->children.begin()->first;
+      auto& child = par->children.begin()->second;
+      const auto [key_iter, _] =
+          grand_par->children.emplace(mod_key, std::move(child));
+      key_iter->second->parent = grand_par;
       grand_par->children.erase(par_iter);
     }
   } else if (match->children.size() == 1) {
@@ -205,7 +199,7 @@ void trie::erase(string_view key) {
     const auto par = match->parent;
     assert(par);
     const auto match_iter = par->find_child(match);
-    string joined_key = match_iter->first + only_child->first;
+    const auto joined_key = match_iter->first + only_child->first;
 
     only_child->second->parent = par;
     par->children.emplace(joined_key, std::move(only_child->second));
