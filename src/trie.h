@@ -43,8 +43,8 @@ class trie {
    * @param first The starting iterator of the range.
    * @param last The ending iterator (one past end) of the range.
    */
-  template <typename InputIterator>
-  trie(InputIterator first, InputIterator last);
+  template <std::input_iterator Iter>
+  trie(Iter first, Iter last);
 
   /**
    * @brief Range constructor inserts strings contained in range into
@@ -245,9 +245,8 @@ trie operator-(trie lhs, const trie& rhs);
 
 // TEMPLATED IMPLEMENTATIONS
 
-template <typename InputIterator>
-trie::trie(InputIterator first, InputIterator last)
-    : trie(std::ranges::subrange{first, last}) {}
+template <std::input_iterator Iter>
+trie::trie(Iter first, Iter last) : trie(std::ranges::subrange{first, last}) {}
 
 template <std::ranges::input_range Range>
 trie::trie(Range input_range) : trie() {
