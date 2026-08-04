@@ -116,8 +116,7 @@ class node {
    * @return An iterator to the position which matches other. This is the end
    * iterator if other is not found.
    */
-  std::map<std::string, std::unique_ptr<node>>::const_iterator find_child(
-      const node* other) const;
+  decltype(children)::const_iterator find_child(const node* other) const;
 
   /**
    * @brief Convert the tree structure to a JSON object.
