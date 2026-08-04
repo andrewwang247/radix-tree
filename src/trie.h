@@ -11,6 +11,7 @@ Interface for Trie.
 #include <memory>
 #include <ranges>
 #include <string>
+#include <string_view>
 
 #include "iterator.h"
 #include "node.h"
@@ -34,7 +35,7 @@ class trie {
    * Duplicates are ignored.
    * @param key_list The items to initialize the trie with.
    */
-  explicit trie(const std::initializer_list<std::string>& key_list);
+  explicit trie(const std::initializer_list<std::string_view>& key_list);
 
   /**
    * @brief Range constructor inserts strings contained in [first, last) into
@@ -92,7 +93,7 @@ class trie {
    * @return Whether or not the trie is empty starting at given prefix.
    * Prefix defaults to empty string, corresponding to entire trie.
    */
-  bool empty(std::string prefix = "") const;
+  bool empty(std::string_view prefix = "") const;
 
   /**
    * @brief Get the size of the trie under the prefix.
@@ -100,7 +101,7 @@ class trie {
    * @return The number of words stored in the trie with given prefix.
    * Default prefix is empty, which means the full trie size is returned.
    */
-  size_t size(std::string prefix = "") const;
+  size_t size(std::string_view prefix = "") const;
 
   /* --- ITERATION --- */
 
@@ -130,14 +131,14 @@ class trie {
    * @param prefix The prefix to obtain a begin iterator for.
    * @return Iterator to the start of the range with given prefix.
    */
-  iterator begin(const std::string& prefix) const;
+  iterator begin(std::string_view prefix) const;
 
   /**
    * @brief Prefix ranged end iterator.
    * @param prefix The prefix to obtain an end iterator fpr.
    * @return Iterator to one past the end of the range with given prefix.
    */
-  iterator end(std::string prefix) const;
+  iterator end(std::string_view prefix) const;
 
   /* --- SEARCHING --- */
 
@@ -147,7 +148,7 @@ class trie {
    * @return An iterator to key if it exists. Otherwise, returns a null
    * iterator.
    */
-  iterator find(const std::string& key) const;
+  iterator find(std::string_view key) const;
 
   /**
    * @brief Searches for prefix in trie.
@@ -155,7 +156,7 @@ class trie {
    * @return An iterator to the first key that matches the prefix. Otherwise,
    * null iterator.
    */
-  iterator find_prefix(std::string prefix) const;
+  iterator find_prefix(std::string_view prefix) const;
 
   /* --- INSERTION --- */
 
@@ -165,7 +166,7 @@ class trie {
    * @param key The key to insert into the trie.
    * @return An iterator to the key (whether inserted or not).
    */
-  iterator insert(std::string key);
+  iterator insert(std::string_view key);
 
   /* --- DELETION --- */
 
@@ -173,14 +174,14 @@ class trie {
    * @brief Erases key from trie. Idempotent if key is not in trie.
    * @param key The key to erase from the trie.
    */
-  void erase(const std::string& key);
+  void erase(std::string_view key);
 
   /**
    * @brief Erases all keys with prefix from trie. Idempotent if prefix is not
    * in trie.
    * @param prefix The prefix to erase from the trie.
    */
-  void erase_prefix(std::string prefix);
+  void erase_prefix(std::string_view prefix);
 
   /**
    * @brief Erases all keys from trie. Idempotent on empty tries.
