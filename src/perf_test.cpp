@@ -7,7 +7,6 @@ Performance testing implementation.
 
 #include <algorithm>
 #include <array>
-#include <chrono>
 #include <fstream>
 #include <iostream>
 #include <random>
@@ -32,7 +31,6 @@ using std::set;
 using std::string;
 using std::string_view;
 using std::vector;
-using std::chrono::high_resolution_clock;
 
 namespace ranges = std::ranges;
 
@@ -43,7 +41,7 @@ pair<array<size_t, set_perf::ALPHABET_SIZE>, timeunit_t> set_perf::count()
   array<set<string>::iterator, ALPHABET_SIZE + 1> bounds{};
   array<size_t, ALPHABET_SIZE> distances{};
 
-  const auto t0 = high_resolution_clock::now();
+  const auto t0 = perf_clock::now();
   // Get starting iterators on each character.
   for (char c = 'a'; c <= 'z'; ++c) {
     const auto first_of_letter = ranges::lower_bound(words, string_view(&c, 1));
@@ -55,14 +53,14 @@ pair<array<size_t, set_perf::ALPHABET_SIZE>, timeunit_t> set_perf::count()
     const auto dist = distance(bounds[i], bounds[i + 1]);
     distances[i] = static_cast<size_t>(dist);
   }
-  const auto t1 = high_resolution_clock::now();
+  const auto t1 = perf_clock::now();
 
   cout << '\t' << name << " counted " << distances.size() << " prefixes\n";
   return make_pair(distances, t1 - t0);
 }
 
 timeunit_t set_perf::find(string_view prefix) const {
-  const auto t0 = high_resolution_clock::now();
+  const auto t0 = perf_clock::now();
 
   // Find the first item that's a prefix using lower bound.
   const auto start = ranges::lower_bound(words, prefix);
@@ -70,7 +68,7 @@ timeunit_t set_perf::find(string_view prefix) const {
   const auto finish = find_if_not(
       start, words.end(),
       [&prefix](const auto& word) { return word.starts_with(prefix); });
-  const auto t1 = high_resolution_clock::now();
+  const auto t1 = perf_clock::now();
 
   cout << '\t' << name << " found prefix " << prefix << " bounded between "
        << *start << " and " << *finish << '\n';
@@ -78,7 +76,7 @@ timeunit_t set_perf::find(string_view prefix) const {
 }
 
 timeunit_t set_perf::erase(string_view prefix) {
-  const auto t0 = high_resolution_clock::now();
+  const auto t0 = perf_clock::now();
   // Find the first item that's a prefix using lower bound.
   const auto start = ranges::lower_bound(words, prefix);
   // Find where it stops being a prefix.
@@ -86,7 +84,7 @@ timeunit_t set_perf::erase(string_view prefix) {
       start, words.end(),
       [&prefix](const auto& word) { return word.starts_with(prefix); });
   words.erase(start, finish);
-  const auto t1 = high_resolution_clock::now();
+  const auto t1 = perf_clock::now();
 
   cout << '\t' << name << " erased all words with prefix " << prefix << '\n';
   return t1 - t0;
@@ -98,22 +96,22 @@ pair<array<size_t, trie_perf::ALPHABET_SIZE>, timeunit_t> trie_perf::count()
     const {
   array<size_t, ALPHABET_SIZE> distances{};
 
-  const auto t0 = high_resolution_clock::now();
+  const auto t0 = perf_clock::now();
   for (char c = 'a'; c <= 'z'; ++c) {
     const auto size = words.size(string_view(&c, 1));
     distances[static_cast<size_t>(c - 'a')] = size;
   }
-  const auto t1 = high_resolution_clock::now();
+  const auto t1 = perf_clock::now();
 
   cout << '\t' << name << " counted " << distances.size() << " prefixes\n";
   return make_pair(distances, t1 - t0);
 }
 
 timeunit_t trie_perf::find(string_view prefix) const {
-  const auto t0 = high_resolution_clock::now();
+  const auto t0 = perf_clock::now();
   const auto start = words.begin(prefix);
   const auto finish = words.end(prefix);
-  const auto t1 = high_resolution_clock::now();
+  const auto t1 = perf_clock::now();
 
   cout << '\t' << name << " found prefix " << prefix << " bounded between "
        << *start << " and " << *finish << '\n';
@@ -121,9 +119,9 @@ timeunit_t trie_perf::find(string_view prefix) const {
 }
 
 timeunit_t trie_perf::erase(string_view prefix) {
-  const auto t0 = high_resolution_clock::now();
+  const auto t0 = perf_clock::now();
   words.erase_prefix(prefix);
-  const auto t1 = high_resolution_clock::now();
+  const auto t1 = perf_clock::now();
 
   cout << '\t' << name << " erased all words with prefix " << prefix << '\n';
   return t1 - t0;
