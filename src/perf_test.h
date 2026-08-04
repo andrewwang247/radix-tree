@@ -19,6 +19,7 @@ Interface for performance testing.
 #include "trie.h"
 
 using timeunit_t = std::chrono::nanoseconds;
+using perf_clock = std::chrono::steady_clock;
 
 namespace perf_test {
 static constexpr auto WORD_LIST_FILE = "words.txt";
@@ -141,11 +142,11 @@ const Container& perf<Container>::peek() const {
 template <set_or_trie Container>
 timeunit_t perf<Container>::insert(const std::vector<std::string>& word_list) {
   // Time insertion with range constructor.
-  const auto t0 = std::chrono::high_resolution_clock::now();
+  const auto t0 = perf_clock::now();
   for (const auto& word : word_list) {
     words.insert(word);
   }
-  const auto t1 = std::chrono::high_resolution_clock::now();
+  const auto t1 = perf_clock::now();
 
   std::cout << '\t' << name << " inserted " << word_list.size() << " words\n";
   return t1 - t0;
@@ -153,12 +154,12 @@ timeunit_t perf<Container>::insert(const std::vector<std::string>& word_list) {
 
 template <set_or_trie Container>
 timeunit_t perf<Container>::forward_iterate() const {
-  const auto t0 = std::chrono::high_resolution_clock::now();
+  const auto t0 = perf_clock::now();
   // Work-around for compiler flags not using the key variable.
   // Branch prediction should optimize out this call.
   const auto counter = std::ranges::count_if(
       words, [](const auto& key) { return !key.empty(); });
-  const auto t1 = std::chrono::high_resolution_clock::now();
+  const auto t1 = perf_clock::now();
 
   std::cout << '\t' << name << " iterated over " << counter << " words\n";
   return t1 - t0;
@@ -166,13 +167,13 @@ timeunit_t perf<Container>::forward_iterate() const {
 
 template <set_or_trie Container>
 timeunit_t perf<Container>::reverse_iterate() const {
-  const auto t0 = std::chrono::high_resolution_clock::now();
+  const auto t0 = perf_clock::now();
   // Work-around for compiler flags not using the key variable.
   // Branch prediction should optimize out this call.
   const auto counter =
       std::ranges::count_if(std::ranges::reverse_view(words),
                             [](const auto& key) { return !key.empty(); });
-  const auto t1 = std::chrono::high_resolution_clock::now();
+  const auto t1 = perf_clock::now();
 
   std::cout << '\t' << name << " iterated over " << counter << " words\n";
   return t1 - t0;
