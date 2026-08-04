@@ -14,6 +14,7 @@ Performance testing implementation.
 #include <set>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -29,6 +30,7 @@ using std::random_device;
 using std::runtime_error;
 using std::set;
 using std::string;
+using std::string_view;
 using std::vector;
 using std::chrono::high_resolution_clock;
 
@@ -44,7 +46,7 @@ pair<array<size_t, set_perf::ALPHABET_SIZE>, timeunit_t> set_perf::count()
   const auto t0 = high_resolution_clock::now();
   // Get starting iterators on each character.
   for (char c = 'a'; c <= 'z'; ++c) {
-    const auto first_of_letter = ranges::lower_bound(words, string(1, c));
+    const auto first_of_letter = ranges::lower_bound(words, string_view(&c, 1));
     bounds[static_cast<size_t>(c - 'a')] = first_of_letter;
   }
   bounds[ALPHABET_SIZE] = words.end();
@@ -59,7 +61,7 @@ pair<array<size_t, set_perf::ALPHABET_SIZE>, timeunit_t> set_perf::count()
   return make_pair(distances, t1 - t0);
 }
 
-timeunit_t set_perf::find(const string& prefix) const {
+timeunit_t set_perf::find(string_view prefix) const {
   const auto t0 = high_resolution_clock::now();
 
   // Find the first item that's a prefix using lower bound.
@@ -75,7 +77,7 @@ timeunit_t set_perf::find(const string& prefix) const {
   return t1 - t0;
 }
 
-timeunit_t set_perf::erase(const string& prefix) {
+timeunit_t set_perf::erase(string_view prefix) {
   const auto t0 = high_resolution_clock::now();
   // Find the first item that's a prefix using lower bound.
   const auto start = ranges::lower_bound(words, prefix);
@@ -98,7 +100,7 @@ pair<array<size_t, trie_perf::ALPHABET_SIZE>, timeunit_t> trie_perf::count()
 
   const auto t0 = high_resolution_clock::now();
   for (char c = 'a'; c <= 'z'; ++c) {
-    const auto size = words.size(string(1, c));
+    const auto size = words.size(string_view(&c, 1));
     distances[static_cast<size_t>(c - 'a')] = size;
   }
   const auto t1 = high_resolution_clock::now();
@@ -107,7 +109,7 @@ pair<array<size_t, trie_perf::ALPHABET_SIZE>, timeunit_t> trie_perf::count()
   return make_pair(distances, t1 - t0);
 }
 
-timeunit_t trie_perf::find(const string& prefix) const {
+timeunit_t trie_perf::find(string_view prefix) const {
   const auto t0 = high_resolution_clock::now();
   const auto start = words.begin(prefix);
   const auto finish = words.end(prefix);
@@ -118,7 +120,7 @@ timeunit_t trie_perf::find(const string& prefix) const {
   return t1 - t0;
 }
 
-timeunit_t trie_perf::erase(const string& prefix) {
+timeunit_t trie_perf::erase(string_view prefix) {
   const auto t0 = high_resolution_clock::now();
   words.erase_prefix(prefix);
   const auto t1 = high_resolution_clock::now();

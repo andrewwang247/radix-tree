@@ -12,6 +12,7 @@ Interface for performance testing.
 #include <ranges>
 #include <set>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -81,7 +82,7 @@ class perf {
    * @param prefix The prefix to find.
    * @return The elapsed time.
    */
-  virtual timeunit_t find(const std::string& prefix) const = 0;
+  virtual timeunit_t find(std::string_view prefix) const = 0;
 
   /**
    * @brief Iterate forward over all words.
@@ -100,7 +101,7 @@ class perf {
    * @param prefix The prefix to erase.
    * @return The elapsed time.
    */
-  virtual timeunit_t erase(const std::string& prefix) = 0;
+  virtual timeunit_t erase(std::string_view prefix) = 0;
 };
 
 /**
@@ -111,8 +112,8 @@ class set_perf final : public perf<std::set<std::string>> {
   set_perf();
   std::pair<std::array<size_t, ALPHABET_SIZE>, timeunit_t> count()
       const override;
-  timeunit_t find(const std::string& prefix) const override;
-  timeunit_t erase(const std::string& prefix) override;
+  timeunit_t find(std::string_view prefix) const override;
+  timeunit_t erase(std::string_view prefix) override;
 };
 
 /**
@@ -123,8 +124,8 @@ class trie_perf final : public perf<trie> {
   trie_perf();
   std::pair<std::array<size_t, ALPHABET_SIZE>, timeunit_t> count()
       const override;
-  timeunit_t find(const std::string& prefix) const override;
-  timeunit_t erase(const std::string& prefix) override;
+  timeunit_t find(std::string_view prefix) const override;
+  timeunit_t erase(std::string_view prefix) override;
 };
 
 // NON VIRTUAL TEMPLATED IMPLEMENTATIONS
