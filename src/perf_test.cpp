@@ -13,6 +13,7 @@ Performance testing implementation.
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 using std::cout;
@@ -20,6 +21,8 @@ using std::default_random_engine;
 using std::distance;
 using std::find_if_not;
 using std::ifstream;
+using std::make_pair;
+using std::pair;
 using std::runtime_error;
 using std::set;
 using std::string;
@@ -27,8 +30,6 @@ using std::string_view;
 using std::vector;
 
 namespace ranges = std::ranges;
-
-set_perf::set_perf() : perf("Set") {}
 
 timeunit_t set_perf::count(const vector<perf_test::solution>& solutions) const {
   const auto t0 = perf_clock::now();
@@ -44,38 +45,36 @@ timeunit_t set_perf::count(const vector<perf_test::solution>& solutions) const {
   return t1 - t0;
 }
 
-timeunit_t set_perf::find(string_view prefix) const {
-  const auto t0 = perf_clock::now();
-
+pair<set_perf::iter_t, set_perf::iter_t> set_perf::find_begin_end(
+    string_view prefix) const {
   // Find the first item that's a prefix using lower bound.
-  const auto start = ranges::lower_bound(words, prefix);
+  const auto begin = ranges::lower_bound(words, prefix);
   // Find where it stops being a prefix.
-  const auto finish = find_if_not(
-      start, words.end(),
-      [&prefix](const auto& word) { return word.starts_with(prefix); });
-  const auto t1 = perf_clock::now();
+  const auto end = find_if_not(begin, words.end(), [&prefix](const auto& word) {
+    return word.starts_with(prefix);
+  });
+  return make_pair(begin, end);
+}
 
-  cout << '\t' << name << " found " << prefix << " bounded between " << *start
-       << " and " << *finish << '\n';
+timeunit_t set_perf::find(const vector<perf_test::solution>& solutions) const {
+  const auto t0 = perf_clock::now();
+  for (const auto& solution : solutions) {
+    const auto [begin, end] = find_begin_end(solution.prefix);
+    if (solution.begin != *begin || solution.end != *end) {
+      throw runtime_error("Found range does not match solution");
+    }
+  }
+  const auto t1 = perf_clock::now();
   return t1 - t0;
 }
 
 timeunit_t set_perf::erase(string_view prefix) {
   const auto t0 = perf_clock::now();
-  // Find the first item that's a prefix using lower bound.
-  const auto start = ranges::lower_bound(words, prefix);
-  // Find where it stops being a prefix.
-  const auto finish = find_if_not(
-      start, words.end(),
-      [&prefix](const auto& word) { return word.starts_with(prefix); });
-  words.erase(start, finish);
+  const auto [begin, end] = find_begin_end(prefix);
+  words.erase(begin, end);
   const auto t1 = perf_clock::now();
-
-  cout << '\t' << name << " erased all words with prefix " << prefix << '\n';
   return t1 - t0;
 }
-
-trie_perf::trie_perf() : perf("Trie") {}
 
 timeunit_t trie_perf::count(
     const vector<perf_test::solution>& solutions) const {
@@ -90,14 +89,16 @@ timeunit_t trie_perf::count(
   return t1 - t0;
 }
 
-timeunit_t trie_perf::find(string_view prefix) const {
+timeunit_t trie_perf::find(const vector<perf_test::solution>& solutions) const {
   const auto t0 = perf_clock::now();
-  const auto start = words.begin(prefix);
-  const auto finish = words.end(prefix);
+  for (const auto& solution : solutions) {
+    const auto begin = words.begin(solution.prefix);
+    const auto end = words.end(solution.prefix);
+    if (solution.begin != *begin || solution.end != *end) {
+      throw runtime_error("Found range does not match solution");
+    }
+  }
   const auto t1 = perf_clock::now();
-
-  cout << '\t' << name << " found " << prefix << " bounded between " << *start
-       << " and " << *finish << '\n';
   return t1 - t0;
 }
 
@@ -105,8 +106,6 @@ timeunit_t trie_perf::erase(string_view prefix) {
   const auto t0 = perf_clock::now();
   words.erase_prefix(prefix);
   const auto t1 = perf_clock::now();
-
-  cout << '\t' << name << " erased all words with prefix " << prefix << '\n';
   return t1 - t0;
 }
 
@@ -180,8 +179,8 @@ void perf_test::run_all() {
   show_performance_comparison(count_set_result, count_trie_result);
 
   cout << "Find\n";
-  const auto find_set_result = set_benchmark.find("un");
-  const auto find_trie_result = trie_benchmark.find("un");
+  const auto find_set_result = set_benchmark.find(solutions);
+  const auto find_trie_result = trie_benchmark.find(solutions);
   show_performance_comparison(find_set_result, find_trie_result);
 
   cout << "Forward Iterate\n";

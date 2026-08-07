@@ -11,8 +11,10 @@ Interface for performance testing.
 #include <iterator>
 #include <random>
 #include <set>
+#include <stdexcept>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "trie.h"
@@ -69,15 +71,8 @@ template <set_or_trie Container>
 class perf {
  protected:
   Container words;
-  std::string name;
 
  public:
-  /**
-   * @brief Construct default initialized container.
-   * @param name_in The name to give to this instance.
-   */
-  explicit perf(const char* name_in);
-
   /**
    * @brief Expose underlying container.
    * @return Const reference to container.
@@ -100,11 +95,12 @@ class perf {
       const std::vector<perf_test::solution>& solutions) const = 0;
 
   /**
-   * @brief Find begin and end range of given prefix.
-   * @param prefix The prefix to find.
+   * @brief Find begin and end range of given prefixes.
+   * @param solutions The prefixes to find.
    * @return The elapsed time.
    */
-  virtual timeunit_t find(std::string_view prefix) const = 0;
+  virtual timeunit_t find(
+      const std::vector<perf_test::solution>& solutions) const = 0;
 
   /**
    * @brief Iterate forward over all words.
@@ -131,11 +127,21 @@ class perf {
  */
 class set_perf final : public perf<std::set<std::string>> {
  public:
-  set_perf();
   timeunit_t count(
       const std::vector<perf_test::solution>& solutions) const override;
-  timeunit_t find(std::string_view prefix) const override;
+  timeunit_t find(
+      const std::vector<perf_test::solution>& solutions) const override;
   timeunit_t erase(std::string_view prefix) override;
+
+ private:
+  using iter_t = std::set<std::string>::const_iterator;
+
+  /**
+   * Find begin and end iterators to a prefix range.
+   * @param prefix The prefix to locate.
+   * @return A pair of range iterators.
+   */
+  std::pair<iter_t, iter_t> find_begin_end(std::string_view prefix) const;
 };
 
 /**
@@ -143,17 +149,14 @@ class set_perf final : public perf<std::set<std::string>> {
  */
 class trie_perf final : public perf<trie> {
  public:
-  trie_perf();
   timeunit_t count(
       const std::vector<perf_test::solution>& solutions) const override;
-  timeunit_t find(std::string_view prefix) const override;
+  timeunit_t find(
+      const std::vector<perf_test::solution>& solutions) const override;
   timeunit_t erase(std::string_view prefix) override;
 };
 
 // NON VIRTUAL TEMPLATED IMPLEMENTATIONS
-
-template <set_or_trie Container>
-perf<Container>::perf(const char* name_in) : name(name_in) {}
 
 template <set_or_trie Container>
 const Container& perf<Container>::peek() const {
@@ -168,8 +171,6 @@ timeunit_t perf<Container>::insert(const std::vector<std::string>& word_list) {
     words.insert(word);
   }
   const auto t1 = perf_clock::now();
-
-  std::cout << '\t' << name << " inserted " << word_list.size() << " words\n";
   return t1 - t0;
 }
 
@@ -179,7 +180,9 @@ timeunit_t perf<Container>::forward_iterate() const {
   const auto counter = std::distance(words.begin(), words.end());
   const auto t1 = perf_clock::now();
 
-  std::cout << '\t' << name << " iterated over " << counter << " words\n";
+  if (perf_test::WORD_LIST_SIZE != counter) {
+    throw std::runtime_error("Iterated over incorrect number of elements");
+  }
   return t1 - t0;
 }
 
@@ -190,6 +193,8 @@ timeunit_t perf<Container>::reverse_iterate() const {
                                      std::make_reverse_iterator(words.begin()));
   const auto t1 = perf_clock::now();
 
-  std::cout << '\t' << name << " iterated over " << counter << " words\n";
+  if (perf_test::WORD_LIST_SIZE != counter) {
+    throw std::runtime_error("Iterated over incorrect number of elements");
+  }
   return t1 - t0;
 }
