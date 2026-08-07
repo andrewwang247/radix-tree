@@ -92,11 +92,12 @@ class perf {
   timeunit_t insert(const std::vector<std::string>& word_list);
 
   /**
-   * @brief Count number of words with given prefix.
-   * @param prefix The prefix to count.
+   * @brief Count number of words with given prefixes.
+   * @param solutions The prefixes to count.
    * @return The elapsed time.
    */
-  virtual timeunit_t count(std::string_view prefix) const = 0;
+  virtual timeunit_t count(
+      const std::vector<perf_test::solution>& solutions) const = 0;
 
   /**
    * @brief Find begin and end range of given prefix.
@@ -131,7 +132,8 @@ class perf {
 class set_perf final : public perf<std::set<std::string>> {
  public:
   set_perf();
-  timeunit_t count(std::string_view prefix) const override;
+  timeunit_t count(
+      const std::vector<perf_test::solution>& solutions) const override;
   timeunit_t find(std::string_view prefix) const override;
   timeunit_t erase(std::string_view prefix) override;
 };
@@ -142,7 +144,8 @@ class set_perf final : public perf<std::set<std::string>> {
 class trie_perf final : public perf<trie> {
  public:
   trie_perf();
-  timeunit_t count(std::string_view prefix) const override;
+  timeunit_t count(
+      const std::vector<perf_test::solution>& solutions) const override;
   timeunit_t find(std::string_view prefix) const override;
   timeunit_t erase(std::string_view prefix) override;
 };
