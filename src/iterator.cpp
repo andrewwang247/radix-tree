@@ -62,6 +62,6 @@ iterator::arrow_proxy iterator::operator->() const {
 
 iterator::operator bool() const { return ptr != nullptr; }
 
-std::string iterator::to_json(bool include_ends) const {
+string iterator::to_json(bool include_ends) const {
   return ptr ? ptr->to_json(include_ends) : "{}";
 }

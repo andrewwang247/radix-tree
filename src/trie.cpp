@@ -272,12 +272,12 @@ iterator trie::end(string_view prefix_view) const {
   }
 
   // If we've gotten down to here, something has gone wrong.
-  throw runtime_error("Unexpected bug in Trie::end(string)");
+  throw runtime_error("Unexpected bug in Trie::end(string_view)");
 }
 
 trie& trie::operator+=(const trie& rhs) {
   assert(this != &rhs);
-  for (const string& key : rhs) {
+  for (string_view key : rhs) {
     insert(key);
   }
   root->assert_invariants();
@@ -288,7 +288,7 @@ trie operator+(trie lhs, const trie& rhs) { return lhs += rhs; }
 
 trie& trie::operator-=(const trie& rhs) {
   assert(this != &rhs);
-  for (const string& key : rhs) {
+  for (string_view key : rhs) {
     erase(key);
   }
   root->assert_invariants();

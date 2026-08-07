@@ -14,15 +14,12 @@ Performance testing implementation.
 #include <stdexcept>
 #include <string>
 #include <string_view>
-#include <utility>
 #include <vector>
 
 using std::cout;
 using std::default_random_engine;
 using std::distance;
 using std::ifstream;
-using std::make_pair;
-using std::pair;
 using std::runtime_error;
 using std::set;
 using std::string;
@@ -31,24 +28,24 @@ using std::vector;
 
 namespace ranges = std::ranges;
 
-pair<set_perf::iter_t, set_perf::iter_t> set_perf::find_begin_end(
-    const string& prefix) const {
+ranges::range auto set_perf::prefix_range_for(const string& prefix) const {
+  const auto has_prefix = [&prefix](const string_view word) {
+    return word.starts_with(prefix);
+  };
   // Find the first item that's a prefix
   const auto begin = words.lower_bound(prefix);
   // Find where it stops being a prefix.
-  const auto end = ranges::find_if_not(
-      begin, words.end(),
-      [&prefix](const string_view word) { return word.starts_with(prefix); });
-  return make_pair(begin, end);
+  const auto end = ranges::find_if_not(begin, words.end(), has_prefix);
+  return ranges::subrange{begin, end};
 }
 
 timeunit_t set_perf::count(
     const vector<perf_test::solution_t>& solutions) const {
   const auto t0 = perf_clock::now();
-  for (const auto& [prefix, count, _1, _2] : solutions) {
-    const auto [begin, end] = find_begin_end(prefix);
-    const auto total = ranges::distance(begin, end);
-    if (count != static_cast<size_t>(total)) {
+  for (const auto& [prefix, expected_count, _1, _2] : solutions) {
+    const auto prefix_range = prefix_range_for(prefix);
+    const auto total = ranges::distance(prefix_range);
+    if (expected_count != static_cast<size_t>(total)) {
       throw runtime_error("Count does not match solution");
     }
   }
@@ -63,10 +60,10 @@ timeunit_t set_perf::find(
   actual_ends.reserve(solutions.size());
 
   const auto t0 = perf_clock::now();
-  for (const auto& [prefix, _, expected_begin, expected_end] : solutions) {
-    const auto [begin, end] = find_begin_end(prefix);
-    actual_begins.emplace_back(begin);
-    actual_ends.emplace_back(end);
+  for (const auto& solution : solutions) {
+    const auto prefix_range = prefix_range_for(solution.prefix);
+    actual_begins.emplace_back(prefix_range.begin());
+    actual_ends.emplace_back(prefix_range.end());
   }
   const auto t1 = perf_clock::now();
 
@@ -80,8 +77,8 @@ timeunit_t set_perf::find(
 timeunit_t set_perf::erase(const vector<perf_test::solution_t>& solutions) {
   const auto t0 = perf_clock::now();
   for (const auto& solution : solutions) {
-    const auto [begin, end] = find_begin_end(solution.prefix);
-    words.erase(begin, end);
+    const auto prefix_range = prefix_range_for(solution.prefix);
+    words.erase(prefix_range.begin(), prefix_range.end());
   }
   const auto t1 = perf_clock::now();
   return t1 - t0;
@@ -90,9 +87,9 @@ timeunit_t set_perf::erase(const vector<perf_test::solution_t>& solutions) {
 timeunit_t trie_perf::count(
     const vector<perf_test::solution_t>& solutions) const {
   const auto t0 = perf_clock::now();
-  for (const auto& [prefix, count, _1, _2] : solutions) {
+  for (const auto& [prefix, expected_count, _1, _2] : solutions) {
     const auto total = words.size(prefix);
-    if (count != static_cast<size_t>(total)) {
+    if (expected_count != static_cast<size_t>(total)) {
       throw runtime_error("Count does not match solution");
     }
   }
@@ -107,9 +104,9 @@ timeunit_t trie_perf::find(
   actual_ends.reserve(solutions.size());
 
   const auto t0 = perf_clock::now();
-  for (const auto& [prefix, _, expected_begin, expected_end] : solutions) {
-    const auto begin = words.begin(prefix);
-    const auto end = words.end(prefix);
+  for (const auto& solution : solutions) {
+    const auto begin = words.begin(solution.prefix);
+    const auto end = words.end(solution.prefix);
     actual_begins.emplace_back(begin);
     actual_ends.emplace_back(end);
   }
