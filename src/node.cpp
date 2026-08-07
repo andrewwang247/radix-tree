@@ -231,7 +231,7 @@ const node* node::prev_node() const {
 }
 
 string node::underlying_string() const {
-  vector<string> history;
+  vector<string_view> history;
   size_t total_length = 0;
 
   // Move up in trie until we get to root.
@@ -242,7 +242,7 @@ string node::underlying_string() const {
     assert(iter != par->children.end());
 
     // Push the string representation onto the stack.
-    history.push_back(iter->first);
+    history.emplace_back(iter->first);
     total_length += iter->first.size();
   }
 

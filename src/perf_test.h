@@ -12,7 +12,6 @@ Interface for performance testing.
 #include <set>
 #include <stdexcept>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "trie.h"
@@ -126,14 +125,14 @@ class perf {
  */
 class set_perf final : public perf<std::set<std::string>> {
  private:
-  using iter_t = std::set<std::string>::const_iterator;
+  using iter_t = decltype(words)::const_iterator;
 
   /**
-   * Find begin and end iterators to a prefix range.
+   * Locate boundaries of a prefix range.
    * @param prefix The prefix to locate.
-   * @return A pair of range iterators.
+   * @return The range of words with prefix.
    */
-  std::pair<iter_t, iter_t> find_begin_end(const std::string& prefix) const;
+  std::ranges::range auto prefix_range_for(const std::string& prefix) const;
 
  public:
   timeunit_t count(

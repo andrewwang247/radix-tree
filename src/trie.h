@@ -4,7 +4,6 @@ Copyright 2026. Andrew Wang.
 Interface for Trie.
 */
 #pragma once
-#include <algorithm>
 #include <cassert>
 #include <initializer_list>
 #include <iterator>
@@ -248,7 +247,8 @@ template <std::input_iterator Iter>
 trie::trie(Iter first, Iter last) : trie(std::ranges::subrange{first, last}) {}
 
 trie::trie(std::ranges::input_range auto input_range) : trie() {
-  std::ranges::for_each(input_range,
-                        [this](const auto& word) { insert(word); });
+  for (std::string_view word : input_range) {
+    insert(word);
+  }
   root->assert_invariants();
 }
