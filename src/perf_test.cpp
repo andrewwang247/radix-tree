@@ -30,14 +30,17 @@ namespace ranges = std::ranges;
 
 set_perf::set_perf() : perf("Set") {}
 
-timeunit_t set_perf::count(string_view prefix) const {
+timeunit_t set_perf::count(const vector<perf_test::solution>& solutions) const {
   const auto t0 = perf_clock::now();
-  const auto total = ranges::count_if(
-      words, [prefix](const auto& word) { return word.starts_with(prefix); });
+  for (const auto& solution : solutions) {
+    const auto total = ranges::count_if(words, [&solution](const auto& word) {
+      return word.starts_with(solution.prefix);
+    });
+    if (solution.count != static_cast<size_t>(total)) {
+      throw runtime_error("Count does not match solution");
+    }
+  }
   const auto t1 = perf_clock::now();
-
-  cout << '\t' << name << " counted " << total << " words starting with "
-       << prefix << '\n';
   return t1 - t0;
 }
 
@@ -74,13 +77,16 @@ timeunit_t set_perf::erase(string_view prefix) {
 
 trie_perf::trie_perf() : perf("Trie") {}
 
-timeunit_t trie_perf::count(string_view prefix) const {
+timeunit_t trie_perf::count(
+    const vector<perf_test::solution>& solutions) const {
   const auto t0 = perf_clock::now();
-  const auto total = words.size(prefix);
+  for (const auto& solution : solutions) {
+    const auto total = words.size(solution.prefix);
+    if (solution.count != static_cast<size_t>(total)) {
+      throw runtime_error("Count does not match solution");
+    }
+  }
   const auto t1 = perf_clock::now();
-
-  cout << '\t' << name << " counted " << total << " words starting with "
-       << prefix << '\n';
   return t1 - t0;
 }
 
@@ -169,8 +175,8 @@ void perf_test::run_all() {
   show_performance_comparison(insert_set_result, insert_trie_result);
 
   cout << "Count\n";
-  const auto count_set_result = set_benchmark.count("ca");
-  const auto count_trie_result = trie_benchmark.count("ca");
+  const auto count_set_result = set_benchmark.count(solutions);
+  const auto count_trie_result = trie_benchmark.count(solutions);
   show_performance_comparison(count_set_result, count_trie_result);
 
   cout << "Find\n";
