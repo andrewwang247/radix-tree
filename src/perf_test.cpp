@@ -8,6 +8,7 @@ Performance testing implementation.
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <random>
 #include <set>
 #include <stdexcept>
@@ -19,7 +20,6 @@ Performance testing implementation.
 using std::cout;
 using std::default_random_engine;
 using std::distance;
-using std::find_if_not;
 using std::ifstream;
 using std::make_pair;
 using std::pair;
@@ -31,13 +31,23 @@ using std::vector;
 
 namespace ranges = std::ranges;
 
+pair<set_perf::iter_t, set_perf::iter_t> set_perf::find_begin_end(
+    const string& prefix) const {
+  // Find the first item that's a prefix
+  const auto begin = words.lower_bound(prefix);
+  // Find where it stops being a prefix.
+  const auto end = ranges::find_if_not(
+      begin, words.end(),
+      [&prefix](const string_view word) { return word.starts_with(prefix); });
+  return make_pair(begin, end);
+}
+
 timeunit_t set_perf::count(
     const vector<perf_test::solution_t>& solutions) const {
   const auto t0 = perf_clock::now();
   for (const auto& [prefix, count, _1, _2] : solutions) {
-    const auto total = ranges::count_if(
-        words,
-        [&prefix](const string_view word) { return word.starts_with(prefix); });
+    const auto [begin, end] = find_begin_end(prefix);
+    const auto total = ranges::distance(begin, end);
     if (count != static_cast<size_t>(total)) {
       throw runtime_error("Count does not match solution");
     }
@@ -46,27 +56,24 @@ timeunit_t set_perf::count(
   return t1 - t0;
 }
 
-pair<set_perf::iter_t, set_perf::iter_t> set_perf::find_begin_end(
-    string_view prefix) const {
-  // Find the first item that's a prefix using lower bound.
-  const auto begin = ranges::lower_bound(words, prefix);
-  // Find where it stops being a prefix.
-  const auto end = find_if_not(
-      begin, words.end(),
-      [&prefix](const string_view word) { return word.starts_with(prefix); });
-  return make_pair(begin, end);
-}
-
 timeunit_t set_perf::find(
     const vector<perf_test::solution_t>& solutions) const {
+  vector<iter_t> actual_begins, actual_ends;
+  actual_begins.reserve(solutions.size());
+  actual_ends.reserve(solutions.size());
+
   const auto t0 = perf_clock::now();
   for (const auto& [prefix, _, expected_begin, expected_end] : solutions) {
     const auto [begin, end] = find_begin_end(prefix);
-    if (expected_begin != *begin || expected_end != *end) {
-      throw runtime_error("Found range does not match solution");
-    }
+    actual_begins.emplace_back(begin);
+    actual_ends.emplace_back(end);
   }
   const auto t1 = perf_clock::now();
+
+  if (!ranges::equal(solutions | begin_view, actual_begins | deref_view) ||
+      !ranges::equal(solutions | end_view, actual_ends | deref_view)) {
+    throw runtime_error("Prefix range does not match solution");
+  }
   return t1 - t0;
 }
 
@@ -95,15 +102,23 @@ timeunit_t trie_perf::count(
 
 timeunit_t trie_perf::find(
     const vector<perf_test::solution_t>& solutions) const {
+  vector<iterator> actual_begins, actual_ends;
+  actual_begins.reserve(solutions.size());
+  actual_ends.reserve(solutions.size());
+
   const auto t0 = perf_clock::now();
   for (const auto& [prefix, _, expected_begin, expected_end] : solutions) {
     const auto begin = words.begin(prefix);
     const auto end = words.end(prefix);
-    if (expected_begin != *begin || expected_end != *end) {
-      throw runtime_error("Found range does not match solution");
-    }
+    actual_begins.emplace_back(begin);
+    actual_ends.emplace_back(end);
   }
   const auto t1 = perf_clock::now();
+
+  if (!ranges::equal(solutions | begin_view, actual_begins | deref_view) ||
+      !ranges::equal(solutions | end_view, actual_ends | deref_view)) {
+    throw runtime_error("Prefix range does not match solution");
+  }
   return t1 - t0;
 }
 
@@ -135,9 +150,9 @@ void show_performance_comparison(timeunit_t set_time, timeunit_t trie_time) {
 
 vector<string> perf_test::read_words() {
   vector<string> words;
-  words.reserve(WORD_LIST_SIZE);
+  words.reserve(WORDS_SIZE);
 
-  ifstream fin{WORD_LIST_FILE};
+  ifstream fin{WORDS_FILE};
   if (!fin) throw runtime_error("Could not open words list");
   for (string word; fin >> word;) {
     words.push_back(word);
