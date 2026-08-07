@@ -15,9 +15,6 @@ Interface for Trie iterator.
  * @brief Supports const bidirectional iteration over the trie.
  */
 class iterator {
- private:
-  const node *root, *ptr;
-
  public:
   using iterator_category = std::bidirectional_iterator_tag;
   using value_type = std::string;
@@ -25,6 +22,19 @@ class iterator {
   using pointer = const std::string*;
   using reference = const std::string&;
 
+ private:
+  const node* root;
+  const node* ptr;
+
+  /**
+   * @brief Proxy to make the arrow operator work.
+   */
+  struct arrow_proxy {
+    value_type value;
+    pointer operator->() { return &value; }
+  };
+
+ public:
   /**
    * @brief Default constructor.
    */
@@ -66,7 +76,13 @@ class iterator {
    * @brief Dereference operator.
    * @return The string referred to by this.
    */
-  std::string operator*() const;
+  value_type operator*() const;
+
+  /**
+   * @brief Arrow operator. Alias for dereference.
+   * @return The string referred to by this.
+   */
+  arrow_proxy operator->() const;
 
   /**
    * @brief Implicit conversion to bool.
