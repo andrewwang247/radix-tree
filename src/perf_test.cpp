@@ -20,7 +20,6 @@ using std::default_random_engine;
 using std::distance;
 using std::find_if_not;
 using std::ifstream;
-using std::random_device;
 using std::runtime_error;
 using std::set;
 using std::string;
@@ -123,24 +122,41 @@ void show_performance_comparison(timeunit_t set_time, timeunit_t trie_time) {
 }
 
 vector<string> perf_test::read_words() {
-  random_device rdev{};
   default_random_engine rng{rdev()};
-  vector<string> master_list;
-  master_list.reserve(WORD_LIST_SIZE);
+  vector<string> words;
+  words.reserve(WORD_LIST_SIZE);
 
   ifstream fin{WORD_LIST_FILE};
-  if (!fin) throw runtime_error("Could not open words.txt");
+  if (!fin) throw runtime_error("Could not open words list");
   for (string word; fin >> word;) {
-    master_list.push_back(word);
+    words.push_back(word);
   }
-  ranges::shuffle(master_list, rng);
+  ranges::shuffle(words, rng);
 
-  cout << "Imported " << master_list.size() << " randomly shuffled words\n";
-  return master_list;
+  cout << "Imported " << words.size() << " randomly shuffled words\n";
+  return words;
+}
+
+vector<perf_test::solution> perf_test::read_solutions() {
+  default_random_engine rng{rdev()};
+  vector<solution> solutions;
+  solutions.reserve(SOLUTIONS_SIZE);
+
+  ifstream fin{SOLUTIONS_FILE};
+  if (!fin) throw runtime_error("Could not open solutions file");
+  size_t count;
+  for (string word, begin, end; fin >> word >> count >> begin >> end;) {
+    solutions.emplace_back(word, count, begin, end);
+  }
+  ranges::shuffle(solutions, rng);
+
+  cout << "Imported " << solutions.size() << " randomly shuffled solutions\n";
+  return solutions;
 }
 
 void perf_test::run_all() {
-  const auto master_list = read_words();
+  const auto words = read_words();
+  const auto solutions = read_solutions();
 
   cout << "--- EXECUTING PERFORMANCE TEST ---\n";
 
@@ -148,8 +164,8 @@ void perf_test::run_all() {
   trie_perf trie_benchmark;
 
   cout << "Insert\n";
-  const auto insert_set_result = set_benchmark.insert(master_list);
-  const auto insert_trie_result = trie_benchmark.insert(master_list);
+  const auto insert_set_result = set_benchmark.insert(words);
+  const auto insert_trie_result = trie_benchmark.insert(words);
   show_performance_comparison(insert_set_result, insert_trie_result);
 
   cout << "Count\n";

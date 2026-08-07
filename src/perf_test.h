@@ -9,6 +9,7 @@ Interface for performance testing.
 #include <concepts>
 #include <iostream>
 #include <iterator>
+#include <random>
 #include <set>
 #include <string>
 #include <string_view>
@@ -20,8 +21,13 @@ using timeunit_t = std::chrono::nanoseconds;
 using perf_clock = std::chrono::steady_clock;
 
 namespace perf_test {
+static std::random_device rdev{};
+
 static constexpr auto WORD_LIST_FILE = "words.txt";
-static constexpr size_t WORD_LIST_SIZE = 466474;
+static constexpr size_t WORD_LIST_SIZE = 370105;
+
+static constexpr auto SOLUTIONS_FILE = "solutions.txt";
+static constexpr size_t SOLUTIONS_SIZE = 114;
 
 /**
  * @brief Reads words from the WORD_LIST_FILE into a vector of strings. Randomly
@@ -29,6 +35,23 @@ static constexpr size_t WORD_LIST_SIZE = 466474;
  * @return A vector of strings containing all words from the file.
  */
 std::vector<std::string> read_words();
+
+/**
+ * Solution to finding and counting a prefix.
+ */
+struct solution {
+  std::string prefix;
+  size_t count;
+  std::string begin, end;
+};
+
+/**
+ * @brief Reads solutions from the SOLUTIONS_FILE into a vector of. Randomly
+ * permutes before returning.
+ * @return A vector of solutions containing all entries from the file.
+ */
+std::vector<solution> read_solutions();
+
 void run_all();
 }  // namespace perf_test
 
