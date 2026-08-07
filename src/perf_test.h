@@ -5,7 +5,6 @@ Interface for performance testing.
 */
 #pragma once
 #include <algorithm>
-#include <array>
 #include <chrono>
 #include <concepts>
 #include <iostream>
@@ -13,7 +12,6 @@ Interface for performance testing.
 #include <set>
 #include <string>
 #include <string_view>
-#include <utility>
 #include <vector>
 
 #include "trie.h"
@@ -49,7 +47,6 @@ class perf {
  protected:
   Container words;
   std::string name;
-  static constexpr size_t ALPHABET_SIZE = 26;
 
  public:
   /**
@@ -72,11 +69,11 @@ class perf {
   timeunit_t insert(const std::vector<std::string>& word_list);
 
   /**
-   * @brief Count prefixes for each starting letter.
-   * @return Array of prefix counts for 'a' to 'z' and elapsed time.
+   * @brief Count number of words with given prefix.
+   * @param prefix The prefix to count.
+   * @return The elapsed time.
    */
-  virtual std::pair<std::array<size_t, ALPHABET_SIZE>, timeunit_t> count()
-      const = 0;
+  virtual timeunit_t count(std::string_view prefix) const = 0;
 
   /**
    * @brief Find begin and end range of given prefix.
@@ -111,8 +108,7 @@ class perf {
 class set_perf final : public perf<std::set<std::string>> {
  public:
   set_perf();
-  std::pair<std::array<size_t, ALPHABET_SIZE>, timeunit_t> count()
-      const override;
+  timeunit_t count(std::string_view prefix) const override;
   timeunit_t find(std::string_view prefix) const override;
   timeunit_t erase(std::string_view prefix) override;
 };
@@ -123,8 +119,7 @@ class set_perf final : public perf<std::set<std::string>> {
 class trie_perf final : public perf<trie> {
  public:
   trie_perf();
-  std::pair<std::array<size_t, ALPHABET_SIZE>, timeunit_t> count()
-      const override;
+  timeunit_t count(std::string_view prefix) const override;
   timeunit_t find(std::string_view prefix) const override;
   timeunit_t erase(std::string_view prefix) override;
 };
