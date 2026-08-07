@@ -186,14 +186,18 @@ void perf_test::run_all() {
   const auto& word_set = set_benchmark.peek();
   const auto& word_trie = trie_benchmark.peek();
 
-  cout << "Forward ranges ";
-  const bool words_forward_equal = ranges::equal(word_set, word_trie);
-  cout << (words_forward_equal ? "match\n" : "do not match\n");
+  if (ranges::equal(word_set, word_trie)) {
+    cout << "Forward ranges match\n";
+  } else {
+    throw runtime_error("Forward ranges do not match");
+  }
 
-  cout << "Reverse ranges ";
-  const bool words_reverse_equal = ranges::equal(
-      ranges::reverse_view(word_set), ranges::reverse_view(word_trie));
-  cout << (words_reverse_equal ? "match\n" : "do not match\n");
+  if (ranges::equal(ranges::reverse_view(word_set),
+                    ranges::reverse_view(word_trie))) {
+    cout << "Reverse ranges match\n";
+  } else {
+    throw runtime_error("Reverse ranges do not match");
+  }
 
   cout << "--- FINISHED FINAL VERIFICATION ---\n";
 }
