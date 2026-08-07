@@ -52,7 +52,13 @@ iterator iterator::operator--(int) {
   return temp;
 }
 
-string iterator::operator*() const { return ptr->underlying_string(); }
+iterator::value_type iterator::operator*() const {
+  return ptr->underlying_string();
+}
+
+iterator::arrow_proxy iterator::operator->() const {
+  return arrow_proxy{ptr->underlying_string()};
+}
 
 iterator::operator bool() const { return ptr != nullptr; }
 

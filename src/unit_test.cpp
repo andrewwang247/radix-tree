@@ -50,10 +50,13 @@ void unit_test::empty_single() {
     assert(tr.begin());
     assert(!tr.end());
     assert(*tr.begin() == "");
+    assert(tr.begin()->empty());
     assert(tr.find("test") == tr.end());
     assert(tr.find_prefix("test") == tr.end());
     assert(*tr.find("") == "");
+    assert(tr.find("")->empty());
     assert(*tr.find_prefix("") == "");
+    assert(tr.find_prefix("")->empty());
   }
   {
     trie tr;
@@ -68,14 +71,19 @@ void unit_test::empty_single() {
     assert(tr.begin());
     assert(!tr.end());
     assert(*tr.begin() == "single");
+    assert(tr.begin()->compare("single") == 0);
     assert(tr.find("test") == tr.end());
     assert(tr.find_prefix("test") == tr.end());
     assert(tr.find("") == tr.end());
     assert(*tr.find_prefix("") == "single");
+    assert(tr.find_prefix("")->compare("single") == 0);
     assert(tr.find("sin") == tr.end());
     assert(*tr.find_prefix("sin") == "single");
+    assert(tr.find_prefix("sin")->compare("single") == 0);
     assert(*tr.find("single") == "single");
+    assert(tr.find("single")->compare("single") == 0);
     assert(*tr.find_prefix("single") == "single");
+    assert(tr.find_prefix("single")->compare("single") == 0);
   }
   cout << " passed\n";
 }
@@ -98,10 +106,12 @@ void unit_test::find() {
   [[maybe_unused]] const auto prf_iter = tr.find_prefix("mate");
   assert(prf_iter != tr.end());
   assert(*prf_iter == "material");
+  assert(prf_iter->compare("material") == 0);
 
   [[maybe_unused]] const auto exact_prf_iter = tr.find_prefix("contaminate");
   assert(exact_prf_iter != tr.end());
   assert(*exact_prf_iter == "contaminate");
+  assert(exact_prf_iter->compare("contaminate") == 0);
 
   [[maybe_unused]] const auto missing_exact_iter = tr.find("testing");
   assert(missing_exact_iter == tr.end());
@@ -118,6 +128,7 @@ void unit_test::insert() {
   [[maybe_unused]] auto iter = tr.insert("math");
   assert(iter != tr.end());
   assert(*iter == "math");
+  assert(iter->compare("math") == 0);
   assert(tr.size("math") == 1);
   assert(!tr.empty("mat"));
 
@@ -131,6 +142,7 @@ void unit_test::insert() {
   iter = tr.insert("regression");
   assert(iter != tr.end());
   assert(*iter == "regression");
+  assert(iter->compare("regression") == 0);
   assert(tr.size("m") == 2);
   assert(tr.size() == 3);
   assert(!tr.empty("reg"));
@@ -164,6 +176,7 @@ void unit_test::erase() {
   auto iter = tr.find_prefix("mat");
   assert(iter != tr.end());
   assert(*iter == "material");
+  assert(iter->compare("material") == 0);
   assert(tr.size("ma") == 5);
   assert(!tr.empty("mat"));
 
@@ -173,6 +186,7 @@ void unit_test::erase() {
   iter = tr.find("corner");
   assert(iter != tr.end());
   assert(*iter == "corner");
+  assert(iter->compare("corner") == 0);
   assert(tr.size("co") == 5);
 
   tr.erase_prefix("con");  // ensure idempotence
@@ -224,6 +238,7 @@ void unit_test::forward_iterate() {
   // Non-existant range.
   assert(tr.begin("cops") == tr.end());
   assert(*tr.end("cops") == "corn");
+  assert(tr.end("cops")->compare("corn") == 0);
   assert(!tr.end());
   cout << " passed\n";
 }
@@ -349,6 +364,7 @@ void unit_test::representation() {
   [[maybe_unused]] const auto mat_iter = tr.find("mat");
   assert(mat_iter);
   assert(*mat_iter == "mat");
+  assert(mat_iter->compare("mat") == 0);
   [[maybe_unused]] constexpr auto MAT_JSON =
       "{\"er\":{\"ial\":{},\"nal\":{}},\"h\":{},\"rix\":{}}";
   assert(mat_iter.to_json(false) == MAT_JSON);
