@@ -6,7 +6,6 @@ Performance testing implementation.
 #include "perf_test.h"
 
 #include <algorithm>
-#include <array>
 #include <fstream>
 #include <iostream>
 #include <random>
@@ -14,17 +13,13 @@ Performance testing implementation.
 #include <stdexcept>
 #include <string>
 #include <string_view>
-#include <utility>
 #include <vector>
 
-using std::array;
 using std::cout;
 using std::default_random_engine;
 using std::distance;
 using std::find_if_not;
 using std::ifstream;
-using std::make_pair;
-using std::pair;
 using std::random_device;
 using std::runtime_error;
 using std::set;
@@ -36,27 +31,15 @@ namespace ranges = std::ranges;
 
 set_perf::set_perf() : perf("Set") {}
 
-pair<array<size_t, set_perf::ALPHABET_SIZE>, timeunit_t> set_perf::count()
-    const {
-  array<set<string>::iterator, ALPHABET_SIZE + 1> bounds{};
-  array<size_t, ALPHABET_SIZE> distances{};
-
+timeunit_t set_perf::count(string_view prefix) const {
   const auto t0 = perf_clock::now();
-  // Get starting iterators on each character.
-  for (char c = 'a'; c <= 'z'; ++c) {
-    const auto first_of_letter = ranges::lower_bound(words, string_view(&c, 1));
-    bounds[static_cast<size_t>(c - 'a')] = first_of_letter;
-  }
-  bounds[ALPHABET_SIZE] = words.end();
-  // Compute distances between bounds.
-  for (size_t i = 0; i < bounds.size() - 1; ++i) {
-    const auto dist = distance(bounds[i], bounds[i + 1]);
-    distances[i] = static_cast<size_t>(dist);
-  }
+  const auto total = ranges::count_if(
+      words, [prefix](const auto& word) { return word.starts_with(prefix); });
   const auto t1 = perf_clock::now();
 
-  cout << '\t' << name << " counted " << distances.size() << " prefixes\n";
-  return make_pair(distances, t1 - t0);
+  cout << '\t' << name << " counted " << total << " words starting with "
+       << prefix << '\n';
+  return t1 - t0;
 }
 
 timeunit_t set_perf::find(string_view prefix) const {
@@ -70,8 +53,8 @@ timeunit_t set_perf::find(string_view prefix) const {
       [&prefix](const auto& word) { return word.starts_with(prefix); });
   const auto t1 = perf_clock::now();
 
-  cout << '\t' << name << " found prefix " << prefix << " bounded between "
-       << *start << " and " << *finish << '\n';
+  cout << '\t' << name << " found " << prefix << " bounded between " << *start
+       << " and " << *finish << '\n';
   return t1 - t0;
 }
 
@@ -92,19 +75,14 @@ timeunit_t set_perf::erase(string_view prefix) {
 
 trie_perf::trie_perf() : perf("Trie") {}
 
-pair<array<size_t, trie_perf::ALPHABET_SIZE>, timeunit_t> trie_perf::count()
-    const {
-  array<size_t, ALPHABET_SIZE> distances{};
-
+timeunit_t trie_perf::count(string_view prefix) const {
   const auto t0 = perf_clock::now();
-  for (char c = 'a'; c <= 'z'; ++c) {
-    const auto size = words.size(string_view(&c, 1));
-    distances[static_cast<size_t>(c - 'a')] = size;
-  }
+  const auto total = words.size(prefix);
   const auto t1 = perf_clock::now();
 
-  cout << '\t' << name << " counted " << distances.size() << " prefixes\n";
-  return make_pair(distances, t1 - t0);
+  cout << '\t' << name << " counted " << total << " words starting with "
+       << prefix << '\n';
+  return t1 - t0;
 }
 
 timeunit_t trie_perf::find(string_view prefix) const {
@@ -113,8 +91,8 @@ timeunit_t trie_perf::find(string_view prefix) const {
   const auto finish = words.end(prefix);
   const auto t1 = perf_clock::now();
 
-  cout << '\t' << name << " found prefix " << prefix << " bounded between "
-       << *start << " and " << *finish << '\n';
+  cout << '\t' << name << " found " << prefix << " bounded between " << *start
+       << " and " << *finish << '\n';
   return t1 - t0;
 }
 
@@ -175,13 +153,13 @@ void perf_test::run_all() {
   show_performance_comparison(insert_set_result, insert_trie_result);
 
   cout << "Count\n";
-  const auto [set_counts, count_set_result] = set_benchmark.count();
-  const auto [trie_counts, count_trie_result] = trie_benchmark.count();
+  const auto count_set_result = set_benchmark.count("ca");
+  const auto count_trie_result = trie_benchmark.count("ca");
   show_performance_comparison(count_set_result, count_trie_result);
 
   cout << "Find\n";
-  const auto find_set_result = set_benchmark.find("re");
-  const auto find_trie_result = trie_benchmark.find("re");
+  const auto find_set_result = set_benchmark.find("un");
+  const auto find_trie_result = trie_benchmark.find("un");
   show_performance_comparison(find_set_result, find_trie_result);
 
   cout << "Forward Iterate\n";
@@ -197,8 +175,8 @@ void perf_test::run_all() {
                               reverse_iterate_trie_result);
 
   cout << "Erase\n";
-  const auto erase_set_result = set_benchmark.erase("pr");
-  const auto erase_trie_result = trie_benchmark.erase("pr");
+  const auto erase_set_result = set_benchmark.erase("sp");
+  const auto erase_trie_result = trie_benchmark.erase("sp");
   show_performance_comparison(erase_set_result, erase_trie_result);
 
   cout << "--- FINISHED PERFORMANCE TEST ---\n";
@@ -216,10 +194,6 @@ void perf_test::run_all() {
   const bool words_reverse_equal = ranges::equal(
       ranges::reverse_view(word_set), ranges::reverse_view(word_trie));
   cout << (words_reverse_equal ? "match\n" : "do not match\n");
-
-  cout << "First letter counts ";
-  const bool counts_equal = ranges::equal(set_counts, trie_counts);
-  cout << (counts_equal ? "match\n" : "do not match\n");
 
   cout << "--- FINISHED FINAL VERIFICATION ---\n";
 }
