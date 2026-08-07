@@ -6,10 +6,10 @@ Interface for performance testing.
 #pragma once
 #include <algorithm>
 #include <chrono>
-#include <concepts>
 #include <iostream>
 #include <iterator>
 #include <random>
+#include <ranges>
 #include <set>
 #include <stdexcept>
 #include <string>
@@ -25,14 +25,14 @@ using perf_clock = std::chrono::steady_clock;
 namespace perf_test {
 static std::random_device rdev{};
 
-static constexpr auto WORD_LIST_FILE = "words.txt";
-static constexpr size_t WORD_LIST_SIZE = 370105;
+static constexpr auto WORDS_FILE = "words.txt";
+static constexpr size_t WORDS_SIZE = 370105;
 
 static constexpr auto SOLUTIONS_FILE = "solutions.txt";
 static constexpr size_t SOLUTIONS_SIZE = 114;
 
 /**
- * @brief Reads words from the WORD_LIST_FILE into a vector of strings. Randomly
+ * @brief Reads words from the WORDS_FILE into a vector of strings. Randomly
  * permutes before returning.
  * @return A vector of strings containing all words from the file.
  */
@@ -58,19 +58,19 @@ void run_all();
 }  // namespace perf_test
 
 /**
- * Constrain valid template types to std::set and trie.
- */
-template <typename T>
-concept set_or_trie =
-    std::same_as<std::set<std::string>, T> || std::same_as<trie, T>;
-
-/**
  * Interface for performance testing.
  */
-template <set_or_trie Container>
+template <std::ranges::bidirectional_range Container>
 class perf {
  protected:
   Container words;
+
+  static constexpr auto deref_view = std::views::transform(
+      [](std::input_iterator auto iter) { return *iter; });
+  static constexpr auto begin_view = std::views::transform(
+      [](const perf_test::solution_t& sol) { return sol.begin; });
+  static constexpr auto end_view = std::views::transform(
+      [](const perf_test::solution_t& sol) { return sol.end; });
 
  public:
   /**
@@ -127,14 +127,6 @@ class perf {
  * Perf class template for std::set.
  */
 class set_perf final : public perf<std::set<std::string>> {
- public:
-  timeunit_t count(
-      const std::vector<perf_test::solution_t>& solutions) const override;
-  timeunit_t find(
-      const std::vector<perf_test::solution_t>& solutions) const override;
-  timeunit_t erase(
-      const std::vector<perf_test::solution_t>& solutions) override;
-
  private:
   using iter_t = std::set<std::string>::const_iterator;
 
@@ -143,7 +135,15 @@ class set_perf final : public perf<std::set<std::string>> {
    * @param prefix The prefix to locate.
    * @return A pair of range iterators.
    */
-  std::pair<iter_t, iter_t> find_begin_end(std::string_view prefix) const;
+  std::pair<iter_t, iter_t> find_begin_end(const std::string& prefix) const;
+
+ public:
+  timeunit_t count(
+      const std::vector<perf_test::solution_t>& solutions) const override;
+  timeunit_t find(
+      const std::vector<perf_test::solution_t>& solutions) const override;
+  timeunit_t erase(
+      const std::vector<perf_test::solution_t>& solutions) override;
 };
 
 /**
@@ -161,12 +161,12 @@ class trie_perf final : public perf<trie> {
 
 // NON VIRTUAL TEMPLATED IMPLEMENTATIONS
 
-template <set_or_trie Container>
+template <std::ranges::bidirectional_range Container>
 const Container& perf<Container>::peek() const {
   return words;
 }
 
-template <set_or_trie Container>
+template <std::ranges::bidirectional_range Container>
 timeunit_t perf<Container>::insert(const std::vector<std::string>& word_list) {
   // Time insertion with range constructor.
   const auto t0 = perf_clock::now();
@@ -177,26 +177,26 @@ timeunit_t perf<Container>::insert(const std::vector<std::string>& word_list) {
   return t1 - t0;
 }
 
-template <set_or_trie Container>
+template <std::ranges::bidirectional_range Container>
 timeunit_t perf<Container>::forward_iterate() const {
   const auto t0 = perf_clock::now();
   const auto counter = std::distance(words.begin(), words.end());
   const auto t1 = perf_clock::now();
 
-  if (perf_test::WORD_LIST_SIZE != counter) {
+  if (perf_test::WORDS_SIZE != counter) {
     throw std::runtime_error("Iterated over incorrect number of elements");
   }
   return t1 - t0;
 }
 
-template <set_or_trie Container>
+template <std::ranges::bidirectional_range Container>
 timeunit_t perf<Container>::reverse_iterate() const {
   const auto t0 = perf_clock::now();
   const auto counter = std::distance(std::make_reverse_iterator(words.end()),
                                      std::make_reverse_iterator(words.begin()));
   const auto t1 = perf_clock::now();
 
-  if (perf_test::WORD_LIST_SIZE != counter) {
+  if (perf_test::WORDS_SIZE != counter) {
     throw std::runtime_error("Iterated over incorrect number of elements");
   }
   return t1 - t0;
