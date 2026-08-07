@@ -41,7 +41,7 @@ std::vector<std::string> read_words();
 /**
  * Solution to finding and counting a prefix.
  */
-struct solution {
+struct solution_t {
   std::string prefix;
   size_t count;
   std::string begin, end;
@@ -52,7 +52,7 @@ struct solution {
  * permutes before returning.
  * @return A vector of solutions containing all entries from the file.
  */
-std::vector<solution> read_solutions();
+std::vector<solution_t> read_solutions();
 
 void run_all();
 }  // namespace perf_test
@@ -92,7 +92,7 @@ class perf {
    * @return The elapsed time.
    */
   virtual timeunit_t count(
-      const std::vector<perf_test::solution>& solutions) const = 0;
+      const std::vector<perf_test::solution_t>& solutions) const = 0;
 
   /**
    * @brief Find begin and end range of given prefixes.
@@ -100,7 +100,7 @@ class perf {
    * @return The elapsed time.
    */
   virtual timeunit_t find(
-      const std::vector<perf_test::solution>& solutions) const = 0;
+      const std::vector<perf_test::solution_t>& solutions) const = 0;
 
   /**
    * @brief Iterate forward over all words.
@@ -115,11 +115,12 @@ class perf {
   timeunit_t reverse_iterate() const;
 
   /**
-   * @brief Erase all words with given prefix.
-   * @param prefix The prefix to erase.
+   * @brief Erase all words with given prefixes.
+   * @param solutions The prefixes to erase.
    * @return The elapsed time.
    */
-  virtual timeunit_t erase(std::string_view prefix) = 0;
+  virtual timeunit_t erase(
+      const std::vector<perf_test::solution_t>& solutions) = 0;
 };
 
 /**
@@ -128,10 +129,11 @@ class perf {
 class set_perf final : public perf<std::set<std::string>> {
  public:
   timeunit_t count(
-      const std::vector<perf_test::solution>& solutions) const override;
+      const std::vector<perf_test::solution_t>& solutions) const override;
   timeunit_t find(
-      const std::vector<perf_test::solution>& solutions) const override;
-  timeunit_t erase(std::string_view prefix) override;
+      const std::vector<perf_test::solution_t>& solutions) const override;
+  timeunit_t erase(
+      const std::vector<perf_test::solution_t>& solutions) override;
 
  private:
   using iter_t = std::set<std::string>::const_iterator;
@@ -150,10 +152,11 @@ class set_perf final : public perf<std::set<std::string>> {
 class trie_perf final : public perf<trie> {
  public:
   timeunit_t count(
-      const std::vector<perf_test::solution>& solutions) const override;
+      const std::vector<perf_test::solution_t>& solutions) const override;
   timeunit_t find(
-      const std::vector<perf_test::solution>& solutions) const override;
-  timeunit_t erase(std::string_view prefix) override;
+      const std::vector<perf_test::solution_t>& solutions) const override;
+  timeunit_t erase(
+      const std::vector<perf_test::solution_t>& solutions) override;
 };
 
 // NON VIRTUAL TEMPLATED IMPLEMENTATIONS

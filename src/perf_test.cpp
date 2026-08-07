@@ -31,13 +31,14 @@ using std::vector;
 
 namespace ranges = std::ranges;
 
-timeunit_t set_perf::count(const vector<perf_test::solution>& solutions) const {
+timeunit_t set_perf::count(
+    const vector<perf_test::solution_t>& solutions) const {
   const auto t0 = perf_clock::now();
-  for (const auto& solution : solutions) {
-    const auto total = ranges::count_if(words, [&solution](const auto& word) {
-      return word.starts_with(solution.prefix);
-    });
-    if (solution.count != static_cast<size_t>(total)) {
+  for (const auto& [prefix, count, _1, _2] : solutions) {
+    const auto total = ranges::count_if(
+        words,
+        [&prefix](const string_view word) { return word.starts_with(prefix); });
+    if (count != static_cast<size_t>(total)) {
       throw runtime_error("Count does not match solution");
     }
   }
@@ -50,17 +51,18 @@ pair<set_perf::iter_t, set_perf::iter_t> set_perf::find_begin_end(
   // Find the first item that's a prefix using lower bound.
   const auto begin = ranges::lower_bound(words, prefix);
   // Find where it stops being a prefix.
-  const auto end = find_if_not(begin, words.end(), [&prefix](const auto& word) {
-    return word.starts_with(prefix);
-  });
+  const auto end = find_if_not(
+      begin, words.end(),
+      [&prefix](const string_view word) { return word.starts_with(prefix); });
   return make_pair(begin, end);
 }
 
-timeunit_t set_perf::find(const vector<perf_test::solution>& solutions) const {
+timeunit_t set_perf::find(
+    const vector<perf_test::solution_t>& solutions) const {
   const auto t0 = perf_clock::now();
-  for (const auto& solution : solutions) {
-    const auto [begin, end] = find_begin_end(solution.prefix);
-    if (solution.begin != *begin || solution.end != *end) {
+  for (const auto& [prefix, _, expected_begin, expected_end] : solutions) {
+    const auto [begin, end] = find_begin_end(prefix);
+    if (expected_begin != *begin || expected_end != *end) {
       throw runtime_error("Found range does not match solution");
     }
   }
@@ -68,20 +70,22 @@ timeunit_t set_perf::find(const vector<perf_test::solution>& solutions) const {
   return t1 - t0;
 }
 
-timeunit_t set_perf::erase(string_view prefix) {
+timeunit_t set_perf::erase(const vector<perf_test::solution_t>& solutions) {
   const auto t0 = perf_clock::now();
-  const auto [begin, end] = find_begin_end(prefix);
-  words.erase(begin, end);
+  for (const auto& solution : solutions) {
+    const auto [begin, end] = find_begin_end(solution.prefix);
+    words.erase(begin, end);
+  }
   const auto t1 = perf_clock::now();
   return t1 - t0;
 }
 
 timeunit_t trie_perf::count(
-    const vector<perf_test::solution>& solutions) const {
+    const vector<perf_test::solution_t>& solutions) const {
   const auto t0 = perf_clock::now();
-  for (const auto& solution : solutions) {
-    const auto total = words.size(solution.prefix);
-    if (solution.count != static_cast<size_t>(total)) {
+  for (const auto& [prefix, count, _1, _2] : solutions) {
+    const auto total = words.size(prefix);
+    if (count != static_cast<size_t>(total)) {
       throw runtime_error("Count does not match solution");
     }
   }
@@ -89,12 +93,13 @@ timeunit_t trie_perf::count(
   return t1 - t0;
 }
 
-timeunit_t trie_perf::find(const vector<perf_test::solution>& solutions) const {
+timeunit_t trie_perf::find(
+    const vector<perf_test::solution_t>& solutions) const {
   const auto t0 = perf_clock::now();
-  for (const auto& solution : solutions) {
-    const auto begin = words.begin(solution.prefix);
-    const auto end = words.end(solution.prefix);
-    if (solution.begin != *begin || solution.end != *end) {
+  for (const auto& [prefix, _, expected_begin, expected_end] : solutions) {
+    const auto begin = words.begin(prefix);
+    const auto end = words.end(prefix);
+    if (expected_begin != *begin || expected_end != *end) {
       throw runtime_error("Found range does not match solution");
     }
   }
@@ -102,9 +107,11 @@ timeunit_t trie_perf::find(const vector<perf_test::solution>& solutions) const {
   return t1 - t0;
 }
 
-timeunit_t trie_perf::erase(string_view prefix) {
+timeunit_t trie_perf::erase(const vector<perf_test::solution_t>& solutions) {
   const auto t0 = perf_clock::now();
-  words.erase_prefix(prefix);
+  for (const auto& solution : solutions) {
+    words.erase_prefix(solution.prefix);
+  }
   const auto t1 = perf_clock::now();
   return t1 - t0;
 }
@@ -118,16 +125,15 @@ void show_performance_comparison(timeunit_t set_time, timeunit_t trie_time) {
   if (set_time < trie_time) {
     const auto diff = static_cast<double>(trie_time.count()) /
                       static_cast<double>(set_time.count());
-    cout << "\tSet was " << diff << " times faster than Trie\n";
+    cout << "set was " << diff << " x faster than trie\n";
   } else {
     const auto diff = static_cast<double>(set_time.count()) /
                       static_cast<double>(trie_time.count());
-    cout << "\tTrie was " << diff << " times faster than Set\n";
+    cout << "trie was " << diff << " x faster than set\n";
   }
 }
 
 vector<string> perf_test::read_words() {
-  default_random_engine rng{rdev()};
   vector<string> words;
   words.reserve(WORD_LIST_SIZE);
 
@@ -136,15 +142,14 @@ vector<string> perf_test::read_words() {
   for (string word; fin >> word;) {
     words.push_back(word);
   }
-  ranges::shuffle(words, rng);
+  ranges::shuffle(words, default_random_engine{rdev()});
 
   cout << "Imported " << words.size() << " randomly shuffled words\n";
   return words;
 }
 
-vector<perf_test::solution> perf_test::read_solutions() {
-  default_random_engine rng{rdev()};
-  vector<solution> solutions;
+vector<perf_test::solution_t> perf_test::read_solutions() {
+  vector<solution_t> solutions;
   solutions.reserve(SOLUTIONS_SIZE);
 
   ifstream fin{SOLUTIONS_FILE};
@@ -153,7 +158,7 @@ vector<perf_test::solution> perf_test::read_solutions() {
   for (string word, begin, end; fin >> word >> count >> begin >> end;) {
     solutions.emplace_back(word, count, begin, end);
   }
-  ranges::shuffle(solutions, rng);
+  ranges::shuffle(solutions, default_random_engine{rdev()});
 
   cout << "Imported " << solutions.size() << " randomly shuffled solutions\n";
   return solutions;
@@ -168,36 +173,36 @@ void perf_test::run_all() {
   set_perf set_benchmark;
   trie_perf trie_benchmark;
 
-  cout << "Insert\n";
+  cout << "Insert words: ";
   const auto insert_set_result = set_benchmark.insert(words);
   const auto insert_trie_result = trie_benchmark.insert(words);
   show_performance_comparison(insert_set_result, insert_trie_result);
 
-  cout << "Count\n";
+  cout << "Count prefix: ";
   const auto count_set_result = set_benchmark.count(solutions);
   const auto count_trie_result = trie_benchmark.count(solutions);
   show_performance_comparison(count_set_result, count_trie_result);
 
-  cout << "Find\n";
+  cout << "Find prefix: ";
   const auto find_set_result = set_benchmark.find(solutions);
   const auto find_trie_result = trie_benchmark.find(solutions);
   show_performance_comparison(find_set_result, find_trie_result);
 
-  cout << "Forward Iterate\n";
+  cout << "Forward iterate: ";
   const auto forward_iterate_set_result = set_benchmark.forward_iterate();
   const auto forward_iterate_trie_result = trie_benchmark.forward_iterate();
   show_performance_comparison(forward_iterate_set_result,
                               forward_iterate_trie_result);
 
-  cout << "Reverse Iterate\n";
+  cout << "Reverse iterate: ";
   const auto reverse_iterate_set_result = set_benchmark.reverse_iterate();
   const auto reverse_iterate_trie_result = trie_benchmark.reverse_iterate();
   show_performance_comparison(reverse_iterate_set_result,
                               reverse_iterate_trie_result);
 
-  cout << "Erase\n";
-  const auto erase_set_result = set_benchmark.erase("sp");
-  const auto erase_trie_result = trie_benchmark.erase("sp");
+  cout << "Erase prefix: ";
+  const auto erase_set_result = set_benchmark.erase(solutions);
+  const auto erase_trie_result = trie_benchmark.erase(solutions);
   show_performance_comparison(erase_set_result, erase_trie_result);
 
   cout << "--- FINISHED PERFORMANCE TEST ---\n";
