@@ -9,7 +9,7 @@ Interface for performance testing.
 #include <chrono>
 #include <concepts>
 #include <iostream>
-#include <ranges>
+#include <iterator>
 #include <set>
 #include <string>
 #include <string_view>
@@ -23,7 +23,7 @@ using perf_clock = std::chrono::steady_clock;
 
 namespace perf_test {
 static constexpr auto WORD_LIST_FILE = "words.txt";
-static constexpr size_t WORD_LIST_SIZE = 466478;
+static constexpr size_t WORD_LIST_SIZE = 466474;
 
 /**
  * @brief Reads words from the WORD_LIST_FILE into a vector of strings. Randomly
@@ -155,10 +155,7 @@ timeunit_t perf<Container>::insert(const std::vector<std::string>& word_list) {
 template <set_or_trie Container>
 timeunit_t perf<Container>::forward_iterate() const {
   const auto t0 = perf_clock::now();
-  // Work-around for compiler flags not using the key variable.
-  // Branch prediction should optimize out this call.
-  const auto counter = std::ranges::count_if(
-      words, [](const auto& key) { return !key.empty(); });
+  const auto counter = std::distance(words.begin(), words.end());
   const auto t1 = perf_clock::now();
 
   std::cout << '\t' << name << " iterated over " << counter << " words\n";
@@ -168,11 +165,8 @@ timeunit_t perf<Container>::forward_iterate() const {
 template <set_or_trie Container>
 timeunit_t perf<Container>::reverse_iterate() const {
   const auto t0 = perf_clock::now();
-  // Work-around for compiler flags not using the key variable.
-  // Branch prediction should optimize out this call.
-  const auto counter =
-      std::ranges::count_if(std::ranges::reverse_view(words),
-                            [](const auto& key) { return !key.empty(); });
+  const auto counter = std::distance(std::make_reverse_iterator(words.end()),
+                                     std::make_reverse_iterator(words.begin()));
   const auto t1 = perf_clock::now();
 
   std::cout << '\t' << name << " iterated over " << counter << " words\n";
