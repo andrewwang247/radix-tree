@@ -9,6 +9,7 @@ Unit testing implementation.
 #include <cassert>
 #include <iostream>
 #include <iterator>
+#include <random>
 #include <ranges>
 #include <utility>
 #include <vector>
@@ -16,11 +17,21 @@ Unit testing implementation.
 #include "trie.h"
 
 using std::cout;
+using std::default_random_engine;
 using std::next;
+using std::random_device;
 using std::vector;
 using std::ranges::subrange;
 
 namespace ranges = std::ranges;
+
+trie unit_test::get_trie() {
+  static random_device rdev;
+  static default_random_engine rng{rdev()};
+  auto copy{SORTED_WORDS};
+  ranges::shuffle(copy, rng);
+  return trie{copy};
+}
 
 void unit_test::empty_single() {
   cout << "Empty and Singleton test";
@@ -49,13 +60,10 @@ void unit_test::empty_single() {
 
     assert(tr.begin());
     assert(!tr.end());
-    assert(*tr.begin() == "");
     assert(tr.begin()->empty());
     assert(tr.find("test") == tr.end());
     assert(tr.find_prefix("test") == tr.end());
-    assert(*tr.find("") == "");
     assert(tr.find("")->empty());
-    assert(*tr.find_prefix("") == "");
     assert(tr.find_prefix("")->empty());
   }
   {
@@ -71,29 +79,21 @@ void unit_test::empty_single() {
     assert(tr.begin());
     assert(!tr.end());
     assert(*tr.begin() == "single");
-    assert(tr.begin()->compare("single") == 0);
     assert(tr.find("test") == tr.end());
     assert(tr.find_prefix("test") == tr.end());
     assert(tr.find("") == tr.end());
     assert(*tr.find_prefix("") == "single");
-    assert(tr.find_prefix("")->compare("single") == 0);
     assert(tr.find("sin") == tr.end());
     assert(*tr.find_prefix("sin") == "single");
-    assert(tr.find_prefix("sin")->compare("single") == 0);
     assert(*tr.find("single") == "single");
-    assert(tr.find("single")->compare("single") == 0);
     assert(*tr.find_prefix("single") == "single");
-    assert(tr.find_prefix("single")->compare("single") == 0);
   }
   cout << " passed\n";
 }
 
 void unit_test::find() {
   cout << "Find test";
-
-  auto randomized{SORTED_WORDS};
-  ranges::shuffle(randomized, RNG);
-  trie tr{randomized};
+  const auto tr = get_trie();
 
   assert(!tr.empty());
   assert(tr.size() == 13);
@@ -106,12 +106,10 @@ void unit_test::find() {
   [[maybe_unused]] const auto prf_iter = tr.find_prefix("mate");
   assert(prf_iter != tr.end());
   assert(*prf_iter == "material");
-  assert(prf_iter->compare("material") == 0);
 
   [[maybe_unused]] const auto exact_prf_iter = tr.find_prefix("contaminate");
   assert(exact_prf_iter != tr.end());
   assert(*exact_prf_iter == "contaminate");
-  assert(exact_prf_iter->compare("contaminate") == 0);
 
   [[maybe_unused]] const auto missing_exact_iter = tr.find("testing");
   assert(missing_exact_iter == tr.end());
@@ -128,7 +126,6 @@ void unit_test::insert() {
   [[maybe_unused]] auto iter = tr.insert("math");
   assert(iter != tr.end());
   assert(*iter == "math");
-  assert(iter->compare("math") == 0);
   assert(tr.size("math") == 1);
   assert(!tr.empty("mat"));
 
@@ -142,7 +139,6 @@ void unit_test::insert() {
   iter = tr.insert("regression");
   assert(iter != tr.end());
   assert(*iter == "regression");
-  assert(iter->compare("regression") == 0);
   assert(tr.size("m") == 2);
   assert(tr.size() == 3);
   assert(!tr.empty("reg"));
@@ -151,10 +147,7 @@ void unit_test::insert() {
 
 void unit_test::erase() {
   cout << "Erase test";
-
-  auto randomized{SORTED_WORDS};
-  ranges::shuffle(randomized, RNG);
-  trie tr{randomized};
+  auto tr = get_trie();
 
   // Erase something that does not exist.
   tr.erase_prefix("random");
@@ -176,7 +169,6 @@ void unit_test::erase() {
   auto iter = tr.find_prefix("mat");
   assert(iter != tr.end());
   assert(*iter == "material");
-  assert(iter->compare("material") == 0);
   assert(tr.size("ma") == 5);
   assert(!tr.empty("mat"));
 
@@ -186,7 +178,6 @@ void unit_test::erase() {
   iter = tr.find("corner");
   assert(iter != tr.end());
   assert(*iter == "corner");
-  assert(iter->compare("corner") == 0);
   assert(tr.size("co") == 5);
 
   tr.erase_prefix("con");  // ensure idempotence
@@ -204,10 +195,7 @@ void unit_test::erase() {
 
 void unit_test::forward_iterate() {
   cout << "Forward iteration test";
-
-  auto randomized{SORTED_WORDS};
-  ranges::shuffle(randomized, RNG);
-  const trie tr{randomized};
+  const auto tr = get_trie();
 
   // Full range iteration
   assert(ranges::equal(SORTED_WORDS, tr));
@@ -238,17 +226,13 @@ void unit_test::forward_iterate() {
   // Non-existant range.
   assert(tr.begin("cops") == tr.end());
   assert(*tr.end("cops") == "corn");
-  assert(tr.end("cops")->compare("corn") == 0);
   assert(!tr.end());
   cout << " passed\n";
 }
 
 void unit_test::reverse_iterate() {
   cout << "Reverse iteration test";
-
-  auto randomized{SORTED_WORDS};
-  ranges::shuffle(randomized, RNG);
-  const trie tr{randomized};
+  const auto tr = get_trie();
 
   const auto backwards = ranges::reverse_view(SORTED_WORDS);
   // Full range iteration
@@ -272,10 +256,7 @@ void unit_test::reverse_iterate() {
 
 void unit_test::copy_move() {
   cout << "Copy and Move test";
-
-  auto randomized{SORTED_WORDS};
-  ranges::shuffle(randomized, RNG);
-  trie original{randomized};
+  auto original = get_trie();
 
   trie copied(original);
   assert(ranges::equal(original, copied));
@@ -296,13 +277,8 @@ void unit_test::copy_move() {
 
 void unit_test::comparison() {
   cout << "Comparison test";
-
-  auto randomized{SORTED_WORDS};
-  ranges::shuffle(randomized, RNG);
-  trie t1{randomized};
-
-  ranges::shuffle(randomized, RNG);
-  const trie t2{randomized};
+  auto t1 = get_trie();
+  const auto t2 = get_trie();
 
   // Test equality
   assert(t1 == t2);
@@ -340,33 +316,29 @@ void unit_test::arithmetic() {
 
 void unit_test::representation() {
   cout << "Representation test";
+  const auto tr = get_trie();
 
-  auto randomized{SORTED_WORDS};
-  ranges::shuffle(randomized, RNG);
-  const trie tr{randomized};
   assert(tr.end().to_json(true) == "{}");
 
   [[maybe_unused]] constexpr auto TR_JSON =
-      "{\"co\":{\"mpute\":{\"r\":{}},\"nta\":{\"in\":{},"
-      "\"minate\":{}},\"rn\":{\"er\":{}}},\"ma\":{\"h\":"
-      "{\"jong\":{},\"ogany\":{}},\"t\":{\"er\":{\"ial\":"
-      "{},\"nal\":{}},\"h\":{},\"rix\":{}}}}";
+      R"({"co":{"mpute":{"r":{}},"nta":{"in":{},)"
+      R"("minate":{}},"rn":{"er":{}}},"ma":{"h":)"
+      R"({"jong":{},"ogany":{}},"t":{"er":{"ial":)"
+      R"({},"nal":{}},"h":{},"rix":{}}}})";
   assert(tr.to_json() == TR_JSON);
 
   [[maybe_unused]] const auto com_prf = tr.find_prefix("com");
   assert(*com_prf == "compute");
-  [[maybe_unused]] constexpr auto COM_JSON =
-      "{\"end\":true,\"children\":"
-      "{\"r\":{\"end\":true,\"children\":"
-      "{}}}}";
+  [[maybe_unused]] constexpr auto COM_JSON = R"({"end":true,"children":)"
+                                             R"({"r":{"end":true,"children":)"
+                                             "{}}}}";
   assert(com_prf.to_json(true) == COM_JSON);
 
   [[maybe_unused]] const auto mat_iter = tr.find("mat");
   assert(mat_iter);
   assert(*mat_iter == "mat");
-  assert(mat_iter->compare("mat") == 0);
   [[maybe_unused]] constexpr auto MAT_JSON =
-      "{\"er\":{\"ial\":{},\"nal\":{}},\"h\":{},\"rix\":{}}";
+      R"({"er":{"ial":{},"nal":{}},"h":{},"rix":{}})";
   assert(mat_iter.to_json(false) == MAT_JSON);
 
   cout << " passed\n";
