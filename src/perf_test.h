@@ -70,6 +70,8 @@ class perf {
       [](const perf_test::solution_t& sol) { return sol.end; });
 
  public:
+  virtual ~perf() = default;
+
   /**
    * @brief Expose underlying container.
    * @return Const reference to container.

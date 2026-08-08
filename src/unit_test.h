@@ -5,10 +5,10 @@ Interface for unit testing.
 */
 #pragma once
 
-#include <random>
 #include <string>
 #include <vector>
 
+#include "trie.h"
 namespace unit_test {
 // NOLINTBEGIN(whitespace/indent_namespace)
 static const std::vector<std::string> SORTED_WORDS{
@@ -17,8 +17,7 @@ static const std::vector<std::string> SORTED_WORDS{
     "maternal", "math",     "matrix"};
 // NOLINTEND
 
-static std::random_device RANDOM_DEVICE{};
-static std::default_random_engine RNG{RANDOM_DEVICE()};
+trie get_trie();
 
 void empty_single();
 void find();
