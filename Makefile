@@ -9,6 +9,7 @@ CPPFLAGS := -MMD
 CXXFLAGS := -std=c++20 -Wall -Werror -Wextra -Wconversion -pedantic -Wfloat-equal -Wshadow -Wdouble-promotion -Wundef
 OPT := -O3 -DNDEBUG
 DEBUG := -g3 -DDEBUG
+EXTRA :=
 
 # Directory structure
 
@@ -44,18 +45,18 @@ test: debug
 # Link .o object files
 
 $(RELEASE_DIR)/$(EXE): $(RELEASE_OBJS)
-	$(CXX) $(CXXFLAGS) $(OPT) $^ -o $@
+	$(CXX) $(CXXFLAGS) $(OPT) $(EXTRA) $^ -o $@
 
 $(DEBUG_DIR)/$(EXE): $(DEBUG_OBJS)
-	$(CXX) $(CXXFLAGS) $(DEBUG) $^ -o $@
+	$(CXX) $(CXXFLAGS) $(DEBUG) $(EXTRA) $^ -o $@
 
 # Compile .cpp sources
 
 $(RELEASE_DIR)/%.o: $(SRC_DIR)/%.cpp | $(RELEASE_DIR)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(OPT) -c $< -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(OPT) $(EXTRA) -c $< -o $@
 
 $(DEBUG_DIR)/%.o: $(SRC_DIR)/%.cpp | $(DEBUG_DIR)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(DEBUG) -c $< -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(DEBUG) $(EXTRA) -c $< -o $@
 
 # Create build directories
 

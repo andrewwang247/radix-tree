@@ -16,7 +16,7 @@ HeaderFilterRegex: '.*'
 ExcludeHeaderFilterRegex: ''
 ExtraArgs:
   - '-std=c++20'
-  - '-stdlib=libstdc++'
+  - '-stdlib=libstdc++' # change depending on platform
 FormatStyle:     none
 User:            andrew-wang
 CheckOptions:
