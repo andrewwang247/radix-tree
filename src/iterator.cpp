@@ -9,6 +9,8 @@ Implementation for Trie iterator.
 #include <memory>
 #include <string>
 
+#include "node.h"
+
 using std::string;
 using std::unique_ptr;
 

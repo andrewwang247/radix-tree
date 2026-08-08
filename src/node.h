@@ -4,6 +4,7 @@ Copyright 2026. Andrew Wang.
 Interface for Node.
 */
 #pragma once
+#include <cstddef>
 #include <map>
 #include <memory>
 #include <string>

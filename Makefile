@@ -4,7 +4,7 @@ EXE := benchmark
 
 # Compiler flags
 
-CXX := g++
+CXX := clang++
 CPPFLAGS := -MMD
 CXXFLAGS := -std=c++20 -Wall -Werror -Wextra -Wconversion -pedantic -Wfloat-equal -Wshadow -Wdouble-promotion -Wundef
 OPT := -O3 -DNDEBUG

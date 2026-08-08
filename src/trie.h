@@ -5,6 +5,7 @@ Interface for Trie.
 */
 #pragma once
 #include <cassert>
+#include <cstddef>
 #include <initializer_list>
 #include <iterator>
 #include <memory>
@@ -50,7 +51,7 @@ class trie {
    * trie. Duplicates are ignored.
    * @param input_range The string range to insert.
    */
-  explicit trie(std::ranges::input_range auto input_range);
+  explicit trie(const std::ranges::input_range auto& input_range);
 
   /**
    * @brief Copy constructor.
@@ -80,7 +81,7 @@ class trie {
    * @brief Private move constructor from a cloned root node.
    * @param cloned The cloned root to move into this.
    */
-  explicit trie(std::unique_ptr<node>&& cloned);
+  explicit trie(std::unique_ptr<node> cloned);
 
  public:
   /* --- CONTAINER SIZE --- */
@@ -246,8 +247,8 @@ trie operator-(trie lhs, const trie& rhs);
 template <std::input_iterator Iter>
 trie::trie(Iter first, Iter last) : trie(std::ranges::subrange{first, last}) {}
 
-trie::trie(std::ranges::input_range auto input_range) : trie() {
-  for (std::string_view word : input_range) {
+trie::trie(const std::ranges::input_range auto& input_range) : trie() {
+  for (const std::string_view word : input_range) {
     insert(word);
   }
   root->assert_invariants();

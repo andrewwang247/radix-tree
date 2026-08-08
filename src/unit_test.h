@@ -19,7 +19,8 @@ static const std::vector<std::string> SORTED_WORDS{
 
 trie get_trie();
 
-void empty_single();
+void empty();
+void single();
 void find();
 void insert();
 void erase();

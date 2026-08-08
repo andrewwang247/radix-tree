@@ -6,10 +6,11 @@
 set -uo pipefail
 
 # List of all C++ files.
-cppfiles="src/*.h src/*.cpp"
+hfiles="src/*.h"
+cppfiles="src/*.cpp"
 
 printf "Running clang-format...\n\n"
-clang-format -i -style=file $cppfiles
+clang-format -i -style=file $hfiles $cppfiles
 
 printf "Running cppcheck...\n\n"
 cppcheck --language=c++ --std=c++20 --quiet \
@@ -19,8 +20,11 @@ cppcheck --language=c++ --std=c++20 --quiet \
     --suppress=checkersReport \
     --suppress=missingIncludeSystem \
     --suppress=unusedStructMember \
-    $cppfiles
+    $hfiles $cppfiles
 
 printf "\nRunning cpplint...\n\n"
 cpplint --filter=-build/include_subdir,-build/c++11,-runtime/references \
-    --quiet $cppfiles
+    --quiet $hfiles $cppfiles
+
+printf "\nRunning clang-tidy...\n\n"
+clang-tidy $cppfiles

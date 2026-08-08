@@ -7,6 +7,7 @@ Implementation for Node.
 
 #include <algorithm>
 #include <cassert>
+#include <cstddef>
 #include <iterator>
 #include <map>
 #include <memory>
@@ -29,7 +30,7 @@ using std::vector;
 namespace ranges = std::ranges;
 namespace views = std::views;
 
-node::node(bool end, node* par) : is_end(end), parent(par), children() {}
+node::node(bool end, node* par) : is_end(end), parent(par) {}
 
 unique_ptr<node> node::clone() const {
   // Null parent because we do not clone above this node.
@@ -78,7 +79,7 @@ size_t node::key_count() const {
 
 node::positional node::approximate_match(string_view key_view) {
   // If the key is empty, return this.
-  if (key_view.empty()) return positional{this, key_view};
+  if (key_view.empty()) return {.ptr = this, .pos = key_view};
 
   for (const auto& [str, ptr] : children) {
     assert(ptr);
@@ -90,7 +91,7 @@ node::positional node::approximate_match(string_view key_view) {
   }
 
   // If none of the children form a prefix for key, simply return this.
-  return positional{this, key_view};
+  return {.ptr = this, .pos = key_view};
 }
 
 node::positional node::prefix_match(string_view prf_view) {
@@ -98,7 +99,7 @@ node::positional node::prefix_match(string_view prf_view) {
   const auto [app_ptr, prf] = approximate_match(prf_view);
   assert(app_ptr);
   // If the given prf is empty, it's a perfect match.
-  if (prf.empty()) return positional{app_ptr, prf};
+  if (prf.empty()) return {.ptr = app_ptr, .pos = prf};
 
   /*
   If any of the returned node's children
@@ -107,12 +108,12 @@ node::positional node::prefix_match(string_view prf_view) {
   for (const auto& [str, ptr] : app_ptr->children) {
     assert(ptr);
     if (str.starts_with(prf)) {
-      return positional{ptr.get(), string_view{}};
+      return {.ptr = ptr.get(), .pos = string_view{}};
     }
   }
 
   // No way to make prf a prefix. Return null.
-  return positional{nullptr, prf};
+  return {.ptr = nullptr, .pos = prf};
 }
 
 node* node::exact_match(string_view word_view) {
@@ -128,7 +129,7 @@ node* node::exact_match(string_view word_view) {
 
 const node* node::first_key() const {
   if (children.empty()) return nullptr;
-  auto rt = this;
+  const auto* rt = this;
   // Keep moving down the tree along the left side until is_end.
   do {
     // If rt is not an end, its children should not be empty.
@@ -141,7 +142,7 @@ const node* node::first_key() const {
 
 const node* node::last_key() const {
   if (children.empty()) return nullptr;
-  auto rt = this;
+  const auto* rt = this;
   // Keep moving down the tree along the right side until no children.
   do {
     rt = rt->children.rbegin()->second.get();
@@ -153,8 +154,8 @@ const node* node::last_key() const {
 
 const node* node::next_node() const {
   // Go up until we can move right.
-  auto ptr = this;
-  auto par = parent;
+  const auto* ptr = this;
+  auto* par = parent;
   // Note that par->children cannot be empty since its a parent.
   assert(!par->children.empty());
   while (par && par->children.rbegin()->second.get() == ptr) {
@@ -182,16 +183,15 @@ const node* node::next_node() const {
   // If rn is an end node, it's smaller than its children.
   if (rn->is_end) {
     return rn.get();
-  } else {
-    assert(!rn->children.empty());
-    return rn->first_key();
   }
+  assert(!rn->children.empty());
+  return rn->first_key();
 }
 
 const node* node::prev_node() const {
   // Go up until is_end or we can move left.
-  auto ptr = this;
-  auto par = parent;
+  const auto* ptr = this;
+  auto* par = parent;
   // Note that par->children cannot be empty since its a parent.
   assert(!par->children.empty());
   while (par && !par->is_end && par->children.begin()->second.get() == ptr) {
@@ -221,9 +221,8 @@ const node* node::prev_node() const {
     if (rn->children.empty()) {
       assert(rn->is_end);
       return rn.get();
-    } else {
-      return rn->last_key();
     }
+    return rn->last_key();
   }
 
   // par has no children to the left and is an end.
@@ -235,8 +234,8 @@ string node::underlying_string() const {
   size_t total_length = 0;
 
   // Move up in trie until we get to root.
-  for (auto ptr = this; ptr->parent; ptr = ptr->parent) {
-    const auto par = ptr->parent;
+  for (const auto* ptr = this; ptr->parent; ptr = ptr->parent) {
+    auto* const par = ptr->parent;
     // We must be able to find ptr in par->children.
     auto iter = par->find_child(ptr);
     assert(iter != par->children.end());
@@ -292,7 +291,7 @@ void node::assert_invariants() const {
     Check that string does not share a prefix with other children.
     We only really need to check first char.
     */
-    assert(characters.find(str.front()) == characters.end());
+    assert(!characters.contains(str.front()));
     characters.insert(str.front());
     // Recursively check child nodes.
     ptr->assert_invariants();

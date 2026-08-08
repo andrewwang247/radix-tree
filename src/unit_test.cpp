@@ -8,20 +8,15 @@ Unit testing implementation.
 #include <algorithm>
 #include <cassert>
 #include <iostream>
-#include <iterator>
 #include <random>
 #include <ranges>
 #include <utility>
-#include <vector>
 
 #include "trie.h"
 
 using std::cout;
 using std::default_random_engine;
-using std::next;
 using std::random_device;
-using std::vector;
-using std::ranges::subrange;
 
 namespace ranges = std::ranges;
 
@@ -33,61 +28,60 @@ trie unit_test::get_trie() {
   return trie{copy};
 }
 
-void unit_test::empty_single() {
-  cout << "Empty and Singleton test";
-  {
-    trie tr;
-    assert(tr.empty());
-    assert(tr.empty("hello"));
-    assert(tr.size() == 0);
-    assert(tr.size("world") == 0);
+void unit_test::empty() {
+  cout << "Empty test";
+  trie tr;
+  assert(tr.empty());
+  assert(tr.empty("hello"));
+  assert(tr.size() == 0);
+  assert(tr.size("world") == 0);
 
-    assert(!tr.begin());
-    assert(!tr.end());
-    assert(tr.begin() == tr.end());
-    assert(tr.find("test") == tr.end());
-    assert(tr.find_prefix("test") == tr.end());
-    assert(tr.find("") == tr.end());
-    assert(tr.find_prefix("") == tr.end());
-  }
-  {
-    trie tr;
-    tr.insert("");
-    assert(!tr.empty());
-    assert(tr.empty("hello"));
-    assert(tr.size() == 1);
-    assert(tr.size("world") == 0);
+  assert(!tr.begin());
+  assert(!tr.end());
+  assert(tr.begin() == tr.end());
+  assert(tr.find("test") == tr.end());
+  assert(tr.find_prefix("test") == tr.end());
+  assert(tr.find("") == tr.end());
+  assert(tr.find_prefix("") == tr.end());
 
-    assert(tr.begin());
-    assert(!tr.end());
-    assert(tr.begin()->empty());
-    assert(tr.find("test") == tr.end());
-    assert(tr.find_prefix("test") == tr.end());
-    assert(tr.find("")->empty());
-    assert(tr.find_prefix("")->empty());
-  }
-  {
-    trie tr;
-    tr.insert("single");
-    assert(!tr.empty());
-    assert(tr.empty("hello"));
-    assert(!tr.empty("sin"));
-    assert(tr.size() == 1);
-    assert(tr.size("world") == 0);
-    assert(tr.size("si") == 1);
+  tr.insert("");
+  assert(!tr.empty());
+  assert(tr.empty("hello"));
+  assert(tr.size() == 1);
+  assert(tr.size("world") == 0);
 
-    assert(tr.begin());
-    assert(!tr.end());
-    assert(*tr.begin() == "single");
-    assert(tr.find("test") == tr.end());
-    assert(tr.find_prefix("test") == tr.end());
-    assert(tr.find("") == tr.end());
-    assert(*tr.find_prefix("") == "single");
-    assert(tr.find("sin") == tr.end());
-    assert(*tr.find_prefix("sin") == "single");
-    assert(*tr.find("single") == "single");
-    assert(*tr.find_prefix("single") == "single");
-  }
+  assert(tr.begin());
+  assert(!tr.end());
+  assert(tr.begin()->empty());
+  assert(tr.find("test") == tr.end());
+  assert(tr.find_prefix("test") == tr.end());
+  assert(tr.find("")->empty());
+  assert(tr.find_prefix("")->empty());
+  cout << " passed\n";
+}
+
+void unit_test::single() {
+  cout << "Singleton test";
+  trie tr;
+  tr.insert("single");
+  assert(!tr.empty());
+  assert(tr.empty("hello"));
+  assert(!tr.empty("sin"));
+  assert(tr.size() == 1);
+  assert(tr.size("world") == 0);
+  assert(tr.size("si") == 1);
+
+  assert(tr.begin());
+  assert(!tr.end());
+  assert(*tr.begin() == "single");
+  assert(tr.find("test") == tr.end());
+  assert(tr.find_prefix("test") == tr.end());
+  assert(tr.find("") == tr.end());
+  assert(*tr.find_prefix("") == "single");
+  assert(tr.find("sin") == tr.end());
+  assert(*tr.find_prefix("sin") == "single");
+  assert(*tr.find("single") == "single");
+  assert(*tr.find_prefix("single") == "single");
   cout << " passed\n";
 }
 
@@ -205,15 +199,15 @@ void unit_test::forward_iterate() {
       ranges::find(SORTED_WORDS, "compute");
   [[maybe_unused]] const auto find_corner =
       ranges::find(SORTED_WORDS, "corner");
-  assert(ranges::equal(subrange{find_compute, next(find_corner)},
-                       subrange{tr.begin("co"), tr.end("co")}));
+  assert(ranges::equal(ranges::subrange{find_compute, next(find_corner)},
+                       ranges::subrange{tr.begin("co"), tr.end("co")}));
 
   [[maybe_unused]] const auto find_mahjong =
       ranges::find(SORTED_WORDS, "mahjong");
   [[maybe_unused]] const auto find_matrix =
       ranges::find(SORTED_WORDS, "matrix");
-  assert(ranges::equal(subrange{find_mahjong, next(find_matrix)},
-                       subrange{tr.begin("ma"), tr.end("ma")}));
+  assert(ranges::equal(ranges::subrange{find_mahjong, next(find_matrix)},
+                       ranges::subrange{tr.begin("ma"), tr.end("ma")}));
 
   // Singular word range.
   [[maybe_unused]] const auto single_start = tr.begin("contaminate");
@@ -242,14 +236,14 @@ void unit_test::reverse_iterate() {
   [[maybe_unused]] const auto find_corner = ranges::find(backwards, "corner");
   [[maybe_unused]] const auto find_compute = ranges::find(backwards, "compute");
   assert(ranges::equal(
-      subrange{find_corner, next(find_compute)},
-      ranges::reverse_view(subrange{tr.begin("co"), tr.end("co")})));
+      ranges::subrange{find_corner, next(find_compute)},
+      ranges::reverse_view(ranges::subrange{tr.begin("co"), tr.end("co")})));
 
   [[maybe_unused]] const auto find_matrix = ranges::find(backwards, "matrix");
   [[maybe_unused]] const auto find_mahjong = ranges::find(backwards, "mahjong");
   assert(ranges::equal(
-      subrange{find_matrix, next(find_mahjong)},
-      ranges::reverse_view(subrange{tr.begin("ma"), tr.end("ma")})));
+      ranges::subrange{find_matrix, next(find_mahjong)},
+      ranges::reverse_view(ranges::subrange{tr.begin("ma"), tr.end("ma")})));
 
   cout << " passed\n";
 }
@@ -347,7 +341,8 @@ void unit_test::representation() {
 void unit_test::run_all() {
   cout << "--- EXECUTING UNIT TESTS ---\n";
   assert(ranges::is_sorted(SORTED_WORDS));
-  empty_single();
+  empty();
+  single();
   find();
   insert();
   erase();

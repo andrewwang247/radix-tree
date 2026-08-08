@@ -6,22 +6,26 @@ Performance testing implementation.
 #include "perf_test.h"
 
 #include <algorithm>
+#include <cstddef>
 #include <fstream>
 #include <iostream>
 #include <iterator>
 #include <random>
-#include <set>
+#include <ranges>
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
+#include "iterator.h"
+
+using std::cmp_not_equal;
 using std::cout;
 using std::default_random_engine;
-using std::distance;
 using std::ifstream;
+using std::random_device;
 using std::runtime_error;
-using std::set;
 using std::string;
 using std::string_view;
 using std::vector;
@@ -45,7 +49,7 @@ timeunit_t set_perf::count(
   for (const auto& [prefix, expected_count, _1, _2] : solutions) {
     const auto prefix_range = prefix_range_for(prefix);
     const auto total = ranges::distance(prefix_range);
-    if (expected_count != static_cast<size_t>(total)) {
+    if (cmp_not_equal(expected_count, total)) {
       throw runtime_error("Count does not match solution");
     }
   }
@@ -55,7 +59,8 @@ timeunit_t set_perf::count(
 
 timeunit_t set_perf::find(
     const vector<perf_test::solution_t>& solutions) const {
-  vector<iter_t> actual_begins, actual_ends;
+  vector<iter_t> actual_begins;
+  vector<iter_t> actual_ends;
   actual_begins.reserve(solutions.size());
   actual_ends.reserve(solutions.size());
 
@@ -89,7 +94,7 @@ timeunit_t trie_perf::count(
   const auto t0 = perf_clock::now();
   for (const auto& [prefix, expected_count, _1, _2] : solutions) {
     const auto total = words.size(prefix);
-    if (expected_count != static_cast<size_t>(total)) {
+    if (cmp_not_equal(expected_count, total)) {
       throw runtime_error("Count does not match solution");
     }
   }
@@ -99,7 +104,8 @@ timeunit_t trie_perf::count(
 
 timeunit_t trie_perf::find(
     const vector<perf_test::solution_t>& solutions) const {
-  vector<iterator> actual_begins, actual_ends;
+  vector<iterator> actual_begins;
+  vector<iterator> actual_ends;
   actual_begins.reserve(solutions.size());
   actual_ends.reserve(solutions.size());
 
@@ -133,7 +139,8 @@ timeunit_t trie_perf::erase(const vector<perf_test::solution_t>& solutions) {
  * @param set_time The time taken by the set.
  * @param trie_time The time taken by the Trie.
  */
-void show_performance_comparison(timeunit_t set_time, timeunit_t trie_time) {
+static void show_performance_comparison(timeunit_t set_time,
+                                        timeunit_t trie_time) {
   if (set_time < trie_time) {
     const auto diff = static_cast<double>(trie_time.count()) /
                       static_cast<double>(set_time.count());
@@ -146,6 +153,7 @@ void show_performance_comparison(timeunit_t set_time, timeunit_t trie_time) {
 }
 
 vector<string> perf_test::read_words() {
+  static random_device rdev;
   vector<string> words;
   words.reserve(WORDS_SIZE);
 
@@ -161,12 +169,13 @@ vector<string> perf_test::read_words() {
 }
 
 vector<perf_test::solution_t> perf_test::read_solutions() {
+  static random_device rdev;
   vector<solution_t> solutions;
   solutions.reserve(SOLUTIONS_SIZE);
 
   ifstream fin{SOLUTIONS_FILE};
   if (!fin) throw runtime_error("Could not open solutions file");
-  size_t count;
+  size_t count = 0;
   for (string word, begin, end; fin >> word >> count >> begin >> end;) {
     solutions.emplace_back(word, count, begin, end);
   }
