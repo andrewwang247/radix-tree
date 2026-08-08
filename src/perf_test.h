@@ -6,8 +6,8 @@ Interface for performance testing.
 #pragma once
 #include <algorithm>
 #include <chrono>
+#include <cstddef>
 #include <iterator>
-#include <random>
 #include <ranges>
 #include <set>
 #include <stdexcept>
@@ -20,8 +20,6 @@ using timeunit_t = std::chrono::nanoseconds;
 using perf_clock = std::chrono::steady_clock;
 
 namespace perf_test {
-static std::random_device rdev{};
-
 static constexpr auto WORDS_FILE = "words.txt";
 static constexpr size_t WORDS_SIZE = 370105;
 

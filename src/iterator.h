@@ -47,7 +47,6 @@ class iterator {
    */
   iterator(const std::unique_ptr<node>& rt, const node* p);
 
- public:
   /**
    * @brief Prefix increment.
    * @return The next iterator.
