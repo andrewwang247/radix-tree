@@ -20,10 +20,10 @@ using timeunit_t = std::chrono::nanoseconds;
 using perf_clock = std::chrono::steady_clock;
 
 namespace perf_test {
-static constexpr auto WORDS_FILE = "words.txt";
+static constexpr auto WORDS_FILE = "./resources/words.txt";
 static constexpr size_t WORDS_SIZE = 370105;
 
-static constexpr auto SOLUTIONS_FILE = "solutions.txt";
+static constexpr auto SOLUTIONS_FILE = "./resources/solutions.txt";
 static constexpr size_t SOLUTIONS_SIZE = 114;
 
 /**
