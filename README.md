@@ -4,7 +4,7 @@ Container library for a sorted set of strings with prefix operations patterned a
 
 ![Peter Piper radix tree](sample.png)
 
-This makes the radix tree particularly well suited for prefix-heavy operations. Benchmarking shows that for these operations, the trie can be several orders of magnitude faster than `std::set`, the standard sorted set container. Build and run `benchmark` with the `Makefile` targets:
+This makes the radix tree particularly well suited for prefix-heavy operations. Benchmarking shows that for these operations, the trie can be several orders of magnitude faster than `std::set`, the standard sorted set container. Build and run with the `Makefile` targets:
 
 - `run` / `release` option to run / build performance tests against `std::set`
 - `test` / `debug` option to run / build unit tests and assert correctness
@@ -104,8 +104,6 @@ are represented internally with the following prefix structure (omitting end mar
 ```
 
 ## Testing
-
-Running `benchmark` executes either unit or performance tests, depending on the build options.
 
 ### Unit Tests
 

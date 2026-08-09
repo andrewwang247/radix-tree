@@ -49,7 +49,12 @@ struct solution_t {
  */
 std::vector<solution_t> read_solutions();
 
-void run_all();
+/**
+ * @brief Display performance comparison between set and Trie operations.
+ * @param set_time The time taken by the set.
+ * @param trie_time The time taken by the Trie.
+ */
+void show_comparison(timeunit_t set_time, timeunit_t trie_time);
 }  // namespace perf_test
 
 /**
