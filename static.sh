@@ -29,7 +29,6 @@ cpplint --filter=-build/include_subdir,-build/c++11,-runtime/references \
 printf "\nRunning clang-tidy...\n\n"
 if [[ ! -f "compile_commands.json" ]]; then
     printf "Generating compile commands\n"
-    make clean
-    bear -- make debug DEBUG="-g3 -DDEBUG -DNDEBUG"
+    bear -- make clean debug release
 fi
 clang-tidy $cppfiles

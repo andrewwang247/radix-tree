@@ -8,6 +8,7 @@ Unit testing implementation.
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <iterator>
 #include <random>
 #include <ranges>
 #include <utility>
@@ -16,9 +17,29 @@ Unit testing implementation.
 
 using std::cout;
 using std::default_random_engine;
+using std::ios_base;
 using std::random_device;
 
 namespace ranges = std::ranges;
+
+int main() {
+  ios_base::sync_with_stdio(false);
+
+  cout << "--- EXECUTING UNIT TESTS ---\n";
+  assert(ranges::is_sorted(unit_test::SORTED_WORDS));
+  unit_test::empty();
+  unit_test::single();
+  unit_test::find();
+  unit_test::insert();
+  unit_test::erase();
+  unit_test::forward_iterate();
+  unit_test::reverse_iterate();
+  unit_test::copy_move();
+  unit_test::comparison();
+  unit_test::arithmetic();
+  unit_test::representation();
+  cout << "--- FINISHED UNIT TESTS ---\n";
+}
 
 trie unit_test::get_trie() {
   static random_device rdev;
@@ -93,22 +114,22 @@ void unit_test::find() {
   assert(tr.size() == 13);
   assert(tr.size("ma") == 7);
 
-  [[maybe_unused]] const auto exact_iter = tr.find("corn");
+  const auto exact_iter = tr.find("corn");
   assert(exact_iter != tr.end());
   assert(*exact_iter == "corn");
 
-  [[maybe_unused]] const auto prf_iter = tr.find_prefix("mate");
+  const auto prf_iter = tr.find_prefix("mate");
   assert(prf_iter != tr.end());
   assert(*prf_iter == "material");
 
-  [[maybe_unused]] const auto exact_prf_iter = tr.find_prefix("contaminate");
+  const auto exact_prf_iter = tr.find_prefix("contaminate");
   assert(exact_prf_iter != tr.end());
   assert(*exact_prf_iter == "contaminate");
 
-  [[maybe_unused]] const auto missing_exact_iter = tr.find("testing");
+  const auto missing_exact_iter = tr.find("testing");
   assert(missing_exact_iter == tr.end());
 
-  [[maybe_unused]] const auto missing_prf_iter = tr.find("conk");
+  const auto missing_prf_iter = tr.find("conk");
   assert(missing_prf_iter == tr.end());
   cout << " passed\n";
 }
@@ -117,7 +138,7 @@ void unit_test::insert() {
   cout << "Insert test";
   trie tr;
 
-  [[maybe_unused]] auto iter = tr.insert("math");
+  auto iter = tr.insert("math");
   assert(iter != tr.end());
   assert(*iter == "math");
   assert(tr.size("math") == 1);
@@ -195,23 +216,19 @@ void unit_test::forward_iterate() {
   assert(ranges::equal(SORTED_WORDS, tr));
 
   // Only iterate over subportion.
-  [[maybe_unused]] const auto find_compute =
-      ranges::find(SORTED_WORDS, "compute");
-  [[maybe_unused]] const auto find_corner =
-      ranges::find(SORTED_WORDS, "corner");
+  const auto find_compute = ranges::find(SORTED_WORDS, "compute");
+  const auto find_corner = ranges::find(SORTED_WORDS, "corner");
   assert(ranges::equal(ranges::subrange{find_compute, next(find_corner)},
                        ranges::subrange{tr.begin("co"), tr.end("co")}));
 
-  [[maybe_unused]] const auto find_mahjong =
-      ranges::find(SORTED_WORDS, "mahjong");
-  [[maybe_unused]] const auto find_matrix =
-      ranges::find(SORTED_WORDS, "matrix");
+  const auto find_mahjong = ranges::find(SORTED_WORDS, "mahjong");
+  const auto find_matrix = ranges::find(SORTED_WORDS, "matrix");
   assert(ranges::equal(ranges::subrange{find_mahjong, next(find_matrix)},
                        ranges::subrange{tr.begin("ma"), tr.end("ma")}));
 
   // Singular word range.
-  [[maybe_unused]] const auto single_start = tr.begin("contaminate");
-  [[maybe_unused]] const auto single_finish = tr.end("contaminate");
+  const auto single_start = tr.begin("contaminate");
+  const auto single_finish = tr.end("contaminate");
   assert(single_start != tr.end());
   assert(*single_start == "contaminate");
   assert(single_finish != tr.end());
@@ -233,14 +250,14 @@ void unit_test::reverse_iterate() {
   assert(ranges::equal(backwards, ranges::reverse_view(tr)));
 
   // Only iterate over subportion.
-  [[maybe_unused]] const auto find_corner = ranges::find(backwards, "corner");
-  [[maybe_unused]] const auto find_compute = ranges::find(backwards, "compute");
+  const auto find_corner = ranges::find(backwards, "corner");
+  const auto find_compute = ranges::find(backwards, "compute");
   assert(ranges::equal(
       ranges::subrange{find_corner, next(find_compute)},
       ranges::reverse_view(ranges::subrange{tr.begin("co"), tr.end("co")})));
 
-  [[maybe_unused]] const auto find_matrix = ranges::find(backwards, "matrix");
-  [[maybe_unused]] const auto find_mahjong = ranges::find(backwards, "mahjong");
+  const auto find_matrix = ranges::find(backwards, "matrix");
+  const auto find_mahjong = ranges::find(backwards, "mahjong");
   assert(ranges::equal(
       ranges::subrange{find_matrix, next(find_mahjong)},
       ranges::reverse_view(ranges::subrange{tr.begin("ma"), tr.end("ma")})));
@@ -314,43 +331,24 @@ void unit_test::representation() {
 
   assert(tr.end().to_json(true) == "{}");
 
-  [[maybe_unused]] constexpr auto TR_JSON =
-      R"({"co":{"mpute":{"r":{}},"nta":{"in":{},)"
-      R"("minate":{}},"rn":{"er":{}}},"ma":{"h":)"
-      R"({"jong":{},"ogany":{}},"t":{"er":{"ial":)"
-      R"({},"nal":{}},"h":{},"rix":{}}}})";
+  constexpr auto TR_JSON = R"({"co":{"mpute":{"r":{}},"nta":{"in":{},)"
+                           R"("minate":{}},"rn":{"er":{}}},"ma":{"h":)"
+                           R"({"jong":{},"ogany":{}},"t":{"er":{"ial":)"
+                           R"({},"nal":{}},"h":{},"rix":{}}}})";
   assert(tr.to_json() == TR_JSON);
 
-  [[maybe_unused]] const auto com_prf = tr.find_prefix("com");
+  const auto com_prf = tr.find_prefix("com");
   assert(*com_prf == "compute");
-  [[maybe_unused]] constexpr auto COM_JSON = R"({"end":true,"children":)"
-                                             R"({"r":{"end":true,"children":)"
-                                             "{}}}}";
+  constexpr auto COM_JSON = R"({"end":true,"children":)"
+                            R"({"r":{"end":true,"children":)"
+                            "{}}}}";
   assert(com_prf.to_json(true) == COM_JSON);
 
-  [[maybe_unused]] const auto mat_iter = tr.find("mat");
+  const auto mat_iter = tr.find("mat");
   assert(mat_iter);
   assert(*mat_iter == "mat");
-  [[maybe_unused]] constexpr auto MAT_JSON =
-      R"({"er":{"ial":{},"nal":{}},"h":{},"rix":{}})";
+  constexpr auto MAT_JSON = R"({"er":{"ial":{},"nal":{}},"h":{},"rix":{}})";
   assert(mat_iter.to_json(false) == MAT_JSON);
 
   cout << " passed\n";
-}
-
-void unit_test::run_all() {
-  cout << "--- EXECUTING UNIT TESTS ---\n";
-  assert(ranges::is_sorted(SORTED_WORDS));
-  empty();
-  single();
-  find();
-  insert();
-  erase();
-  forward_iterate();
-  reverse_iterate();
-  copy_move();
-  comparison();
-  arithmetic();
-  representation();
-  cout << "--- FINISHED UNIT TESTS ---\n";
 }

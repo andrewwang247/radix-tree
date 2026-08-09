@@ -8,6 +8,7 @@ Performance testing implementation.
 #include <algorithm>
 #include <cstddef>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <iterator>
 #include <random>
@@ -23,14 +24,84 @@ Performance testing implementation.
 using std::cmp_not_equal;
 using std::cout;
 using std::default_random_engine;
+using std::fixed;
 using std::ifstream;
+using std::ios_base;
 using std::random_device;
 using std::runtime_error;
+using std::setprecision;
 using std::string;
 using std::string_view;
 using std::vector;
 
 namespace ranges = std::ranges;
+
+int main() {
+  ios_base::sync_with_stdio(false);
+  cout << setprecision(1) << fixed;
+
+  const auto words = perf_test::read_words();
+  const auto solutions = perf_test::read_solutions();
+
+  cout << "--- EXECUTING PERFORMANCE TEST ---\n";
+
+  set_perf set_benchmark;
+  trie_perf trie_benchmark;
+
+  cout << "Insert words: ";
+  const auto insert_set_result = set_benchmark.insert(words);
+  const auto insert_trie_result = trie_benchmark.insert(words);
+  perf_test::show_comparison(insert_set_result, insert_trie_result);
+
+  cout << "Count prefix: ";
+  const auto count_set_result = set_benchmark.count(solutions);
+  const auto count_trie_result = trie_benchmark.count(solutions);
+  perf_test::show_comparison(count_set_result, count_trie_result);
+
+  cout << "Find prefix: ";
+  const auto find_set_result = set_benchmark.find(solutions);
+  const auto find_trie_result = trie_benchmark.find(solutions);
+  perf_test::show_comparison(find_set_result, find_trie_result);
+
+  cout << "Forward iterate: ";
+  const auto forward_iterate_set_result = set_benchmark.forward_iterate();
+  const auto forward_iterate_trie_result = trie_benchmark.forward_iterate();
+  perf_test::show_comparison(forward_iterate_set_result,
+                             forward_iterate_trie_result);
+
+  cout << "Reverse iterate: ";
+  const auto reverse_iterate_set_result = set_benchmark.reverse_iterate();
+  const auto reverse_iterate_trie_result = trie_benchmark.reverse_iterate();
+  perf_test::show_comparison(reverse_iterate_set_result,
+                             reverse_iterate_trie_result);
+
+  cout << "Erase prefix: ";
+  const auto erase_set_result = set_benchmark.erase(solutions);
+  const auto erase_trie_result = trie_benchmark.erase(solutions);
+  perf_test::show_comparison(erase_set_result, erase_trie_result);
+
+  cout << "--- FINISHED PERFORMANCE TEST ---\n";
+
+  cout << "--- EXECUTING FINAL VERIFICATION ---\n";
+
+  const auto& word_set = set_benchmark.peek();
+  const auto& word_trie = trie_benchmark.peek();
+
+  if (ranges::equal(word_set, word_trie)) {
+    cout << "Forward ranges match\n";
+  } else {
+    throw runtime_error("Forward ranges do not match");
+  }
+
+  if (ranges::equal(ranges::reverse_view(word_set),
+                    ranges::reverse_view(word_trie))) {
+    cout << "Reverse ranges match\n";
+  } else {
+    throw runtime_error("Reverse ranges do not match");
+  }
+
+  cout << "--- FINISHED FINAL VERIFICATION ---\n";
+}
 
 ranges::range auto set_perf::prefix_range_for(const string& prefix) const {
   const auto has_prefix = [&prefix](const string_view word) {
@@ -134,13 +205,7 @@ timeunit_t trie_perf::erase(const vector<perf_test::solution_t>& solutions) {
   return t1 - t0;
 }
 
-/**
- * @brief Display performance comparison between set and Trie operations.
- * @param set_time The time taken by the set.
- * @param trie_time The time taken by the Trie.
- */
-static void show_performance_comparison(timeunit_t set_time,
-                                        timeunit_t trie_time) {
+void perf_test::show_comparison(timeunit_t set_time, timeunit_t trie_time) {
   if (set_time < trie_time) {
     const auto diff = static_cast<double>(trie_time.count()) /
                       static_cast<double>(set_time.count());
@@ -183,68 +248,4 @@ vector<perf_test::solution_t> perf_test::read_solutions() {
 
   cout << "Imported " << solutions.size() << " randomly shuffled solutions\n";
   return solutions;
-}
-
-void perf_test::run_all() {
-  const auto words = read_words();
-  const auto solutions = read_solutions();
-
-  cout << "--- EXECUTING PERFORMANCE TEST ---\n";
-
-  set_perf set_benchmark;
-  trie_perf trie_benchmark;
-
-  cout << "Insert words: ";
-  const auto insert_set_result = set_benchmark.insert(words);
-  const auto insert_trie_result = trie_benchmark.insert(words);
-  show_performance_comparison(insert_set_result, insert_trie_result);
-
-  cout << "Count prefix: ";
-  const auto count_set_result = set_benchmark.count(solutions);
-  const auto count_trie_result = trie_benchmark.count(solutions);
-  show_performance_comparison(count_set_result, count_trie_result);
-
-  cout << "Find prefix: ";
-  const auto find_set_result = set_benchmark.find(solutions);
-  const auto find_trie_result = trie_benchmark.find(solutions);
-  show_performance_comparison(find_set_result, find_trie_result);
-
-  cout << "Forward iterate: ";
-  const auto forward_iterate_set_result = set_benchmark.forward_iterate();
-  const auto forward_iterate_trie_result = trie_benchmark.forward_iterate();
-  show_performance_comparison(forward_iterate_set_result,
-                              forward_iterate_trie_result);
-
-  cout << "Reverse iterate: ";
-  const auto reverse_iterate_set_result = set_benchmark.reverse_iterate();
-  const auto reverse_iterate_trie_result = trie_benchmark.reverse_iterate();
-  show_performance_comparison(reverse_iterate_set_result,
-                              reverse_iterate_trie_result);
-
-  cout << "Erase prefix: ";
-  const auto erase_set_result = set_benchmark.erase(solutions);
-  const auto erase_trie_result = trie_benchmark.erase(solutions);
-  show_performance_comparison(erase_set_result, erase_trie_result);
-
-  cout << "--- FINISHED PERFORMANCE TEST ---\n";
-
-  cout << "--- EXECUTING FINAL VERIFICATION ---\n";
-
-  const auto& word_set = set_benchmark.peek();
-  const auto& word_trie = trie_benchmark.peek();
-
-  if (ranges::equal(word_set, word_trie)) {
-    cout << "Forward ranges match\n";
-  } else {
-    throw runtime_error("Forward ranges do not match");
-  }
-
-  if (ranges::equal(ranges::reverse_view(word_set),
-                    ranges::reverse_view(word_trie))) {
-    cout << "Reverse ranges match\n";
-  } else {
-    throw runtime_error("Reverse ranges do not match");
-  }
-
-  cout << "--- FINISHED FINAL VERIFICATION ---\n";
 }

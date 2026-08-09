@@ -14,7 +14,7 @@ Implementation for Node.
 #include <ranges>
 #include <string>
 #include <string_view>
-#include <unordered_set>
+#include <unordered_set>  // NOLINT(misc-include-cleaner)
 #include <utility>
 #include <vector>
 
@@ -24,7 +24,6 @@ using std::next;
 using std::string;
 using std::string_view;
 using std::unique_ptr;
-using std::unordered_set;
 using std::vector;
 
 namespace ranges = std::ranges;
@@ -279,7 +278,7 @@ string node::to_json(bool include_ends) const {
 
 void node::assert_invariants() const {
 #ifdef DEBUG
-  unordered_set<char> characters;
+  std::unordered_set<char> characters;
   for (const auto& [str, ptr] : children) {
     // No null nodes in children tree.
     assert(ptr);
