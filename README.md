@@ -109,7 +109,7 @@ Running `benchmark` executes either unit or performance tests, depending on the 
 
 ### Unit Tests
 
-In the debug build, all assertions are enabled and we frequently validate the structural invariants. The `trie` class is tested for the following functionality:
+In the debug build, all assertions are enabled and we frequently validate the structural invariants. We validate results against pre-computed counts and ranges for various prefixes stored in `resources/solutions.txt`. The `trie` class is tested for the following functionality:
 
 - Default, `initializer_list`, and iterator range constructors.
 - Copy and move semantics for constructors and assignment.
@@ -123,7 +123,7 @@ In the debug build, all assertions are enabled and we frequently validate the st
 
 ### Performance Tests
 
-In the release build, assertions are disabled and we benchmark the performance of `std::set<std::string>` and `trie` under large inputs, i.e. `words.txt`. The benchmark measures the time it takes for each data structure to complete:
+In the release build, assertions are disabled and we benchmark the performance of `std::set<std::string>` and `trie` under large inputs, i.e. `resources/words.txt`. The benchmark measures the time it takes for each data structure to complete:
 
 - Mass insertion of randomly assorted keys.
 - Determining the size of various prefix subsets.
