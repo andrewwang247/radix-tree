@@ -50,7 +50,6 @@ trie unit_test::get_trie() {
 }
 
 void unit_test::empty() {
-  cout << "Empty test";
   trie tr;
   assert(tr.empty());
   assert(tr.empty("hello"));
@@ -78,11 +77,11 @@ void unit_test::empty() {
   assert(tr.find_prefix("test") == tr.end());
   assert(tr.find("")->empty());
   assert(tr.find_prefix("")->empty());
-  cout << " passed\n";
+
+  cout << "Empty test passed\n";
 }
 
 void unit_test::single() {
-  cout << "Singleton test";
   trie tr;
   tr.insert("single");
   assert(!tr.empty());
@@ -103,11 +102,11 @@ void unit_test::single() {
   assert(*tr.find_prefix("sin") == "single");
   assert(*tr.find("single") == "single");
   assert(*tr.find_prefix("single") == "single");
-  cout << " passed\n";
+
+  cout << "Singleton test passed\n";
 }
 
 void unit_test::find() {
-  cout << "Find test";
   const auto tr = get_trie();
 
   assert(!tr.empty());
@@ -131,11 +130,11 @@ void unit_test::find() {
 
   const auto missing_prf_iter = tr.find("conk");
   assert(missing_prf_iter == tr.end());
-  cout << " passed\n";
+
+  cout << "Find test passed\n";
 }
 
 void unit_test::insert() {
-  cout << "Insert test";
   trie tr;
 
   auto iter = tr.insert("math");
@@ -157,11 +156,11 @@ void unit_test::insert() {
   assert(tr.size("m") == 2);
   assert(tr.size() == 3);
   assert(!tr.empty("reg"));
-  cout << " passed\n";
+
+  cout << "Insert test passed\n";
 }
 
 void unit_test::erase() {
-  cout << "Erase test";
   auto tr = get_trie();
 
   // Erase something that does not exist.
@@ -205,11 +204,11 @@ void unit_test::erase() {
   tr.clear();
   assert(tr.empty());
   assert(tr.size() == 0);
-  cout << " passed\n";
+
+  cout << "Erase test passed\n";
 }
 
 void unit_test::forward_iterate() {
-  cout << "Forward iteration test";
   const auto tr = get_trie();
 
   // Full range iteration
@@ -238,11 +237,11 @@ void unit_test::forward_iterate() {
   assert(tr.begin("cops") == tr.end());
   assert(*tr.end("cops") == "corn");
   assert(!tr.end());
-  cout << " passed\n";
+
+  cout << "Forward iterate test passed\n";
 }
 
 void unit_test::reverse_iterate() {
-  cout << "Reverse iteration test";
   const auto tr = get_trie();
 
   const auto backwards = ranges::reverse_view(SORTED_WORDS);
@@ -262,11 +261,10 @@ void unit_test::reverse_iterate() {
       ranges::subrange{find_matrix, next(find_mahjong)},
       ranges::reverse_view(ranges::subrange{tr.begin("ma"), tr.end("ma")})));
 
-  cout << " passed\n";
+  cout << "Reverse iterate test passed\n";
 }
 
 void unit_test::copy_move() {
-  cout << "Copy and Move test";
   auto original = get_trie();
 
   trie copied(original);
@@ -283,11 +281,10 @@ void unit_test::copy_move() {
   moved = std::move(copied);
   assert(ranges::empty(moved));
 
-  cout << " passed\n";
+  cout << "Copy and move test passed\n";
 }
 
 void unit_test::comparison() {
-  cout << "Comparison test";
   auto t1 = get_trie();
   const auto t2 = get_trie();
 
@@ -300,12 +297,11 @@ void unit_test::comparison() {
   assert(t2 > t1);
   assert(t1 <= t2);
   assert(t2 >= t1);
-  cout << " passed\n";
+
+  cout << "Comparison test passed\n";
 }
 
 void unit_test::arithmetic() {
-  cout << "Arithmetic test";
-
   const trie tr{"mahogany", "mahjong",     "compute", "computer", "matrix",
                 "math",     "contaminate", "corn",    "corner",   "material",
                 "mat",      "maternal",    "contain"};
@@ -322,11 +318,11 @@ void unit_test::arithmetic() {
 
   assert(tr - ex == tr);
   assert(tr < tr + ex);
-  cout << " passed\n";
+
+  cout << "Arithmetic test passed\n";
 }
 
 void unit_test::representation() {
-  cout << "Representation test";
   const auto tr = get_trie();
 
   assert(tr.end().to_json(true) == "{}");
@@ -350,5 +346,5 @@ void unit_test::representation() {
   constexpr auto MAT_JSON = R"({"er":{"ial":{},"nal":{}},"h":{},"rix":{}})";
   assert(mat_iter.to_json(false) == MAT_JSON);
 
-  cout << " passed\n";
+  cout << "Representation test passed\n";
 }

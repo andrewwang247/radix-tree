@@ -19,8 +19,8 @@ Implementation for Trie.
 #include "node.h"
 
 using std::initializer_list;
+using std::logic_error;
 using std::make_unique;
-using std::runtime_error;
 using std::string;
 using std::string_view;
 using std::unique_ptr;
@@ -276,7 +276,7 @@ iterator trie::end(string_view prefix_view) const {
   }
 
   // If we've gotten down to here, something has gone wrong.
-  throw runtime_error("Unexpected bug in Trie::end(string_view)");
+  throw logic_error("Unexpected bug in Trie::end(string_view)");
 }
 
 trie& trie::operator+=(const trie& rhs) {
