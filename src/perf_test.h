@@ -63,16 +63,11 @@ void show_comparison(timeunit_t set_time, timeunit_t trie_time);
 template <std::ranges::bidirectional_range Container>
 class perf {
  protected:
-  Container words;
+  static constexpr auto deref = [](std::input_iterator auto iter) {
+    return *iter;
+  };
 
-  static constexpr auto deref_view = std::views::transform(
-      [](std::input_iterator auto iter) { return *iter; });
-  static constexpr auto count_view = std::views::transform(
-      [](const perf_test::solution_t& sol) { return sol.count; });
-  static constexpr auto begin_view = std::views::transform(
-      [](const perf_test::solution_t& sol) { return sol.begin; });
-  static constexpr auto end_view = std::views::transform(
-      [](const perf_test::solution_t& sol) { return sol.end; });
+  Container words;
 
  public:
   virtual ~perf() = default;

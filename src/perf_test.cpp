@@ -141,7 +141,7 @@ timeunit_t set_perf::count(
   }
   const auto t1 = perf_clock::now();
 
-  if (!ranges::equal(solutions | count_view, distances)) {
+  if (!ranges::equal(solutions, distances, {}, &perf_test::solution_t::count)) {
     throw runtime_error("Prefix count does not match solution");
   }
   return t1 - t0;
@@ -162,8 +162,10 @@ timeunit_t set_perf::find(
   }
   const auto t1 = perf_clock::now();
 
-  if (!ranges::equal(solutions | begin_view, actual_begins | deref_view) ||
-      !ranges::equal(solutions | end_view, actual_ends | deref_view)) {
+  if (!ranges::equal(solutions, actual_begins, {},
+                     &perf_test::solution_t::begin, deref) ||
+      !ranges::equal(solutions, actual_ends, {}, &perf_test::solution_t::end,
+                     deref)) {
     throw runtime_error("Prefix range does not match solution");
   }
   return t1 - t0;
@@ -191,7 +193,7 @@ timeunit_t trie_perf::count(
   }
   const auto t1 = perf_clock::now();
 
-  if (!ranges::equal(solutions | count_view, distances)) {
+  if (!ranges::equal(solutions, distances, {}, &perf_test::solution_t::count)) {
     throw runtime_error("Prefix count does not match solution");
   }
   return t1 - t0;
@@ -213,8 +215,10 @@ timeunit_t trie_perf::find(
   }
   const auto t1 = perf_clock::now();
 
-  if (!ranges::equal(solutions | begin_view, actual_begins | deref_view) ||
-      !ranges::equal(solutions | end_view, actual_ends | deref_view)) {
+  if (!ranges::equal(solutions, actual_begins, {},
+                     &perf_test::solution_t::begin, deref) ||
+      !ranges::equal(solutions, actual_ends, {}, &perf_test::solution_t::end,
+                     deref)) {
     throw runtime_error("Prefix range does not match solution");
   }
   return t1 - t0;
