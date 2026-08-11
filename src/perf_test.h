@@ -67,6 +67,8 @@ class perf {
 
   static constexpr auto deref_view = std::views::transform(
       [](std::input_iterator auto iter) { return *iter; });
+  static constexpr auto count_view = std::views::transform(
+      [](const perf_test::solution_t& sol) { return sol.count; });
   static constexpr auto begin_view = std::views::transform(
       [](const perf_test::solution_t& sol) { return sol.begin; });
   static constexpr auto end_view = std::views::transform(
@@ -133,7 +135,14 @@ class set_perf final : public perf<std::set<std::string>> {
   using iter_t = decltype(words)::const_iterator;
 
   /**
-   * Locate boundaries of a prefix range.
+   * @brief Increment a string to the next possible in lexicographic order.
+   * @param word The current string to process.
+   * @return The lexicographical earliest string greater than word.
+   */
+  static std::string lexicographic_increment(std::string word);
+
+  /**
+   * @brief Locate boundaries of a prefix range.
    * @param prefix The prefix to locate.
    * @return The range of words with prefix.
    */

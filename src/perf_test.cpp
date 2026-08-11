@@ -11,22 +11,22 @@ Performance testing implementation.
 #include <iomanip>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <random>
 #include <ranges>
 #include <stdexcept>
 #include <string>
 #include <string_view>
-#include <utility>
 #include <vector>
 
 #include "iterator.h"
 
-using std::cmp_not_equal;
 using std::cout;
 using std::default_random_engine;
 using std::fixed;
 using std::ifstream;
 using std::ios_base;
+using std::numeric_limits;
 using std::random_device;
 using std::runtime_error;
 using std::setprecision;
@@ -35,6 +35,7 @@ using std::string_view;
 using std::vector;
 
 namespace ranges = std::ranges;
+namespace views = std::views;
 
 int main() {
   ios_base::sync_with_stdio(false);
@@ -103,28 +104,46 @@ int main() {
   cout << "--- FINISHED FINAL VERIFICATION ---\n";
 }
 
+string set_perf::lexicographic_increment(string word) {
+  constexpr auto max_char = numeric_limits<decltype(word)::value_type>::max();
+  const auto last_non_max = ranges::find_if_not(
+      word | views::reverse, [max_char](auto c) { return c == max_char; });
+  // All characters are max char. Append min char.
+  if (last_non_max == word.rend()) {
+    constexpr auto min_char = numeric_limits<decltype(word)::value_type>::min();
+    return word + min_char;
+  }
+  // Increment the last non max char and remove everything after.
+  ++*last_non_max;
+  word.erase(last_non_max.base(), word.end());
+  return word;
+}
+
 ranges::range auto set_perf::prefix_range_for(const string& prefix) const {
-  const auto has_prefix = [&prefix](const string_view word) {
-    return word.starts_with(prefix);
-  };
   // Find the first item that's a prefix
   const auto begin = words.lower_bound(prefix);
   // Find where it stops being a prefix.
-  const auto end = ranges::find_if_not(begin, words.end(), has_prefix);
+  const auto right_bound = lexicographic_increment(prefix);
+  const auto end = words.lower_bound(right_bound);
   return ranges::subrange{begin, end};
 }
 
 timeunit_t set_perf::count(
     const vector<perf_test::solution_t>& solutions) const {
+  vector<size_t> distances;
+  distances.reserve(solutions.size());
+
   const auto t0 = perf_clock::now();
-  for (const auto& [prefix, expected_count, _1, _2] : solutions) {
-    const auto prefix_range = prefix_range_for(prefix);
+  for (const auto& solution : solutions) {
+    const auto prefix_range = prefix_range_for(solution.prefix);
     const auto total = ranges::distance(prefix_range);
-    if (cmp_not_equal(expected_count, total)) {
-      throw runtime_error("Count does not match solution");
-    }
+    distances.emplace_back(static_cast<size_t>(total));
   }
   const auto t1 = perf_clock::now();
+
+  if (!ranges::equal(solutions | count_view, distances)) {
+    throw runtime_error("Prefix count does not match solution");
+  }
   return t1 - t0;
 }
 
@@ -162,14 +181,19 @@ timeunit_t set_perf::erase(const vector<perf_test::solution_t>& solutions) {
 
 timeunit_t trie_perf::count(
     const vector<perf_test::solution_t>& solutions) const {
+  vector<size_t> distances;
+  distances.reserve(solutions.size());
+
   const auto t0 = perf_clock::now();
   for (const auto& [prefix, expected_count, _1, _2] : solutions) {
     const auto total = words.size(prefix);
-    if (cmp_not_equal(expected_count, total)) {
-      throw runtime_error("Count does not match solution");
-    }
+    distances.emplace_back(total);
   }
   const auto t1 = perf_clock::now();
+
+  if (!ranges::equal(solutions | count_view, distances)) {
+    throw runtime_error("Prefix count does not match solution");
+  }
   return t1 - t0;
 }
 
