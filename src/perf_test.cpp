@@ -7,8 +7,8 @@ Performance testing implementation.
 
 #include <algorithm>
 #include <cstddef>
+#include <format>
 #include <fstream>
-#include <iomanip>
 #include <iostream>
 #include <iterator>
 #include <limits>
@@ -23,13 +23,12 @@ Performance testing implementation.
 
 using std::cout;
 using std::default_random_engine;
-using std::fixed;
+using std::format;
 using std::ifstream;
 using std::ios_base;
 using std::numeric_limits;
 using std::random_device;
 using std::runtime_error;
-using std::setprecision;
 using std::string;
 using std::string_view;
 using std::vector;
@@ -39,7 +38,6 @@ namespace views = std::views;
 
 int main() {
   ios_base::sync_with_stdio(false);
-  cout << setprecision(1) << fixed;
 
   const auto words = perf_test::read_words();
   const auto solutions = perf_test::read_solutions();
@@ -187,8 +185,8 @@ timeunit_t trie_perf::count(
   distances.reserve(solutions.size());
 
   const auto t0 = perf_clock::now();
-  for (const auto& [prefix, expected_count, _1, _2] : solutions) {
-    const auto total = words.size(prefix);
+  for (const auto& solution : solutions) {
+    const auto total = words.size(solution.prefix);
     distances.emplace_back(total);
   }
   const auto t1 = perf_clock::now();
@@ -234,14 +232,13 @@ timeunit_t trie_perf::erase(const vector<perf_test::solution_t>& solutions) {
 }
 
 void perf_test::show_comparison(timeunit_t set_time, timeunit_t trie_time) {
+  const auto diff_ratio =
+      static_cast<double>(std::max(set_time, trie_time).count()) /
+      static_cast<double>(std::min(set_time, trie_time).count());
   if (set_time < trie_time) {
-    const auto diff = static_cast<double>(trie_time.count()) /
-                      static_cast<double>(set_time.count());
-    cout << "set was " << diff << " x faster than trie\n";
+    cout << format("set was {:.1f} x faster than trie\n", diff_ratio);
   } else {
-    const auto diff = static_cast<double>(set_time.count()) /
-                      static_cast<double>(trie_time.count());
-    cout << "trie was " << diff << " x faster than set\n";
+    cout << format("trie was {:.1f} x faster than set\n", diff_ratio);
   }
 }
 
@@ -257,7 +254,7 @@ vector<string> perf_test::read_words() {
   }
   ranges::shuffle(words, default_random_engine{rdev()});
 
-  cout << "Imported " << words.size() << " randomly shuffled words\n";
+  cout << format("Imported {} randomly shuffled words\n", words.size());
   return words;
 }
 
@@ -274,6 +271,6 @@ vector<perf_test::solution_t> perf_test::read_solutions() {
   }
   ranges::shuffle(solutions, default_random_engine{rdev()});
 
-  cout << "Imported " << solutions.size() << " randomly shuffled solutions\n";
+  cout << format("Imported {} randomly shuffled words\n", solutions.size());
   return solutions;
 }
