@@ -19,6 +19,11 @@ iterator::iterator(const unique_ptr<node>& rt, const node* p)
   assert(rt);
 }
 
+iterator::iterator(const unique_ptr<node>& rt, const unique_ptr<node>& p)
+    : root(rt.get()), ptr(p.get()) {
+  assert(rt);
+}
+
 iterator& iterator::operator++() {
   if (!ptr) return *this;
   ptr = ptr->children.empty() ? ptr->next_node() : ptr->first_key();

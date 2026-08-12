@@ -44,10 +44,9 @@ int main() {
 }
 
 trie unit_test::get_trie() {
-  static random_device rdev;
-  static default_random_engine rng{rdev()};
+  static default_random_engine prng{random_device{}()};  // NOLINT
   auto copy{SORTED_WORDS};
-  ranges::shuffle(copy, rng);
+  ranges::shuffle(copy, prng);
   return trie{copy};
 }
 

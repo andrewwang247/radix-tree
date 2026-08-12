@@ -262,6 +262,8 @@ timeunit_t perf<Container>::insert(const std::vector<std::string>& word_list) {
 template <std::ranges::bidirectional_range Container>
 timeunit_t perf<Container>::forward_iterate() const {
   const auto t0 = perf_clock::now();
+  // Avoid ranges::distance to prevent size check optimization.
+  // We actually want to iterate over the entire container.
   const auto counter = std::distance(words.begin(), words.end());
   const auto t1 = perf_clock::now();
 

@@ -85,7 +85,7 @@ class trie {
   explicit trie(std::unique_ptr<node> cloned);
 
  public:
-  /* --- CONTAINER SIZE --- */
+  // --- CONTAINER SIZE ---
 
   /**
    * @brief Check if the trie is empty.
@@ -103,7 +103,7 @@ class trie {
    */
   size_t size(std::string_view prefix = "") const;
 
-  /* --- ITERATION --- */
+  // --- ITERATION ---
 
   /**
    * @brief Standard begin iterator getter.
@@ -117,14 +117,12 @@ class trie {
    */
   iterator end() const;
 
-  /*
-  Prefix traversal by iterator. Returns begin and end iterators to the range of
-  items which has prefix given by the parameter. Note that they constitute an
-  alphabetically ordered range like regular traversal by iterator.
-  If none of the keys have the given prefix, returns a null iterator.
-  begin("") and end("") have the same behavior as begin() and end()
-  since every key has empty string as prefix.
-  */
+  // Prefix traversal by iterator. Returns begin and end iterators to the range
+  // of items which has prefix given by the parameter. Note that they constitute
+  // an alphabetically ordered range like regular traversal by iterator. If none
+  // of the keys have the given prefix, returns a null iterator. begin("") and
+  // end("") have the same behavior as begin() and end() since every key has
+  // empty string as prefix.
 
   /**
    * @brief Prefix ranged begin iterator.
@@ -140,7 +138,7 @@ class trie {
    */
   iterator end(std::string_view prefix) const;
 
-  /* --- SEARCHING --- */
+  // --- SEARCHING ---
 
   /**
    * @brief Searches for key in trie.
@@ -158,7 +156,7 @@ class trie {
    */
   iterator find_prefix(std::string_view prefix) const;
 
-  /* --- INSERTION --- */
+  // --- INSERTION ---
 
   /**
    * @brief Inserts key (or key pointed to by iterator) into trie. Idempotent if
@@ -168,7 +166,7 @@ class trie {
    */
   iterator insert(std::string_view key);
 
-  /* --- DELETION --- */
+  // --- DELETION ---
 
   /**
    * @brief Erases key from trie. Idempotent if key is not in trie.
@@ -188,7 +186,7 @@ class trie {
    */
   void clear();
 
-  /* --- REPRESENTATION --- */
+  // --- REPRESENTATION ---
 
   /**
    * @brief Convert the trie to a JSON object.
@@ -197,12 +195,7 @@ class trie {
    */
   std::string to_json(bool include_ends = false) const;
 
-  /* --- ASYMMETRIC BINARY OPERATIONS --- */
-
-  /*
-  A + B inserts all of B's keys into A.
-  A - B erases all of B's keys from A.
-  */
+  // --- ASYMMETRIC BINARY OPERATIONS ---
 
   /**
    * @brief Inserts all of rhs's keys into this. Requires that this and rhs are
@@ -218,7 +211,6 @@ class trie {
    */
   trie& operator-=(const trie& rhs);
 
-  // Private access for == operator to allow efficient deep equality check.
   /**
    * @brief Equality operator checks element-wise equality. Private access
    * permits efficient traversal.
@@ -229,15 +221,7 @@ class trie {
   friend bool operator==(const trie& lhs, const trie& rhs);
 };
 
-/* --- SYMMETRIC BINARY OPERATIONS --- */
-
-/*
-COMPARISON OF TRIES.
-We say that A == B if A and B have equivalent keys.
-Define A < B as a proper subset relation.
-Note: operator== is a friend to take advantage of
-efficient private functions.
-*/
+// --- SYMMETRIC BINARY OPERATIONS ---
 
 /**
  * @brief Three way comparison operator for subset partial ordering.
