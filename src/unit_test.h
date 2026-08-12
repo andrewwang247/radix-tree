@@ -18,6 +18,10 @@ static const std::vector<std::string> SORTED_WORDS{
     "maternal", "math",     "matrix"};
 // NOLINTEND
 
+/**
+ * @brief Get a trie with random insertion order.
+ * @return A trie containing all SORTED_WORDS.
+ */
 trie get_trie();
 
 void empty();

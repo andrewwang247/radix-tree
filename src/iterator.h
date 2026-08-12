@@ -45,6 +45,13 @@ class iterator {
   iterator(const std::unique_ptr<node>& rt, const node* p);
 
   /**
+   * @brief Root and pointer constructor.
+   * @param rt The root node of the trie.
+   * @param p The node that the iterator is currently pointing at.
+   */
+  iterator(const std::unique_ptr<node>& rt, const std::unique_ptr<node>& p);
+
+  /**
    * @brief Prefix increment.
    * @return The next iterator.
    */
@@ -93,7 +100,7 @@ class iterator {
    */
   std::string to_json(bool include_ends = false) const;
 
-  /* Comparison between iterators performs element-wise comparison. */
+  // Iterators are compared element-wise.
 
   /**
    * @brief Check if two iterators are equal.

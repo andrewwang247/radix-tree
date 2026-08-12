@@ -66,7 +66,7 @@ size_t trie::size(string_view prefix_view) const {
 iterator trie::find(string_view key_view) const {
   // Handle edge case of key being empty.
   if (key_view.empty()) {
-    return root->is_end ? iterator(root, root.get()) : iterator(root, nullptr);
+    return root->is_end ? iterator(root, root) : iterator(root, nullptr);
   }
   return {root, root->exact_match(key_view)};
 }
@@ -84,14 +84,13 @@ iterator trie::find_prefix(string_view prefix_view) const {
 }
 
 iterator trie::insert(string_view key_view) {
-  /*
-  Note: inserting key at root, is the same
-  as inserting reduced key at loc.
-  The problem space has been reduced.
-  */
+  // Note: inserting key at root, is the same
+  // as inserting reduced key at loc.
+  // The problem space has been reduced.
   const auto [loc, key] = root->approximate_match(key_view);
   assert(loc);
-  /* INSERT KEY AT LOC */
+
+  // INSERT KEY AT LOC
 
   // If the key is now empty, simply set is_end to true.
   if (key.empty()) {
@@ -100,15 +99,13 @@ iterator trie::insert(string_view key_view) {
     return {root, loc};
   }
 
-  /*
-  At this point, the key is non-empty.
-  If loc has no children, then just make a child.
-  */
+  // At this point, the key is non-empty. If loc has no children, then just make
+  // a child.
   if (loc->children.empty()) {
     auto child = make_unique<node>(true, loc);
     const auto [result_iter, _1] = loc->children.emplace(key, std::move(child));
     root->assert_invariants();
-    return {root, result_iter->second.get()};
+    return {root, result_iter->second};
   }
 
   // Check children of loc for shared prefixes.
@@ -124,10 +121,8 @@ iterator trie::insert(string_view key_view) {
     string_view common{key.begin(), iter_pair.in1};
     string_view post_key{iter_pair.in1, key.end()};
     string_view post_child{iter_pair.in2, child_str.end()};
-    /*
-    If remaining key's prefix can match a child,
-    then approximate_match failed.
-    */
+    // If remaining key's prefix can match a child, then approximate_match
+    // failed.
     assert(!post_child.empty());
 
     // Create a child for the common part. junction's parent is set.
@@ -151,17 +146,17 @@ iterator trie::insert(string_view key_view) {
       const auto [junction_iter, _4] =
           junction->children.emplace(post_key, std::move(key_node));
       root->assert_invariants();
-      return {root, junction_iter->second.get()};
+      return {root, junction_iter->second};
     }
     root->assert_invariants();
-    return {root, junction.get()};
+    return {root, junction};
   }
 
   // If there are no shared prefixes, then simply create a node under loc.
   auto key_node = make_unique<node>(true, loc);
   const auto [key_iter, _5] = loc->children.emplace(key, std::move(key_node));
   root->assert_invariants();
-  return {root, key_iter->second.get()};
+  return {root, key_iter->second};
 }
 
 void trie::erase(string_view key) {
@@ -243,7 +238,7 @@ string trie::to_json(bool include_ends) const {
 }
 
 iterator trie::begin() const {
-  return root->is_end ? iterator(root, root.get())
+  return root->is_end ? iterator(root, root)
                       : iterator(root, root->first_key());
 }
 
@@ -259,11 +254,9 @@ iterator trie::end(string_view prefix_view) const {
   auto [app_ptr, prefix] = root->approximate_match(prefix_view);
   assert(app_ptr);
 
-  /*
-  If prefix is empty, app_ptr is a prefix match and
-  none of its children work. If all children of app_ptr
-  are less than prefix, nothing under app_ptr works.
-  */
+  // If prefix is empty, app_ptr is a prefix match and
+  // none of its children work. If all children of app_ptr
+  // are less than prefix, nothing under app_ptr works.
   if (prefix.empty() || app_ptr->children.empty() ||
       app_ptr->children.rbegin()->first < prefix)
     return {root, app_ptr->next_node()};
@@ -273,7 +266,7 @@ iterator trie::end(string_view prefix_view) const {
     // If equality, then approximate_match failed.
     assert(str != prefix);
     if (str.front() > prefix.front()) {
-      return ptr->is_end ? iterator(root, ptr.get())
+      return ptr->is_end ? iterator(root, ptr)
                          : iterator(root, ptr->first_key());
     }
   }

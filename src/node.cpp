@@ -46,24 +46,20 @@ unique_ptr<node> node::clone() const {
 bool node::deep_equals(const node* lhs, const node* rhs) {
   assert(lhs);
   assert(rhs);
-  // Check is_end parameters match.
   if (lhs->is_end != rhs->is_end) return false;
-  // If neither have children, we're all good to go.
-  if (lhs->children.empty() && rhs->children.empty()) return true;
-  // Check that number of children are the same.
   if (lhs->children.size() != rhs->children.size()) return false;
+
   // Since the number of children match, we can iterate in parallel.
-  auto left_it = lhs->children.begin();
-  auto right_it = rhs->children.begin();
-  while (left_it != lhs->children.end()) {
-    // Check that the strings on the branches match.
+  for (auto left_it = lhs->children.begin(), right_it = rhs->children.begin();
+       left_it != lhs->children.end() && right_it != rhs->children.end();
+       ++left_it, ++right_it) {
     if (left_it->first != right_it->first) return false;
-    // Recursively check for equality.
+
+    // Recursively check for equality via depth first search.
     if (!deep_equals(left_it->second.get(), right_it->second.get()))
       return false;
-    ++left_it;
-    ++right_it;
   }
+
   return true;
 }
 
@@ -102,10 +98,7 @@ node::positional node::prefix_match(string_view prf_view) {
   // If the given prf is empty, it's a perfect match.
   if (prf.empty()) return {.ptr = app_ptr, .pos = prf};
 
-  /*
-  If any of the returned node's children
-  have prf as prefix, return that child.
-  */
+  // If any of the node's children have prf as prefix, return that child.
   for (const auto& [str, ptr] : app_ptr->children) {
     assert(ptr);
     if (str.starts_with(prf)) {
@@ -121,10 +114,7 @@ node* node::exact_match(string_view word_view) {
   // First compute the approximate root.
   const auto [app_ptr, word] = approximate_match(word_view);
   assert(app_ptr);
-  /*
-  If the given word is empty, it's a perfect match.
-  Otherwise, there is no match.
-  */
+  // If the word is empty, it's a perfect match. Otherwise, no match.
   return word.empty() ? app_ptr : nullptr;
 }
 
@@ -168,11 +158,9 @@ const node* node::next_node() const {
   // If par is null, there is nothing to the right. Return null
   if (!par) return nullptr;
 
-  /*
-  If par is non-null, the only way we broke out of the while
-  loop is because ptr is not the right-most child.
-  Thus, we want to find the child to the right of ptr.
-  */
+  // If par is non-null, the only way we broke out of the while
+  // loop is because ptr is not the right-most child.
+  // Thus, we want to find the child to the right of ptr.
   auto child_iter = par->find_child(ptr);
   assert(child_iter != par->children.end());
   ++child_iter;
@@ -204,12 +192,11 @@ const node* node::prev_node() const {
   // If par is null, there is nothing to the left. Return null
   if (!par) return nullptr;
 
-  /*
-  If par is non-null, the only way we broke out of the while is:
-  1. par has a children to the left.
-  2. par is an end node and forms a word.
-  Case (1) takes precedence as any of par's children are more immediately prev.
-  */
+  // If par is non-null, the only way we broke out of the while is:
+  // 1. par has a children to the left.
+  // 2. par is an end node and forms a word.
+  // Case (1) takes precedence.
+  // Any of par's children are more immediately prev.
   if (par->children.begin()->second.get() != ptr) {
     auto child_iter = par->find_child(ptr);
     assert(child_iter != par->children.end());
@@ -288,10 +275,8 @@ void node::assert_invariants() const {
     assert(ptr->parent == this);
     // Make sure string is not empty.
     assert(!str.empty());
-    /*
-    Check that string does not share a prefix with other children.
-    We only really need to check first char.
-    */
+    // Check that string does not share a prefix with other children.
+    // We only really need to check first char.
     assert(!characters.contains(str.front()));
     characters.insert(str.front());
     // Recursively check child nodes.
