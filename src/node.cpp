@@ -6,6 +6,7 @@ Implementation for Node.
 #include "node.h"
 
 #include <algorithm>
+#include <bitset>  // NOLINT(misc-include-cleaner)
 #include <cassert>
 #include <cstddef>
 #include <format>
@@ -15,7 +16,6 @@ Implementation for Node.
 #include <ranges>
 #include <string>
 #include <string_view>
-#include <unordered_set>  // NOLINT(misc-include-cleaner)
 #include <utility>
 #include <vector>
 
@@ -267,16 +267,17 @@ string node::to_json(bool include_ends) const {
 
 void node::assert_invariants() const {
 #ifdef DEBUG
-  std::unordered_set<char> characters;
-  characters.reserve(children.size());
+  static constexpr auto max_possible_chars = 1 << 8;
+  std::bitset<max_possible_chars> seen;
   for (const auto& [str, ptr] : children) {
     assert(ptr);
     assert(ptr->parent == this);
     assert(!str.empty());
     // Check that string does not share a prefix with other children.
     // We only really need to check first char.
-    auto [_, was_inserted] = characters.emplace(str.front());
-    assert(was_inserted);
+    const auto idx = static_cast<unsigned char>(str.front());
+    assert(!seen.test(idx));
+    seen.set(idx);
     // Recursively check child nodes.
     ptr->assert_invariants();
   }
