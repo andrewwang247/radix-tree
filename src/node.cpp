@@ -8,6 +8,7 @@ Implementation for Node.
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
+#include <format>
 #include <iterator>
 #include <map>
 #include <memory>
@@ -18,6 +19,7 @@ Implementation for Node.
 #include <utility>
 #include <vector>
 
+using std::format;
 using std::make_unique;
 using std::map;
 using std::string;
@@ -248,17 +250,16 @@ map<string, unique_ptr<node>>::const_iterator node::find_child(
 }
 
 string node::to_json(bool include_ends) const {
-  string builder = include_ends ? "{\"end\":" : "{";
+  string builder = include_ends ? R"({"end":)" : "{";
   if (include_ends) {
-    builder += is_end ? "true," : "false,";
-    builder += "\"children\":{";
+    builder += format(R"({},"children":{{)", is_end ? "true" : "false");
   }
-  for (auto iter = children.begin(); iter != children.end(); ++iter) {
-    builder += '"';
-    builder += iter->first;
-    builder += "\":";
-    builder += iter->second->to_json(include_ends);
-    if (std::next(iter) != children.end()) builder += ',';
+  if (!children.empty()) {
+    for (const auto& [str, ptr] : children | views::take(children.size() - 1)) {
+      builder += format(R"("{}":{},)", str, ptr->to_json(include_ends));
+    }
+    const auto& [str, ptr] = *std::prev(children.end());
+    builder += format(R"("{}":{})", str, ptr->to_json(include_ends));
   }
   builder += include_ends ? "}}" : "}";
   return builder;
@@ -267,17 +268,15 @@ string node::to_json(bool include_ends) const {
 void node::assert_invariants() const {
 #ifdef DEBUG
   std::unordered_set<char> characters;
+  characters.reserve(children.size());
   for (const auto& [str, ptr] : children) {
-    // No null nodes in children tree.
     assert(ptr);
-    // Ensure that its parent is root.
     assert(ptr->parent == this);
-    // Make sure string is not empty.
     assert(!str.empty());
     // Check that string does not share a prefix with other children.
     // We only really need to check first char.
-    assert(!characters.contains(str.front()));
-    characters.insert(str.front());
+    auto [_, was_inserted] = characters.emplace(str.front());
+    assert(was_inserted);
     // Recursively check child nodes.
     ptr->assert_invariants();
   }
