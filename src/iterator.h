@@ -23,8 +23,8 @@ class iterator {
   using reference = const std::string&;
 
  private:
-  const node* root;
-  const node* ptr;
+  const node* root = nullptr;
+  const node* ptr = nullptr;
 
   /**
    * @brief Proxy to make the arrow operator work.
@@ -35,10 +35,7 @@ class iterator {
   };
 
  public:
-  /**
-   * @brief Default constructor.
-   */
-  iterator();
+  iterator() = default;
 
   /**
    * @brief Root and pointer constructor.

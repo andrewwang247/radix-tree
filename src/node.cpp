@@ -43,24 +43,26 @@ unique_ptr<node> node::clone() const {
   return copy;
 }
 
-bool node::equals(const node* other) const {
-  assert(other);
+bool node::deep_equals(const node* lhs, const node* rhs) {
+  assert(lhs);
+  assert(rhs);
   // Check is_end parameters match.
-  if (is_end != other->is_end) return false;
+  if (lhs->is_end != rhs->is_end) return false;
   // If neither have children, we're all good to go.
-  if (children.empty() && other->children.empty()) return true;
+  if (lhs->children.empty() && rhs->children.empty()) return true;
   // Check that number of children are the same.
-  if (children.size() != other->children.size()) return false;
+  if (lhs->children.size() != rhs->children.size()) return false;
   // Since the number of children match, we can iterate in parallel.
-  auto it_1 = children.begin();
-  auto it_2 = other->children.begin();
-  while (it_1 != children.end()) {
+  auto left_it = lhs->children.begin();
+  auto right_it = rhs->children.begin();
+  while (left_it != lhs->children.end()) {
     // Check that the strings on the branches match.
-    if (it_1->first != it_2->first) return false;
+    if (left_it->first != right_it->first) return false;
     // Recursively check for equality.
-    if (!it_1->second->equals(it_2->second.get())) return false;
-    ++it_1;
-    ++it_2;
+    if (!deep_equals(left_it->second.get(), right_it->second.get()))
+      return false;
+    ++left_it;
+    ++right_it;
   }
   return true;
 }

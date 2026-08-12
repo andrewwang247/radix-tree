@@ -305,7 +305,7 @@ trie& trie::operator-=(const trie& rhs) {
 trie operator-(trie lhs, const trie& rhs) { return lhs -= rhs; }
 
 bool operator==(const trie& lhs, const trie& rhs) {
-  return lhs.root->equals(rhs.root.get());
+  return node::deep_equals(lhs.root.get(), rhs.root.get());
 }
 
 partial_ordering operator<=>(const trie& lhs, const trie& rhs) {
