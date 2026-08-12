@@ -39,11 +39,12 @@ class node {
   std::unique_ptr<node> clone() const;
 
   /**
-   * @brief Deep equality check.
-   * @param other The non-null root of the other trie.
-   * @return Whether or not the tries rooted at this and other are equivalent.
+   * @brief Deep equality check the content of the nodes.
+   * @param lhs The left node to check.
+   * @param rhs The right node to check.
+   * @return Whether the tree rooted at lhs and rhs are equivalent.
    */
-  bool equals(const node* other) const;
+  static bool deep_equals(const node* lhs, const node* rhs);
 
   /**
    * @brief Counts the number of keys stored at this and its children.

@@ -14,8 +14,6 @@ Implementation for Trie iterator.
 using std::string;
 using std::unique_ptr;
 
-iterator::iterator() : root(nullptr), ptr(nullptr) {}
-
 iterator::iterator(const unique_ptr<node>& rt, const node* p)
     : root(rt.get()), ptr(p) {
   assert(rt);
