@@ -67,3 +67,11 @@ iterator::operator bool() const { return ptr != nullptr; }
 string iterator::to_json(bool include_ends) const {
   return ptr ? ptr->to_json(include_ends) : "{}";
 }
+
+bool operator==(const iterator& lhs, const iterator& rhs) {
+  return lhs.ptr == rhs.ptr;
+}
+
+bool operator!=(const iterator& lhs, const iterator& rhs) {
+  return lhs.ptr != rhs.ptr;
+}

@@ -7,6 +7,7 @@ Implementation for Trie.
 
 #include <algorithm>
 #include <cassert>
+#include <compare>
 #include <cstddef>
 #include <initializer_list>
 #include <memory>
@@ -21,8 +22,10 @@ Implementation for Trie.
 using std::initializer_list;
 using std::logic_error;
 using std::make_unique;
+using std::partial_ordering;
 using std::string;
 using std::string_view;
+using std::strong_ordering;
 using std::unique_ptr;
 
 namespace ranges = std::ranges;
@@ -305,24 +308,36 @@ bool operator==(const trie& lhs, const trie& rhs) {
   return lhs.root->equals(rhs.root.get());
 }
 
-bool operator!=(const trie& lhs, const trie& rhs) { return !(lhs == rhs); }
+partial_ordering operator<=>(const trie& lhs, const trie& rhs) {
+  auto left_it = lhs.begin();
+  auto right_it = rhs.begin();
+  const auto left_end = lhs.end();
+  const auto right_end = rhs.end();
 
-bool operator<(const trie& lhs, const trie& rhs) {
-  return ranges::includes(rhs, lhs);
-}
+  bool left_has_extra = false;
+  bool right_has_extra = false;
 
-bool operator>(const trie& lhs, const trie& rhs) { return rhs < lhs; }
+  while (left_it != left_end && right_it != right_end) {
+    const auto element_compare = *left_it <=> *right_it;
+    if (element_compare == strong_ordering::less) {
+      left_has_extra = true;
+      ++left_it;
+    } else if (element_compare == strong_ordering::greater) {
+      right_has_extra = true;
+      ++right_it;
+    } else {
+      ++left_it;
+      ++right_it;
+    }
 
-bool operator<=(const trie& lhs, const trie& rhs) { return !(rhs < lhs); }
+    if (left_has_extra && right_has_extra) return partial_ordering::unordered;
+  }
 
-bool operator>=(const trie& lhs, const trie& rhs) { return !(lhs < rhs); }
+  if (left_it != left_end) left_has_extra = true;
+  if (right_it != right_end) right_has_extra = true;
 
-bool operator==(const iterator& lhs, const iterator& rhs) {
-  // Performs element by element.
-  return lhs.ptr == rhs.ptr;
-}
-
-bool operator!=(const iterator& lhs, const iterator& rhs) {
-  // Performs element by element.
-  return lhs.ptr != rhs.ptr;
+  if (!left_has_extra && !right_has_extra) return partial_ordering::equivalent;
+  if (!left_has_extra && right_has_extra) return partial_ordering::less;
+  if (left_has_extra && !right_has_extra) return partial_ordering::greater;
+  return partial_ordering::unordered;
 }

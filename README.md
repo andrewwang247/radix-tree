@@ -49,7 +49,7 @@ The tree supports constant bidirectional iterators that traverse the stored keys
 
 - Adding trees using the `+` or `+=` operators will take a set union over the contained keys.
 - Subtracting trees using the `-` or `-=` operators will take a set difference over the contained keys.
-- Trees can be compared using `==, !=, <, >, <=, =>` where inequality implies a subset relation.
+- Trees can be compared using `==, !=, <, >, <=, =>` via `<=>` based on subset partial ordering.
 - Printing all keys stored in the tree in alphabetical order can be done using the `<<` operator.
 
 ### Representation
