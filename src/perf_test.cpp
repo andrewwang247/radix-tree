@@ -38,9 +38,12 @@ namespace views = std::views;
 
 int main() {
   ios_base::sync_with_stdio(false);
+  static constexpr size_t SAMPLE_SIZE = 2500;
 
-  const auto words = perf_test::read_words();
-  const auto solutions = perf_test::read_solutions();
+  default_random_engine prng{random_device{}()};  // NOLINT(whitespace/braces)
+  const auto words = perf_test::read_words(prng);
+  const auto solutions = perf_test::read_solutions(prng);
+  const auto sublist = perf_test::sample(words, SAMPLE_SIZE, prng);
 
   cout << "--- EXECUTING PERFORMANCE TEST ---\n";
 
@@ -48,36 +51,32 @@ int main() {
   trie_perf trie_benchmark;
 
   cout << "Insert words: ";
-  const auto insert_set_result = set_benchmark.insert(words);
-  const auto insert_trie_result = trie_benchmark.insert(words);
-  perf_test::show_comparison(insert_set_result, insert_trie_result);
+  perf_test::show_comparison(set_benchmark.insert(words),
+                             trie_benchmark.insert(words));
 
   cout << "Count prefix: ";
-  const auto count_set_result = set_benchmark.count(solutions);
-  const auto count_trie_result = trie_benchmark.count(solutions);
-  perf_test::show_comparison(count_set_result, count_trie_result);
+  perf_test::show_comparison(set_benchmark.count(solutions),
+                             trie_benchmark.count(solutions));
 
   cout << "Find prefix: ";
-  const auto find_set_result = set_benchmark.find(solutions);
-  const auto find_trie_result = trie_benchmark.find(solutions);
-  perf_test::show_comparison(find_set_result, find_trie_result);
+  perf_test::show_comparison(set_benchmark.find(solutions),
+                             trie_benchmark.find(solutions));
+
+  cout << "Contains words: ";
+  perf_test::show_comparison(set_benchmark.contains(sublist),
+                             trie_benchmark.contains(sublist));
 
   cout << "Forward iterate: ";
-  const auto forward_iterate_set_result = set_benchmark.forward_iterate();
-  const auto forward_iterate_trie_result = trie_benchmark.forward_iterate();
-  perf_test::show_comparison(forward_iterate_set_result,
-                             forward_iterate_trie_result);
+  perf_test::show_comparison(set_benchmark.forward_iterate(),
+                             trie_benchmark.forward_iterate());
 
   cout << "Reverse iterate: ";
-  const auto reverse_iterate_set_result = set_benchmark.reverse_iterate();
-  const auto reverse_iterate_trie_result = trie_benchmark.reverse_iterate();
-  perf_test::show_comparison(reverse_iterate_set_result,
-                             reverse_iterate_trie_result);
+  perf_test::show_comparison(set_benchmark.reverse_iterate(),
+                             trie_benchmark.reverse_iterate());
 
   cout << "Erase prefix: ";
-  const auto erase_set_result = set_benchmark.erase(solutions);
-  const auto erase_trie_result = trie_benchmark.erase(solutions);
-  perf_test::show_comparison(erase_set_result, erase_trie_result);
+  perf_test::show_comparison(set_benchmark.erase(solutions),
+                             trie_benchmark.erase(solutions));
 
   cout << "--- FINISHED PERFORMANCE TEST ---\n";
 
@@ -128,15 +127,15 @@ ranges::range auto set_perf::prefix_range_for(const string& prefix) const {
 
 timeunit_t set_perf::count(
     const vector<perf_test::solution_t>& solutions) const {
-  vector<size_t> distances;
-  distances.reserve(solutions.size());
+  vector<size_t> distances(solutions.size());
 
   const auto t0 = perf_clock::now();
-  for (const auto& solution : solutions) {
-    const auto prefix_range = prefix_range_for(solution.prefix);
-    const auto total = ranges::distance(prefix_range);
-    distances.emplace_back(static_cast<size_t>(total));
-  }
+  ranges::transform(
+      solutions, distances.begin(),
+      [this](const auto& prf) {
+        return ranges::distance(prefix_range_for(prf));
+      },
+      &perf_test::solution_t::prefix);
   const auto t1 = perf_clock::now();
 
   if (!ranges::equal(solutions, distances, {}, &perf_test::solution_t::count)) {
@@ -169,6 +168,20 @@ timeunit_t set_perf::find(
   return t1 - t0;
 }
 
+timeunit_t set_perf::contains(const vector<string_view>& word_list) const {
+  const auto key_view =
+      word_list | views::transform([](auto key) { return string{key}; });
+
+  const auto t0 = perf_clock::now();
+  if (ranges::any_of(
+          key_view, [this](const auto& key) { return !words.contains(key); })) {
+    throw runtime_error("Did not find contained word");
+  }
+  const auto t1 = perf_clock::now();
+
+  return t1 - t0;
+}
+
 timeunit_t set_perf::erase(const vector<perf_test::solution_t>& solutions) {
   const auto t0 = perf_clock::now();
   for (const auto& solution : solutions) {
@@ -181,14 +194,13 @@ timeunit_t set_perf::erase(const vector<perf_test::solution_t>& solutions) {
 
 timeunit_t trie_perf::count(
     const vector<perf_test::solution_t>& solutions) const {
-  vector<size_t> distances;
-  distances.reserve(solutions.size());
+  vector<size_t> distances(solutions.size());
 
   const auto t0 = perf_clock::now();
-  for (const auto& solution : solutions) {
-    const auto total = words.size(solution.prefix);
-    distances.emplace_back(total);
-  }
+  ranges::transform(
+      solutions, distances.begin(),
+      [this](const auto& prf) { return words.size(prf); },
+      &perf_test::solution_t::prefix);
   const auto t1 = perf_clock::now();
 
   if (!ranges::equal(solutions, distances, {}, &perf_test::solution_t::count)) {
@@ -222,6 +234,18 @@ timeunit_t trie_perf::find(
   return t1 - t0;
 }
 
+timeunit_t trie_perf::contains(const vector<string_view>& word_list) const {
+  const auto t0 = perf_clock::now();
+  if (ranges::any_of(word_list, [this](auto key) {
+        return words.find(key) == words.end();
+      })) {
+    throw runtime_error("Did not find word in container");
+  }
+  const auto t1 = perf_clock::now();
+
+  return t1 - t0;
+}
+
 timeunit_t trie_perf::erase(const vector<perf_test::solution_t>& solutions) {
   const auto t0 = perf_clock::now();
   for (const auto& solution : solutions) {
@@ -240,37 +264,4 @@ void perf_test::show_comparison(timeunit_t set_time, timeunit_t trie_time) {
   } else {
     cout << format("trie was {:.1f} x faster than set\n", diff_ratio);
   }
-}
-
-vector<string> perf_test::read_words() {
-  static random_device rdev;
-  vector<string> words;
-  words.reserve(WORDS_SIZE);
-
-  ifstream fin{WORDS_FILE};
-  if (!fin) throw runtime_error("Could not open words list");
-  for (string word; fin >> word;) {
-    words.push_back(word);
-  }
-  ranges::shuffle(words, default_random_engine{rdev()});
-
-  cout << format("Imported {} randomly shuffled words\n", words.size());
-  return words;
-}
-
-vector<perf_test::solution_t> perf_test::read_solutions() {
-  static random_device rdev;
-  vector<solution_t> solutions;
-  solutions.reserve(SOLUTIONS_SIZE);
-
-  ifstream fin{SOLUTIONS_FILE};
-  if (!fin) throw runtime_error("Could not open solutions file");
-  size_t count = 0;
-  for (string word, begin, end; fin >> word >> count >> begin >> end;) {
-    solutions.emplace_back(word, count, begin, end);
-  }
-  ranges::shuffle(solutions, default_random_engine{rdev()});
-
-  cout << format("Imported {} randomly shuffled words\n", solutions.size());
-  return solutions;
 }

@@ -7,11 +7,16 @@ Interface for performance testing.
 #include <algorithm>
 #include <chrono>
 #include <cstddef>
+#include <format>
+#include <fstream>
+#include <iostream>
 #include <iterator>
+#include <random>
 #include <ranges>
 #include <set>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "trie.h"
@@ -29,9 +34,11 @@ static constexpr size_t SOLUTIONS_SIZE = 114;
 /**
  * @brief Reads words from the WORDS_FILE into a vector of strings. Randomly
  * permutes before returning.
+ * @param prng The random engine to use for shuffling words.
  * @return A vector of strings containing all words from the file.
  */
-std::vector<std::string> read_words();
+std::vector<std::string> read_words(
+    std::uniform_random_bit_generator auto& prng);
 
 /**
  * Solution to finding and counting a prefix.
@@ -45,9 +52,22 @@ struct solution_t {
 /**
  * @brief Reads solutions from the SOLUTIONS_FILE into a vector of. Randomly
  * permutes before returning.
+ * @param prng The random engine to use for shuffling solution.
  * @return A vector of solutions containing all entries from the file.
  */
-std::vector<solution_t> read_solutions();
+std::vector<solution_t> read_solutions(
+    std::uniform_random_bit_generator auto& prng);
+
+/**
+ * @brief Randomly sample without replacement from the word list.
+ * @param word_list The original words to sample from.
+ * @param sample_size Number of samples to retrieve.
+ * @param prng The random engine to use for sampling.
+ * @return A random choosing of sample_size words from the list.
+ */
+std::vector<std::string_view> sample(
+    const std::vector<std::string>& word_list, size_t sample_size,
+    std::uniform_random_bit_generator auto& prng);
 
 /**
  * @brief Display performance comparison between set and Trie operations.
@@ -102,6 +122,14 @@ class perf {
       const std::vector<perf_test::solution_t>& solutions) const = 0;
 
   /**
+   * @brief Check for containment of words.
+   * @param word_list The words to check.
+   * @return The elapsed time.
+   */
+  virtual timeunit_t contains(
+      const std::vector<std::string_view>& word_list) const = 0;
+
+  /**
    * @brief Iterate forward over all words.
    * @return The elapsed time.
    */
@@ -148,6 +176,8 @@ class set_perf final : public perf<std::set<std::string>> {
       const std::vector<perf_test::solution_t>& solutions) const override;
   timeunit_t find(
       const std::vector<perf_test::solution_t>& solutions) const override;
+  timeunit_t contains(
+      const std::vector<std::string_view>& word_list) const override;
   timeunit_t erase(
       const std::vector<perf_test::solution_t>& solutions) override;
 };
@@ -161,11 +191,57 @@ class trie_perf final : public perf<trie> {
       const std::vector<perf_test::solution_t>& solutions) const override;
   timeunit_t find(
       const std::vector<perf_test::solution_t>& solutions) const override;
+  timeunit_t contains(
+      const std::vector<std::string_view>& word_list) const override;
   timeunit_t erase(
       const std::vector<perf_test::solution_t>& solutions) override;
 };
 
 // NON VIRTUAL TEMPLATED IMPLEMENTATIONS
+
+std::vector<std::string> perf_test::read_words(
+    std::uniform_random_bit_generator auto& prng) {
+  std::vector<std::string> words;
+  words.reserve(WORDS_SIZE);
+
+  std::ifstream fin{WORDS_FILE};
+  if (!fin) throw std::runtime_error("Could not open words list");
+  for (std::string word; fin >> word;) {
+    words.push_back(word);
+  }
+  std::ranges::shuffle(words, prng);
+
+  std::cout << std::format("Imported {} randomly shuffled words\n",
+                           words.size());
+  return words;
+}
+
+std::vector<perf_test::solution_t> perf_test::read_solutions(
+    std::uniform_random_bit_generator auto& prng) {
+  std::vector<solution_t> solutions;
+  solutions.reserve(SOLUTIONS_SIZE);
+
+  std::ifstream fin{SOLUTIONS_FILE};
+  if (!fin) throw std::runtime_error("Could not open solutions file");
+  size_t count = 0;
+  for (std::string word, begin, end; fin >> word >> count >> begin >> end;) {
+    solutions.emplace_back(word, count, begin, end);
+  }
+  std::ranges::shuffle(solutions, prng);
+
+  std::cout << std::format("Imported {} randomly shuffled words\n",
+                           solutions.size());
+  return solutions;
+}
+
+std::vector<std::string_view> perf_test::sample(
+    const std::vector<std::string>& word_list, size_t sample_size,
+    std::uniform_random_bit_generator auto& prng) {
+  std::vector<std::string_view> sub_list(sample_size);
+  std::ranges::sample(word_list, sub_list.begin(),
+                      static_cast<int32_t>(sample_size), prng);
+  return sub_list;
+}
 
 template <std::ranges::bidirectional_range Container>
 const Container& perf<Container>::peek() const {
