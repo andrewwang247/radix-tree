@@ -10,6 +10,7 @@ Interface for unit testing.
 
 #include "trie.h"
 namespace unit_test {
+static constexpr auto RESULT_TEMPLATE = "Test {:<20} passed\n";
 // NOLINTBEGIN(whitespace/indent_namespace)
 static const std::vector<std::string> SORTED_WORDS{
     "compute",  "computer", "contain",  "contaminate", "corn",
