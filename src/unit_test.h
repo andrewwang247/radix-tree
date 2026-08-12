@@ -5,17 +5,16 @@ Interface for unit testing.
 */
 #pragma once
 
-#include <string>
-#include <vector>
+#include <array>
+#include <string_view>
 
 #include "trie.h"
 namespace unit_test {
 static constexpr auto RESULT_TEMPLATE = "Test {:<20} passed\n";
 // NOLINTBEGIN(whitespace/indent_namespace)
-static const std::vector<std::string> SORTED_WORDS{
-    "compute",  "computer", "contain",  "contaminate", "corn",
-    "corner",   "mahjong",  "mahogany", "mat",         "material",
-    "maternal", "math",     "matrix"};
+static constexpr auto SORTED_WORDS = std::to_array<std::string_view>(
+    {"compute", "computer", "contain", "contaminate", "corn", "corner",
+     "mahjong", "mahogany", "mat", "material", "maternal", "math", "matrix"});
 // NOLINTEND
 
 /**

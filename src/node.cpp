@@ -20,7 +20,6 @@ Implementation for Node.
 
 using std::make_unique;
 using std::map;
-using std::next;
 using std::string;
 using std::string_view;
 using std::unique_ptr;
@@ -244,8 +243,8 @@ string node::underlying_string() const {
 
 map<string, unique_ptr<node>>::const_iterator node::find_child(
     const node* other) const {
-  return ranges::find_if(
-      children, [other](const auto& p) { return p.second.get() == other; });
+  return ranges::find(children, other,
+                      [](const auto& p) { return p.second.get(); });
 }
 
 string node::to_json(bool include_ends) const {
@@ -259,7 +258,7 @@ string node::to_json(bool include_ends) const {
     builder += iter->first;
     builder += "\":";
     builder += iter->second->to_json(include_ends);
-    if (next(iter) != children.end()) builder += ',';
+    if (std::next(iter) != children.end()) builder += ',';
   }
   builder += include_ends ? "}}" : "}";
   return builder;
