@@ -17,6 +17,7 @@ Performance testing implementation.
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "iterator.h"
@@ -26,6 +27,7 @@ using std::default_random_engine;
 using std::format;
 using std::ifstream;
 using std::ios_base;
+using std::make_pair;
 using std::numeric_limits;
 using std::random_device;
 using std::runtime_error;
@@ -139,44 +141,50 @@ timeunit_t set_perf::count(
       &perf_test::solution_t::prefix);
   const auto t1 = perf_clock::now();
 
-  if (!ranges::equal(solutions, distances, {}, &perf_test::solution_t::count)) {
-    throw runtime_error("Prefix count does not match solution");
+  const auto [miss_expect, miss_actual] =
+      ranges::mismatch(solutions, distances, {}, &perf_test::solution_t::count);
+  if (miss_expect != solutions.end() && miss_actual != distances.end()) {
+    throw runtime_error(
+        format("Expected {} words with prefix {} but counted {}",
+               miss_expect->count, miss_expect->prefix, *miss_actual));
   }
   return t1 - t0;
 }
 
 timeunit_t set_perf::find(
     const vector<perf_test::solution_t>& solutions) const {
-  vector<iter_t> actual_begins;
-  vector<iter_t> actual_ends;
-  actual_begins.reserve(solutions.size());
-  actual_ends.reserve(solutions.size());
+  vector<ranges::subrange<iter_t, iter_t>> actual_ranges(solutions.size());
 
   const auto t0 = perf_clock::now();
-  for (const auto& solution : solutions) {
-    const auto prefix_range = prefix_range_for(solution.prefix);
-    actual_begins.emplace_back(prefix_range.begin());
-    actual_ends.emplace_back(prefix_range.end());
-  }
+  ranges::transform(
+      solutions, actual_ranges.begin(),
+      [this](const auto& prf) { return prefix_range_for(prf); },
+      &perf_test::solution_t::prefix);
   const auto t1 = perf_clock::now();
 
-  if (!ranges::equal(solutions, actual_begins, {},
-                     &perf_test::solution_t::begin, deref) ||
-      !ranges::equal(solutions, actual_ends, {}, &perf_test::solution_t::end,
-                     deref)) {
-    throw runtime_error("Prefix range does not match solution");
+  const auto [miss_expect, miss_actual] = ranges::mismatch(
+      solutions, actual_ranges, {},
+      [](const perf_test::solution_t& sol) {
+        return make_pair(sol.begin, sol.end);
+      },
+      [](decltype(actual_ranges)::value_type rng) {
+        return make_pair(*rng.begin(), *rng.end());
+      });
+  if (miss_expect != solutions.end() && miss_actual != actual_ranges.end()) {
+    throw runtime_error(
+        format("Expected prefix range for {} is ({}, {}) but was ({}, {})",
+               miss_expect->prefix, miss_expect->begin, miss_expect->end,
+               *miss_actual->begin(), *miss_actual->end()));
   }
   return t1 - t0;
 }
 
 timeunit_t set_perf::contains(const vector<string_view>& word_list) const {
-  const auto key_view =
-      word_list | views::transform([](auto key) { return string{key}; });
-
   const auto t0 = perf_clock::now();
-  if (ranges::any_of(
-          key_view, [this](const auto& key) { return !words.contains(key); })) {
-    throw runtime_error("Did not find contained word");
+  for (const auto key : word_list) {
+    if (!words.contains(string{key})) {
+      throw runtime_error(format("Expected to find {} but did not", key));
+    }
   }
   const auto t1 = perf_clock::now();
 
@@ -184,12 +192,21 @@ timeunit_t set_perf::contains(const vector<string_view>& word_list) const {
 }
 
 timeunit_t set_perf::erase(const vector<perf_test::solution_t>& solutions) {
+  size_t total_erased = 0;
+
   const auto t0 = perf_clock::now();
-  for (const auto& solution : solutions) {
-    const auto prefix_range = prefix_range_for(solution.prefix);
+  for (const auto& [prefix, count, _1, _2] : solutions) {
+    const auto prefix_range = prefix_range_for(prefix);
     words.erase(prefix_range.begin(), prefix_range.end());
+    total_erased += count;
   }
   const auto t1 = perf_clock::now();
+
+  const auto expected_size = perf_test::WORDS_SIZE - total_erased;
+  if (words.size() != expected_size) {
+    throw runtime_error(format("Expected {} words after erasing but was {}",
+                               expected_size, words.size()));
+  }
   return t1 - t0;
 }
 
@@ -200,47 +217,58 @@ timeunit_t trie_perf::count(
   const auto t0 = perf_clock::now();
   ranges::transform(
       solutions, distances.begin(),
-      [this](const auto& prf) { return words.size(prf); },
+      [this](const string_view prf) { return words.size(prf); },
       &perf_test::solution_t::prefix);
   const auto t1 = perf_clock::now();
 
-  if (!ranges::equal(solutions, distances, {}, &perf_test::solution_t::count)) {
-    throw runtime_error("Prefix count does not match solution");
+  const auto [miss_expect, miss_actual] =
+      ranges::mismatch(solutions, distances, {}, &perf_test::solution_t::count);
+  if (miss_expect != solutions.end() && miss_actual != distances.end()) {
+    throw runtime_error(
+        format("Expected {} words with prefix {} but counted {}",
+               miss_expect->count, miss_expect->prefix, *miss_actual));
   }
   return t1 - t0;
 }
 
 timeunit_t trie_perf::find(
     const vector<perf_test::solution_t>& solutions) const {
-  vector<iterator> actual_begins;
-  vector<iterator> actual_ends;
-  actual_begins.reserve(solutions.size());
-  actual_ends.reserve(solutions.size());
+  vector<ranges::subrange<iterator, iterator>> actual_ranges(solutions.size());
 
   const auto t0 = perf_clock::now();
-  for (const auto& solution : solutions) {
-    const auto begin = words.begin(solution.prefix);
-    const auto end = words.end(solution.prefix);
-    actual_begins.emplace_back(begin);
-    actual_ends.emplace_back(end);
-  }
+  ranges::transform(
+      solutions, actual_ranges.begin(),
+      [this](const string_view prf) {
+        return ranges::subrange{words.begin(prf), words.end(prf)};
+      },
+      &perf_test::solution_t::prefix);
   const auto t1 = perf_clock::now();
 
-  if (!ranges::equal(solutions, actual_begins, {},
-                     &perf_test::solution_t::begin, deref) ||
-      !ranges::equal(solutions, actual_ends, {}, &perf_test::solution_t::end,
-                     deref)) {
-    throw runtime_error("Prefix range does not match solution");
+  const auto [miss_expect, miss_actual] = ranges::mismatch(
+      solutions, actual_ranges, {},
+      [](const perf_test::solution_t& sol) {
+        return make_pair(sol.begin, sol.end);
+      },
+      [](decltype(actual_ranges)::value_type rng) {
+        return make_pair(*rng.begin(), *rng.end());
+      });
+  if (miss_expect != solutions.end() && miss_actual != actual_ranges.end()) {
+    throw runtime_error(
+        format("Expected prefix range for {} is ({}, {}) but was ({}, {})",
+               miss_expect->prefix, miss_expect->begin, miss_expect->end,
+               *miss_actual->begin(), *miss_actual->end()));
   }
   return t1 - t0;
 }
 
 timeunit_t trie_perf::contains(const vector<string_view>& word_list) const {
+  const auto end_iter = words.end();
+
   const auto t0 = perf_clock::now();
-  if (ranges::any_of(word_list, [this](auto key) {
-        return words.find(key) == words.end();
-      })) {
-    throw runtime_error("Did not find word in container");
+  for (const auto key : word_list) {
+    if (words.find(key) == end_iter) {
+      throw runtime_error(format("Expected to find {} but did not", key));
+    }
   }
   const auto t1 = perf_clock::now();
 
@@ -248,11 +276,20 @@ timeunit_t trie_perf::contains(const vector<string_view>& word_list) const {
 }
 
 timeunit_t trie_perf::erase(const vector<perf_test::solution_t>& solutions) {
+  size_t total_erased = 0;
+
   const auto t0 = perf_clock::now();
-  for (const auto& solution : solutions) {
-    words.erase_prefix(solution.prefix);
+  for (const auto& [prefix, count, _1, _2] : solutions) {
+    words.erase_prefix(prefix);
+    total_erased += count;
   }
   const auto t1 = perf_clock::now();
+
+  const auto expected_size = perf_test::WORDS_SIZE - total_erased;
+  if (words.size() != expected_size) {
+    throw runtime_error(format("Expected {} words after erasing but was {}",
+                               expected_size, words.size()));
+  }
   return t1 - t0;
 }
 
