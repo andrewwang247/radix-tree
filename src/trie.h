@@ -5,6 +5,7 @@ Interface for Trie.
 */
 #pragma once
 #include <cassert>
+#include <compare>
 #include <cstddef>
 #include <initializer_list>
 #include <iterator>
@@ -218,6 +219,13 @@ class trie {
   trie& operator-=(const trie& rhs);
 
   // Private access for == operator to allow efficient deep equality check.
+  /**
+   * @brief Equality operator checks element-wise equality. Private access
+   * permits efficient traversal.
+   * @param lhs The left trie.
+   * @param rhs The right trie.
+   * @return Whether the 2 tries have matching content.
+   */
   friend bool operator==(const trie& lhs, const trie& rhs);
 };
 
@@ -231,11 +239,13 @@ Note: operator== is a friend to take advantage of
 efficient private functions.
 */
 
-bool operator<(const trie& lhs, const trie& rhs);
-bool operator!=(const trie& lhs, const trie& rhs);
-bool operator>(const trie& lhs, const trie& rhs);
-bool operator<=(const trie& lhs, const trie& rhs);
-bool operator>=(const trie& lhs, const trie& rhs);
+/**
+ * @brief Three way comparison operator for subset partial ordering.
+ * @param lhs The left trie.
+ * @param rhs The right trie.
+ * @return Subset
+ */
+std::partial_ordering operator<=>(const trie& lhs, const trie& rhs);
 
 // Arithmetic operators, uses += and -=.
 
