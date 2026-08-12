@@ -83,10 +83,6 @@ void show_comparison(timeunit_t set_time, timeunit_t trie_time);
 template <std::ranges::bidirectional_range Container>
 class perf {
  protected:
-  static constexpr auto deref = [](std::input_iterator auto iter) {
-    return *iter;
-  };
-
   Container words;
 
  public:
@@ -205,12 +201,17 @@ std::vector<std::string> perf_test::read_words(
   words.reserve(WORDS_SIZE);
 
   std::ifstream fin{WORDS_FILE};
-  if (!fin) throw std::runtime_error("Could not open words list");
+  if (!fin)
+    throw std::runtime_error(std::format("Could not open {}", WORDS_FILE));
   for (std::string word; fin >> word;) {
     words.push_back(word);
   }
-  std::ranges::shuffle(words, prng);
 
+  if (WORDS_SIZE != words.size()) {
+    throw std::runtime_error(
+        std::format("Expected {} words but got {}", WORDS_SIZE, words.size()));
+  }
+  std::ranges::shuffle(words, prng);
   std::cout << std::format("Imported {} randomly shuffled words\n",
                            words.size());
   return words;
@@ -222,13 +223,18 @@ std::vector<perf_test::solution_t> perf_test::read_solutions(
   solutions.reserve(SOLUTIONS_SIZE);
 
   std::ifstream fin{SOLUTIONS_FILE};
-  if (!fin) throw std::runtime_error("Could not open solutions file");
+  if (!fin)
+    throw std::runtime_error(std::format("Could not open {}", SOLUTIONS_FILE));
   size_t count = 0;
   for (std::string word, begin, end; fin >> word >> count >> begin >> end;) {
     solutions.emplace_back(word, count, begin, end);
   }
-  std::ranges::shuffle(solutions, prng);
 
+  if (SOLUTIONS_SIZE != solutions.size()) {
+    throw std::runtime_error(std::format("Expected {} words but got {}",
+                                         SOLUTIONS_SIZE, solutions.size()));
+  }
+  std::ranges::shuffle(solutions, prng);
   std::cout << std::format("Imported {} randomly shuffled words\n",
                            solutions.size());
   return solutions;
@@ -268,7 +274,9 @@ timeunit_t perf<Container>::forward_iterate() const {
   const auto t1 = perf_clock::now();
 
   if (perf_test::WORDS_SIZE != counter) {
-    throw std::runtime_error("Iterated over incorrect number of elements");
+    throw std::runtime_error(
+        std::format("Expected {} elements but iterated over {}",
+                    perf_test::WORDS_SIZE, counter));
   }
   return t1 - t0;
 }
@@ -281,7 +289,9 @@ timeunit_t perf<Container>::reverse_iterate() const {
   const auto t1 = perf_clock::now();
 
   if (perf_test::WORDS_SIZE != counter) {
-    throw std::runtime_error("Iterated over incorrect number of elements");
+    throw std::runtime_error(
+        std::format("Expected {} elements but iterated over {}",
+                    perf_test::WORDS_SIZE, counter));
   }
   return t1 - t0;
 }
