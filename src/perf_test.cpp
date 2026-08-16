@@ -119,11 +119,11 @@ string set_perf::lexicographic_increment(string word) {
   return word;
 }
 
-ranges::range auto set_perf::prefix_range_for(const string& prefix) const {
+ranges::range auto set_perf::prefix_range_for(string_view prefix) const {
   // Find the first item that's a prefix
   const auto begin = words.lower_bound(prefix);
   // Find where it stops being a prefix.
-  const auto right_bound = lexicographic_increment(prefix);
+  const auto right_bound = lexicographic_increment(string{prefix});
   const auto end = words.lower_bound(right_bound);
   return ranges::subrange{begin, end};
 }
@@ -135,7 +135,7 @@ timeunit_t set_perf::count(
   const auto t0 = perf_clock::now();
   ranges::transform(
       solutions, distances.begin(),
-      [this](const auto& prf) {
+      [this](string_view prf) {
         return ranges::distance(prefix_range_for(prf));
       },
       &perf_test::solution_t::prefix);
@@ -158,7 +158,7 @@ timeunit_t set_perf::find(
   const auto t0 = perf_clock::now();
   ranges::transform(
       solutions, actual_ranges.begin(),
-      [this](const auto& prf) { return prefix_range_for(prf); },
+      [this](string_view prf) { return prefix_range_for(prf); },
       &perf_test::solution_t::prefix);
   const auto t1 = perf_clock::now();
 
@@ -182,7 +182,7 @@ timeunit_t set_perf::find(
 timeunit_t set_perf::contains(const vector<string_view>& word_list) const {
   const auto t0 = perf_clock::now();
   for (const auto key : word_list) {
-    if (!words.contains(string{key})) {
+    if (!words.contains(key)) {
       throw runtime_error(format("Expected to find {} but did not", key));
     }
   }
@@ -217,7 +217,7 @@ timeunit_t trie_perf::count(
   const auto t0 = perf_clock::now();
   ranges::transform(
       solutions, distances.begin(),
-      [this](const string_view prf) { return words.size(prf); },
+      [this](string_view prf) { return words.size(prf); },
       &perf_test::solution_t::prefix);
   const auto t1 = perf_clock::now();
 
@@ -238,7 +238,7 @@ timeunit_t trie_perf::find(
   const auto t0 = perf_clock::now();
   ranges::transform(
       solutions, actual_ranges.begin(),
-      [this](const string_view prf) {
+      [this](string_view prf) {
         return ranges::subrange{words.begin(prf), words.end(prf)};
       },
       &perf_test::solution_t::prefix);
@@ -296,12 +296,13 @@ timeunit_t trie_perf::erase(const vector<perf_test::solution_t>& solutions) {
 void perf_test::show_comparison(timeunit_t set_time, timeunit_t trie_time) {
   static constexpr auto COMPARE_TEMPLATE =
       "{:>4} was {:4.1f} x faster than {:>4}\n";
-  const auto diff_ratio =
-      static_cast<double>(std::max(set_time, trie_time).count()) /
-      static_cast<double>(std::min(set_time, trie_time).count());
   if (set_time < trie_time) {
+    const auto diff_ratio = static_cast<double>(trie_time.count()) /
+                            static_cast<double>(set_time.count());
     cout << format(COMPARE_TEMPLATE, "set", diff_ratio, "trie");
   } else {
+    const auto diff_ratio = static_cast<double>(set_time.count()) /
+                            static_cast<double>(trie_time.count());
     cout << format(COMPARE_TEMPLATE, "trie", diff_ratio, "set");
   }
 }

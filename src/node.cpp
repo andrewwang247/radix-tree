@@ -237,7 +237,7 @@ string node::underlying_string() const {
   // If par is null, then ptr must be root. Concatenate strings in reverse.
   string str{};
   str.reserve(total_length);
-  for (const auto& segment : history | views::reverse) {
+  for (const auto segment : history | views::reverse) {
     str += segment;
   }
   return str;
