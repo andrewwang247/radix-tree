@@ -277,7 +277,7 @@ iterator trie::end(string_view prefix_view) const {
 
 trie& trie::operator+=(const trie& rhs) {
   assert(this != &rhs);
-  for (const auto& key : rhs) {
+  for (const auto key : rhs) {
     insert(key);
   }
   root->assert_invariants();
@@ -288,7 +288,7 @@ trie operator+(trie lhs, const trie& rhs) { return lhs += rhs; }
 
 trie& trie::operator-=(const trie& rhs) {
   assert(this != &rhs);
-  for (const auto& key : rhs) {
+  for (const auto key : rhs) {
     erase(key);
   }
   root->assert_invariants();

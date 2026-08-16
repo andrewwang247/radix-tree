@@ -9,6 +9,7 @@ Interface for performance testing.
 #include <cstddef>
 #include <format>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <iterator>
 #include <random>
@@ -149,7 +150,7 @@ class perf {
 /**
  * Perf class template for std::set.
  */
-class set_perf final : public perf<std::set<std::string>> {
+class set_perf final : public perf<std::set<std::string, std::less<>>> {
  private:
   using iter_t = decltype(words)::const_iterator;
 
@@ -165,7 +166,7 @@ class set_perf final : public perf<std::set<std::string>> {
    * @param prefix The prefix to locate.
    * @return The range of words with prefix.
    */
-  std::ranges::range auto prefix_range_for(const std::string& prefix) const;
+  std::ranges::range auto prefix_range_for(std::string_view prefix) const;
 
  public:
   timeunit_t count(
