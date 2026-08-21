@@ -46,7 +46,7 @@ std::vector<std::string> read_words(
  */
 struct solution_t {
   std::string prefix;
-  size_t count;
+  size_t count = 0;
   std::string begin, end;
 };
 

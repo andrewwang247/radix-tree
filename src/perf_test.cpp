@@ -195,10 +195,10 @@ timeunit_t set_perf::erase(const vector<perf_test::solution_t>& solutions) {
   size_t total_erased = 0;
 
   const auto t0 = perf_clock::now();
-  for (const auto& [prefix, count, _1, _2] : solutions) {
+  for (const auto& [prefix, num, _1, _2] : solutions) {
     const auto prefix_range = prefix_range_for(prefix);
     words.erase(prefix_range.begin(), prefix_range.end());
-    total_erased += count;
+    total_erased += num;
   }
   const auto t1 = perf_clock::now();
 
@@ -279,9 +279,9 @@ timeunit_t trie_perf::erase(const vector<perf_test::solution_t>& solutions) {
   size_t total_erased = 0;
 
   const auto t0 = perf_clock::now();
-  for (const auto& [prefix, count, _1, _2] : solutions) {
+  for (const auto& [prefix, num, _1, _2] : solutions) {
     words.erase_prefix(prefix);
-    total_erased += count;
+    total_erased += num;
   }
   const auto t1 = perf_clock::now();
 
