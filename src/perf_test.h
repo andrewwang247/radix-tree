@@ -6,6 +6,7 @@ Interface for performance testing.
 #pragma once
 #include <algorithm>
 #include <chrono>
+#include <concepts>
 #include <cstddef>
 #include <format>
 #include <fstream>
@@ -18,6 +19,7 @@ Interface for performance testing.
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "trie.h"
@@ -145,6 +147,25 @@ class perf {
    */
   virtual timeunit_t erase(
       const std::vector<perf_test::solution_t>& solutions) = 0;
+
+ protected:
+  /**
+   * @brief Helper implementation function for count benchmark.
+   * @param solutions The prefixes to count.
+   * @param func The specific count function for this type.
+   * @return The elapsed time.
+   */
+  timeunit_t count_impl(const std::vector<perf_test::solution_t>& solutions,
+                        std::invocable<std::string_view> auto func) const;
+
+  /**
+   * @brief Helper implementation function for find benchmark.
+   * @param solutions The prefixes to find.
+   * @param func The specific find function for this type.
+   * @return The elapsed time.
+   */
+  timeunit_t find_impl(const std::vector<perf_test::solution_t>& solutions,
+                       std::invocable<std::string_view> auto func) const;
 };
 
 /**
@@ -152,8 +173,6 @@ class perf {
  */
 class set_perf final : public perf<std::set<std::string, std::less<>>> {
  private:
-  using iter_t = decltype(words)::const_iterator;
-
   /**
    * @brief Increment a string to the next possible in lexicographic order.
    * @param word The current string to process.
@@ -253,6 +272,57 @@ std::vector<std::string_view> perf_test::sample(
 template <std::ranges::bidirectional_range Container>
 const Container& perf<Container>::peek() const {
   return words;
+}
+
+template <std::ranges::bidirectional_range Container>
+timeunit_t perf<Container>::count_impl(
+    const std::vector<perf_test::solution_t>& solutions,
+    std::invocable<std::string_view> auto func) const {
+  std::vector<size_t> distances(solutions.size());
+
+  const auto t0 = perf_clock::now();
+  std::ranges::transform(solutions, distances.begin(), func,
+                         &perf_test::solution_t::prefix);
+  const auto t1 = perf_clock::now();
+
+  const auto [miss_expect, miss_actual] = std::ranges::mismatch(
+      solutions, distances, {}, &perf_test::solution_t::count);
+  if (miss_expect != solutions.end() && miss_actual != distances.end()) {
+    throw std::runtime_error(
+        std::format("Expected {} words with prefix {} but counted {}",
+                    miss_expect->count, miss_expect->prefix, *miss_actual));
+  }
+  return t1 - t0;
+}
+
+template <std::ranges::bidirectional_range Container>
+timeunit_t perf<Container>::find_impl(
+    const std::vector<perf_test::solution_t>& solutions,
+    std::invocable<std::string_view> auto func) const {
+  using iter_t = decltype(words)::const_iterator;
+  std::vector<std::ranges::subrange<iter_t, iter_t>> actual_ranges(
+      solutions.size());
+
+  const auto t0 = perf_clock::now();
+  std::ranges::transform(solutions, actual_ranges.begin(), func,
+                         &perf_test::solution_t::prefix);
+  const auto t1 = perf_clock::now();
+
+  const auto [miss_expect, miss_actual] = std::ranges::mismatch(
+      solutions, actual_ranges, {},
+      [](const perf_test::solution_t& sol) {
+        return std::make_pair(sol.begin, sol.end);
+      },
+      [](decltype(actual_ranges)::value_type rng) {
+        return std::make_pair(*rng.begin(), *rng.end());
+      });
+  if (miss_expect != solutions.end() && miss_actual != actual_ranges.end()) {
+    throw std::runtime_error(
+        std::format("Expected prefix range for {} is ({}, {}) but was ({}, {})",
+                    miss_expect->prefix, miss_expect->begin, miss_expect->end,
+                    *miss_actual->begin(), *miss_actual->end()));
+  }
+  return t1 - t0;
 }
 
 template <std::ranges::bidirectional_range Container>
