@@ -1,5 +1,5 @@
 ---
-Checks:          'clang-diagnostic-*,-*,modernize-*,performance-*,readability-*,cppcoreguidelines-*,misc-*,-modernize-use-trailing-return-type,-modernize-use-nodiscard,-readability-implicit-bool-conversion,-readability-braces-around-statements,-readability-identifier-length,-cppcoreguidelines-avoid-do-while,-cppcoreguidelines-special-member-functions,-cppcoreguidelines-non-private-member-variables-in-classes,-misc-non-private-member-variables-in-classes,-misc-no-recursion,-misc-use-anonymous-namespace,-readability-math-missing-parentheses,-*-magic-numbers'
+Checks:          'clang-diagnostic-*,-*,modernize-*,performance-*,readability-*,cppcoreguidelines-*,misc-*,-modernize-use-trailing-return-type,-modernize-use-nodiscard,-readability-implicit-bool-conversion,-readability-braces-around-statements,-readability-container-contains,-readability-identifier-length,-cppcoreguidelines-avoid-do-while,-cppcoreguidelines-special-member-functions,-cppcoreguidelines-non-private-member-variables-in-classes,-misc-non-private-member-variables-in-classes,-misc-no-recursion,-misc-use-anonymous-namespace,-readability-math-missing-parentheses,-*-magic-numbers'
 WarningsAsErrors: ''
 HeaderFileExtensions:
   - ''

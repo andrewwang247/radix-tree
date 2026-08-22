@@ -63,6 +63,13 @@ size_t trie::size(string_view prefix_view) const {
   return prf_rt ? prf_rt->key_count() : static_cast<size_t>(0);
 }
 
+bool trie::contains(string_view key_view) const {
+  if (key_view.empty()) {
+    return root->is_end;
+  }
+  return root->exact_match(key_view);
+}
+
 iterator trie::find(string_view key_view) const {
   // Handle edge case of key being empty.
   if (key_view.empty()) {
