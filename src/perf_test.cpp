@@ -17,7 +17,6 @@ Performance testing implementation.
 #include <stdexcept>
 #include <string>
 #include <string_view>
-#include <utility>
 #include <vector>
 
 #include "iterator.h"
@@ -27,7 +26,6 @@ using std::default_random_engine;
 using std::format;
 using std::ifstream;
 using std::ios_base;
-using std::make_pair;
 using std::numeric_limits;
 using std::random_device;
 using std::runtime_error;
@@ -130,53 +128,15 @@ ranges::range auto set_perf::prefix_range_for(string_view prefix) const {
 
 timeunit_t set_perf::count(
     const vector<perf_test::solution_t>& solutions) const {
-  vector<size_t> distances(solutions.size());
-
-  const auto t0 = perf_clock::now();
-  ranges::transform(
-      solutions, distances.begin(),
-      [this](string_view prf) {
-        return ranges::distance(prefix_range_for(prf));
-      },
-      &perf_test::solution_t::prefix);
-  const auto t1 = perf_clock::now();
-
-  const auto [miss_expect, miss_actual] =
-      ranges::mismatch(solutions, distances, {}, &perf_test::solution_t::count);
-  if (miss_expect != solutions.end() && miss_actual != distances.end()) {
-    throw runtime_error(
-        format("Expected {} words with prefix {} but counted {}",
-               miss_expect->count, miss_expect->prefix, *miss_actual));
-  }
-  return t1 - t0;
+  return count_impl(solutions, [this](string_view prf) {
+    return ranges::distance(prefix_range_for(prf));
+  });
 }
 
 timeunit_t set_perf::find(
     const vector<perf_test::solution_t>& solutions) const {
-  vector<ranges::subrange<iter_t, iter_t>> actual_ranges(solutions.size());
-
-  const auto t0 = perf_clock::now();
-  ranges::transform(
-      solutions, actual_ranges.begin(),
-      [this](string_view prf) { return prefix_range_for(prf); },
-      &perf_test::solution_t::prefix);
-  const auto t1 = perf_clock::now();
-
-  const auto [miss_expect, miss_actual] = ranges::mismatch(
-      solutions, actual_ranges, {},
-      [](const perf_test::solution_t& sol) {
-        return make_pair(sol.begin, sol.end);
-      },
-      [](decltype(actual_ranges)::value_type rng) {
-        return make_pair(*rng.begin(), *rng.end());
-      });
-  if (miss_expect != solutions.end() && miss_actual != actual_ranges.end()) {
-    throw runtime_error(
-        format("Expected prefix range for {} is ({}, {}) but was ({}, {})",
-               miss_expect->prefix, miss_expect->begin, miss_expect->end,
-               *miss_actual->begin(), *miss_actual->end()));
-  }
-  return t1 - t0;
+  return find_impl(solutions,
+                   [this](string_view prf) { return prefix_range_for(prf); });
 }
 
 timeunit_t set_perf::contains(const vector<string_view>& word_list) const {
@@ -212,53 +172,15 @@ timeunit_t set_perf::erase(const vector<perf_test::solution_t>& solutions) {
 
 timeunit_t trie_perf::count(
     const vector<perf_test::solution_t>& solutions) const {
-  vector<size_t> distances(solutions.size());
-
-  const auto t0 = perf_clock::now();
-  ranges::transform(
-      solutions, distances.begin(),
-      [this](string_view prf) { return words.size(prf); },
-      &perf_test::solution_t::prefix);
-  const auto t1 = perf_clock::now();
-
-  const auto [miss_expect, miss_actual] =
-      ranges::mismatch(solutions, distances, {}, &perf_test::solution_t::count);
-  if (miss_expect != solutions.end() && miss_actual != distances.end()) {
-    throw runtime_error(
-        format("Expected {} words with prefix {} but counted {}",
-               miss_expect->count, miss_expect->prefix, *miss_actual));
-  }
-  return t1 - t0;
+  return count_impl(solutions,
+                    [this](string_view prf) { return words.size(prf); });
 }
 
 timeunit_t trie_perf::find(
     const vector<perf_test::solution_t>& solutions) const {
-  vector<ranges::subrange<iterator, iterator>> actual_ranges(solutions.size());
-
-  const auto t0 = perf_clock::now();
-  ranges::transform(
-      solutions, actual_ranges.begin(),
-      [this](string_view prf) {
-        return ranges::subrange{words.begin(prf), words.end(prf)};
-      },
-      &perf_test::solution_t::prefix);
-  const auto t1 = perf_clock::now();
-
-  const auto [miss_expect, miss_actual] = ranges::mismatch(
-      solutions, actual_ranges, {},
-      [](const perf_test::solution_t& sol) {
-        return make_pair(sol.begin, sol.end);
-      },
-      [](decltype(actual_ranges)::value_type rng) {
-        return make_pair(*rng.begin(), *rng.end());
-      });
-  if (miss_expect != solutions.end() && miss_actual != actual_ranges.end()) {
-    throw runtime_error(
-        format("Expected prefix range for {} is ({}, {}) but was ({}, {})",
-               miss_expect->prefix, miss_expect->begin, miss_expect->end,
-               *miss_actual->begin(), *miss_actual->end()));
-  }
-  return t1 - t0;
+  return find_impl(solutions, [this](string_view prf) {
+    return ranges::subrange{words.begin(prf), words.end(prf)};
+  });
 }
 
 timeunit_t trie_perf::contains(const vector<string_view>& word_list) const {
