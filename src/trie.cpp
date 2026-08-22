@@ -60,7 +60,7 @@ bool trie::empty(string_view prefix_view) const {
 
 size_t trie::size(string_view prefix_view) const {
   const auto [prf_rt, _] = root->prefix_match(prefix_view);
-  return prf_rt ? prf_rt->key_count() : static_cast<size_t>(0);
+  return prf_rt ? prf_rt->key_count() : 0U;
 }
 
 bool trie::contains(string_view key_view) const {

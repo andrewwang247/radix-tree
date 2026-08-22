@@ -13,6 +13,7 @@ Interface for performance testing.
 #include <functional>
 #include <iostream>
 #include <iterator>
+#include <numeric>
 #include <random>
 #include <ranges>
 #include <set>
@@ -165,6 +166,15 @@ class perf {
    */
   timeunit_t find_impl(const std::vector<perf_test::solution_t>& solutions,
                        std::invocable<std::string_view> auto func) const;
+
+  /**
+   * @brief Helper implementation function for erase benchmark.
+   * @param solutions The prefixes to erase.
+   * @param func The specific erase function for this type.
+   * @return The elapsed time.
+   */
+  timeunit_t erase_impl(const std::vector<perf_test::solution_t>& solutions,
+                        std::invocable<std::string_view> auto func) const;
 };
 
 /**
@@ -316,6 +326,28 @@ timeunit_t perf<Container>::find_impl(
         std::format("Expected prefix range for {} is ({}, {}) but was ({}, {})",
                     miss_expect->prefix, miss_expect->begin, miss_expect->end,
                     *miss_actual->begin(), *miss_actual->end()));
+  }
+  return t1 - t0;
+}
+
+template <std::ranges::bidirectional_range Container>
+timeunit_t perf<Container>::erase_impl(
+    const std::vector<perf_test::solution_t>& solutions,
+    std::invocable<std::string_view> auto func) const {
+  const auto count_view =
+      solutions | std::views::transform(&perf_test::solution_t::count);
+  const size_t total_erased =
+      std::accumulate(count_view.begin(), count_view.end(), 0U);
+
+  const auto t0 = perf_clock::now();
+  std::ranges::for_each(solutions, func, &perf_test::solution_t::prefix);
+  const auto t1 = perf_clock::now();
+
+  const auto expected_size = perf_test::WORDS_SIZE - total_erased;
+  if (words.size() != expected_size) {
+    throw std::runtime_error(
+        std::format("Expected {} words after erasing but was {}", expected_size,
+                    words.size()));
   }
   return t1 - t0;
 }

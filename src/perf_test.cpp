@@ -138,22 +138,10 @@ timeunit_t set_perf::find(
 }
 
 timeunit_t set_perf::erase(const vector<perf_test::solution_t>& solutions) {
-  size_t total_erased = 0;
-
-  const auto t0 = perf_clock::now();
-  for (const auto& [prefix, num, _1, _2] : solutions) {
-    const auto prefix_range = prefix_range_for(prefix);
-    words.erase(prefix_range.begin(), prefix_range.end());
-    total_erased += num;
-  }
-  const auto t1 = perf_clock::now();
-
-  const auto expected_size = perf_test::WORDS_SIZE - total_erased;
-  if (words.size() != expected_size) {
-    throw runtime_error(format("Expected {} words after erasing but was {}",
-                               expected_size, words.size()));
-  }
-  return t1 - t0;
+  return erase_impl(solutions, [this](string_view prf) {
+    const auto [begin, end] = prefix_range_for(prf);
+    words.erase(begin, end);
+  });
 }
 
 timeunit_t trie_perf::count(
@@ -170,21 +158,8 @@ timeunit_t trie_perf::find(
 }
 
 timeunit_t trie_perf::erase(const vector<perf_test::solution_t>& solutions) {
-  size_t total_erased = 0;
-
-  const auto t0 = perf_clock::now();
-  for (const auto& [prefix, num, _1, _2] : solutions) {
-    words.erase_prefix(prefix);
-    total_erased += num;
-  }
-  const auto t1 = perf_clock::now();
-
-  const auto expected_size = perf_test::WORDS_SIZE - total_erased;
-  if (words.size() != expected_size) {
-    throw runtime_error(format("Expected {} words after erasing but was {}",
-                               expected_size, words.size()));
-  }
-  return t1 - t0;
+  return erase_impl(solutions,
+                    [this](string_view prf) { words.erase_prefix(prf); });
 }
 
 void perf_test::show_comparison(timeunit_t set_time, timeunit_t trie_time) {
