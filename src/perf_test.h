@@ -125,8 +125,7 @@ class perf {
    * @param word_list The words to check.
    * @return The elapsed time.
    */
-  virtual timeunit_t contains(
-      const std::vector<std::string_view>& word_list) const = 0;
+  timeunit_t contains(const std::vector<std::string_view>& word_list) const;
 
   /**
    * @brief Iterate forward over all words.
@@ -192,8 +191,6 @@ class set_perf final : public perf<std::set<std::string, std::less<>>> {
       const std::vector<perf_test::solution_t>& solutions) const override;
   timeunit_t find(
       const std::vector<perf_test::solution_t>& solutions) const override;
-  timeunit_t contains(
-      const std::vector<std::string_view>& word_list) const override;
   timeunit_t erase(
       const std::vector<perf_test::solution_t>& solutions) override;
 };
@@ -207,8 +204,6 @@ class trie_perf final : public perf<trie> {
       const std::vector<perf_test::solution_t>& solutions) const override;
   timeunit_t find(
       const std::vector<perf_test::solution_t>& solutions) const override;
-  timeunit_t contains(
-      const std::vector<std::string_view>& word_list) const override;
   timeunit_t erase(
       const std::vector<perf_test::solution_t>& solutions) override;
 };
@@ -333,6 +328,21 @@ timeunit_t perf<Container>::insert(const std::vector<std::string>& word_list) {
     words.insert(word);
   }
   const auto t1 = perf_clock::now();
+  return t1 - t0;
+}
+
+template <std::ranges::bidirectional_range Container>
+timeunit_t perf<Container>::contains(
+    const std::vector<std::string_view>& word_list) const {
+  const auto t0 = perf_clock::now();
+  const auto iter = std::ranges::find_if_not(
+      word_list, [this](std::string_view key) { return words.contains(key); });
+  const auto t1 = perf_clock::now();
+
+  if (iter != word_list.end()) {
+    throw std::runtime_error(
+        std::format("Expected to find {} but did not", *iter));
+  }
   return t1 - t0;
 }
 

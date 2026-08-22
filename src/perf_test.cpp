@@ -19,8 +19,6 @@ Performance testing implementation.
 #include <string_view>
 #include <vector>
 
-#include "iterator.h"
-
 using std::cout;
 using std::default_random_engine;
 using std::format;
@@ -139,18 +137,6 @@ timeunit_t set_perf::find(
                    [this](string_view prf) { return prefix_range_for(prf); });
 }
 
-timeunit_t set_perf::contains(const vector<string_view>& word_list) const {
-  const auto t0 = perf_clock::now();
-  for (const auto key : word_list) {
-    if (!words.contains(key)) {
-      throw runtime_error(format("Expected to find {} but did not", key));
-    }
-  }
-  const auto t1 = perf_clock::now();
-
-  return t1 - t0;
-}
-
 timeunit_t set_perf::erase(const vector<perf_test::solution_t>& solutions) {
   size_t total_erased = 0;
 
@@ -181,20 +167,6 @@ timeunit_t trie_perf::find(
   return find_impl(solutions, [this](string_view prf) {
     return ranges::subrange{words.begin(prf), words.end(prf)};
   });
-}
-
-timeunit_t trie_perf::contains(const vector<string_view>& word_list) const {
-  const auto end_iter = words.end();
-
-  const auto t0 = perf_clock::now();
-  for (const auto key : word_list) {
-    if (words.find(key) == end_iter) {
-      throw runtime_error(format("Expected to find {} but did not", key));
-    }
-  }
-  const auto t1 = perf_clock::now();
-
-  return t1 - t0;
 }
 
 timeunit_t trie_perf::erase(const vector<perf_test::solution_t>& solutions) {
