@@ -116,6 +116,8 @@ void unit_test::find() {
   assert(!tr.empty());
   assert(tr.size() == 13);
   assert(tr.size("ma") == 7);
+  assert(!tr.contains("co"));
+  assert(tr.contains("mat"));
 
   assert(tr.contains("corn"));
   const auto exact_iter = tr.find("corn");
@@ -185,8 +187,8 @@ void unit_test::erase() {
 
   // Erase a leaf node.
   tr.erase("maternal");  // ensure idempotence
-  assert(!tr.contains("maternal"));
   tr.erase("maternal");
+  assert(!tr.contains("maternal"));
   assert(tr.size() == 12);
   assert(!tr.empty());
   assert(tr.find("maternal") == tr.end());
@@ -195,8 +197,8 @@ void unit_test::erase() {
 
   // Erase non-degenerate internal node.
   tr.erase("mat");  // ensure idempotence
-  assert(!tr.contains("mat"));
   tr.erase("mat");
+  assert(!tr.contains("mat"));
   auto iter = tr.find_prefix("mat");
   assert(iter != tr.end());
   assert(*iter == "material");
@@ -213,8 +215,8 @@ void unit_test::erase() {
   assert(tr.size("co") == 5);
 
   tr.erase_prefix("con");  // ensure idempotence
-  assert(!tr.contains("contain"));
   tr.erase_prefix("con");
+  assert(!tr.contains("contain"));
   assert(!tr.contains("contaminate"));
   assert(tr.find("contain") == tr.end());
   assert(tr.find("contaminate") == tr.end());
