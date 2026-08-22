@@ -143,6 +143,13 @@ class trie {
   // --- SEARCHING ---
 
   /**
+   * @brief Checks for key in trie.
+   * @param key The key to check in trie.
+   * @return Whether key is contained in trie.
+   */
+  bool contains(std::string_view key) const;
+
+  /**
    * @brief Searches for key in trie.
    * @param key The key used to search the trie.
    * @return An iterator to key if it exists. Otherwise, returns a null

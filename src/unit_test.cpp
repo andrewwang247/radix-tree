@@ -61,9 +61,7 @@ void unit_test::empty() {
   assert(!tr.begin());
   assert(!tr.end());
   assert(tr.begin() == tr.end());
-  assert(tr.find("test") == tr.end());
-  assert(tr.find_prefix("test") == tr.end());
-  assert(tr.find("") == tr.end());
+  assert(!tr.contains(""));
   assert(tr.find_prefix("") == tr.end());
 
   tr.insert("");
@@ -75,7 +73,7 @@ void unit_test::empty() {
   assert(tr.begin());
   assert(!tr.end());
   assert(tr.begin()->empty());
-  assert(tr.find("test") == tr.end());
+  assert(!tr.contains("test"));
   assert(tr.find_prefix("test") == tr.end());
   assert(tr.find("")->empty());
   assert(tr.find_prefix("")->empty());
@@ -96,12 +94,16 @@ void unit_test::single() {
   assert(tr.begin());
   assert(!tr.end());
   assert(*tr.begin() == "single");
+  assert(!tr.contains("test"));
   assert(tr.find("test") == tr.end());
   assert(tr.find_prefix("test") == tr.end());
+  assert(!tr.contains(""));
   assert(tr.find("") == tr.end());
   assert(*tr.find_prefix("") == "single");
+  assert(!tr.contains("sin"));
   assert(tr.find("sin") == tr.end());
   assert(*tr.find_prefix("sin") == "single");
+  assert(tr.contains("single"));
   assert(*tr.find("single") == "single");
   assert(*tr.find_prefix("single") == "single");
 
@@ -115,21 +117,26 @@ void unit_test::find() {
   assert(tr.size() == 13);
   assert(tr.size("ma") == 7);
 
+  assert(tr.contains("corn"));
   const auto exact_iter = tr.find("corn");
   assert(exact_iter != tr.end());
   assert(*exact_iter == "corn");
 
+  assert(!tr.contains("mate"));
   const auto prf_iter = tr.find_prefix("mate");
   assert(prf_iter != tr.end());
   assert(*prf_iter == "material");
 
+  assert(tr.contains("contaminate"));
   const auto exact_prf_iter = tr.find_prefix("contaminate");
   assert(exact_prf_iter != tr.end());
   assert(*exact_prf_iter == "contaminate");
 
+  assert(!tr.contains("testing"));
   const auto missing_exact_iter = tr.find("testing");
   assert(missing_exact_iter == tr.end());
 
+  assert(!tr.contains("conk"));
   const auto missing_prf_iter = tr.find("conk");
   assert(missing_prf_iter == tr.end());
 
@@ -139,19 +146,25 @@ void unit_test::find() {
 void unit_test::insert() {
   trie tr;
 
+  assert(!tr.contains("math"));
   auto iter = tr.insert("math");
+  assert(tr.contains("math"));
   assert(iter != tr.end());
   assert(*iter == "math");
   assert(tr.size("math") == 1);
   assert(!tr.empty("mat"));
 
+  assert(!tr.contains("malleable"));
   iter = tr.insert("malleable");
+  assert(tr.contains("malleable"));
   assert(iter != tr.end());
   assert(*iter == "malleable");
   assert(tr.size() == 2);
   assert(!tr.empty("ma"));
 
+  assert(!tr.contains("regression"));
   tr.insert("regression");  // ensure idempotence
+  assert(tr.contains("regression"));
   iter = tr.insert("regression");
   assert(iter != tr.end());
   assert(*iter == "regression");
@@ -172,6 +185,7 @@ void unit_test::erase() {
 
   // Erase a leaf node.
   tr.erase("maternal");  // ensure idempotence
+  assert(!tr.contains("maternal"));
   tr.erase("maternal");
   assert(tr.size() == 12);
   assert(!tr.empty());
@@ -181,6 +195,7 @@ void unit_test::erase() {
 
   // Erase non-degenerate internal node.
   tr.erase("mat");  // ensure idempotence
+  assert(!tr.contains("mat"));
   tr.erase("mat");
   auto iter = tr.find_prefix("mat");
   assert(iter != tr.end());
@@ -191,13 +206,16 @@ void unit_test::erase() {
   // Erase degenerate internal node.
   tr.erase("corn");  // ensure idempotence
   tr.erase("corn");
+  assert(tr.contains("corner"));
   iter = tr.find("corner");
   assert(iter != tr.end());
   assert(*iter == "corner");
   assert(tr.size("co") == 5);
 
   tr.erase_prefix("con");  // ensure idempotence
+  assert(!tr.contains("contain"));
   tr.erase_prefix("con");
+  assert(!tr.contains("contaminate"));
   assert(tr.find("contain") == tr.end());
   assert(tr.find("contaminate") == tr.end());
   assert(tr.find_prefix("con") == tr.end());

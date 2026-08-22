@@ -115,8 +115,9 @@ node* node::exact_match(string_view word_view) {
   // First compute the approximate root.
   const auto [app_ptr, word] = approximate_match(word_view);
   assert(app_ptr);
-  // If the word is empty, it's a perfect match. Otherwise, no match.
-  return word.empty() ? app_ptr : nullptr;
+  // Match if and only if we've used entire word and app_ptr is_end.
+  if (word.empty() && app_ptr->is_end) return app_ptr;
+  return nullptr;
 }
 
 const node* node::first_key() const {
