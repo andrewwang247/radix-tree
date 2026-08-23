@@ -6,6 +6,7 @@ Benchmarking class interfaces.
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <concepts>
 #include <cstddef>
@@ -214,10 +215,10 @@ timeunit_t perf<Container>::find_impl(
         return std::make_pair(*rng.begin(), *rng.end());
       });
   if (miss_expect != solutions.end() && miss_actual != actual_ranges.end()) {
-    throw std::runtime_error(
-        std::format("Expected prefix range for {} is ({}, {}) but was ({}, {})",
-                    miss_expect->prefix, miss_expect->begin, miss_expect->end,
-                    *miss_actual->begin(), *miss_actual->end()));
+    throw std::runtime_error(std::format(
+        "Expected prefix range for {} to be ({}, {}) but was ({}, {})",
+        miss_expect->prefix, miss_expect->begin, miss_expect->end,
+        *miss_actual->begin(), *miss_actual->end()));
   }
   return t1 - t0;
 }
@@ -258,14 +259,35 @@ timeunit_t perf<Container>::insert(const std::vector<std::string>& word_list) {
 template <std::ranges::bidirectional_range Container>
 timeunit_t perf<Container>::contains(
     const std::vector<std::string_view>& word_list) const {
+  static constexpr std::array<const char*, 108U> non_inc{
+      "inte", "nonc", "pseu", "unre", "micr", "nons", "nonp", "coun", "hydr",
+      "prot", "nond", "reco", "unpr", "nonr", "unin", "inco", "noni", "undi",
+      "prea", "ther", "anth", "tetr", "endo", "extr", "neur", "unst", "tric",
+      "subc", "indi", "retr", "radi", "nonf", "nont", "unsu", "impe", "chro",
+      "unex", "psyc", "nonm", "unse", "irre", "amph", "unpe", "untr", "sulp",
+      "colo", "gran", "hemi", "macr", "squa", "unpa", "cata", "ultr", "prei",
+      "unsa", "deca", "impr", "mega", "nonv", "medi", "equi", "chlo", "unma",
+      "subt", "stri", "carb", "unsh", "dise", "acro", "spir", "unme", "unsp",
+      "chor", "brac", "stro", "misa", "hema", "unfo", "outb", "acet", "oste",
+      "unch", "afte", "acti", "subp", "heli", "phyt", "rese", "ente", "squi",
+      "unmo", "phen", "unen", "resi", "subd", "prer", "prol", "phyl", "unfa",
+      "cryp", "unim", "unso", "impa", "magn", "unha", "scra", "hemo", "brea"};
+  const auto contains_key = [this](std::string_view key) {
+    return words.contains(key);
+  };
+
   const auto t0 = perf_clock::now();
-  const auto iter = std::ranges::find_if_not(
-      word_list, [this](std::string_view key) { return words.contains(key); });
+  const auto inc_iter = std::ranges::find_if_not(word_list, contains_key);
+  const auto non_iter = std::ranges::find_if(non_inc, contains_key);
   const auto t1 = perf_clock::now();
 
-  if (iter != word_list.end()) {
+  if (inc_iter != word_list.end()) {
     throw std::runtime_error(
-        std::format("Expected to find {} but did not", *iter));
+        std::format("Expected to find {} but did not", *inc_iter));
+  }
+  if (non_iter != non_inc.end()) {
+    throw std::runtime_error(
+        std::format("Expected {} to be missing but was not", *non_iter));
   }
   return t1 - t0;
 }
