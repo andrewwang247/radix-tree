@@ -6,27 +6,19 @@ Interface for performance testing.
 #pragma once
 #include <algorithm>
 #include <chrono>
-#include <concepts>
 #include <cstddef>
 #include <format>
 #include <fstream>
-#include <functional>
 #include <iostream>
-#include <iterator>
-#include <numeric>
 #include <random>
 #include <ranges>
-#include <set>
-#include <stdexcept>
 #include <string>
 #include <string_view>
-#include <utility>
 #include <vector>
 
 #include "trie.h"
 
 using timeunit_t = std::chrono::nanoseconds;
-using perf_clock = std::chrono::steady_clock;
 
 namespace perf_test {
 static constexpr auto WORDS_FILE = "./resources/words.txt";
@@ -80,143 +72,6 @@ std::vector<std::string_view> sample(
  */
 void show_comparison(timeunit_t set_time, timeunit_t trie_time);
 }  // namespace perf_test
-
-/**
- * Interface for performance testing.
- */
-template <std::ranges::bidirectional_range Container>
-class perf {
- protected:
-  Container words;
-
- public:
-  virtual ~perf() = default;
-
-  /**
-   * @brief Expose underlying container.
-   * @return Const reference to container.
-   */
-  const Container& peek() const;
-
-  /**
-   * @brief Construct and insert words into container.
-   * @param word_list The full list of words.
-   * @return Filled container and elapsed time.
-   */
-  timeunit_t insert(const std::vector<std::string>& word_list);
-
-  /**
-   * @brief Count number of words with given prefixes.
-   * @param solutions The prefixes to count.
-   * @return The elapsed time.
-   */
-  virtual timeunit_t count(
-      const std::vector<perf_test::solution_t>& solutions) const = 0;
-
-  /**
-   * @brief Find begin and end range of given prefixes.
-   * @param solutions The prefixes to find.
-   * @return The elapsed time.
-   */
-  virtual timeunit_t find(
-      const std::vector<perf_test::solution_t>& solutions) const = 0;
-
-  /**
-   * @brief Check for containment of words.
-   * @param word_list The words to check.
-   * @return The elapsed time.
-   */
-  timeunit_t contains(const std::vector<std::string_view>& word_list) const;
-
-  /**
-   * @brief Iterate forward over all words.
-   * @return The elapsed time.
-   */
-  timeunit_t forward_iterate() const;
-
-  /**
-   * @brief Iterate backwards over all words.
-   * @return The elapsed time.
-   */
-  timeunit_t reverse_iterate() const;
-
-  /**
-   * @brief Erase all words with given prefixes.
-   * @param solutions The prefixes to erase.
-   * @return The elapsed time.
-   */
-  virtual timeunit_t erase(
-      const std::vector<perf_test::solution_t>& solutions) = 0;
-
- protected:
-  /**
-   * @brief Helper implementation function for count benchmark.
-   * @param solutions The prefixes to count.
-   * @param func The specific count function for this type.
-   * @return The elapsed time.
-   */
-  timeunit_t count_impl(const std::vector<perf_test::solution_t>& solutions,
-                        std::invocable<std::string_view> auto func) const;
-
-  /**
-   * @brief Helper implementation function for find benchmark.
-   * @param solutions The prefixes to find.
-   * @param func The specific find function for this type.
-   * @return The elapsed time.
-   */
-  timeunit_t find_impl(const std::vector<perf_test::solution_t>& solutions,
-                       std::invocable<std::string_view> auto func) const;
-
-  /**
-   * @brief Helper implementation function for erase benchmark.
-   * @param solutions The prefixes to erase.
-   * @param func The specific erase function for this type.
-   * @return The elapsed time.
-   */
-  timeunit_t erase_impl(const std::vector<perf_test::solution_t>& solutions,
-                        std::invocable<std::string_view> auto func) const;
-};
-
-/**
- * Perf class template for std::set.
- */
-class set_perf final : public perf<std::set<std::string, std::less<>>> {
- private:
-  /**
-   * @brief Increment a string to the next possible in lexicographic order.
-   * @param word The current string to process.
-   * @return The lexicographical earliest string greater than word.
-   */
-  static std::string lexicographic_increment(std::string word);
-
-  /**
-   * @brief Locate boundaries of a prefix range.
-   * @param prefix The prefix to locate.
-   * @return The range of words with prefix.
-   */
-  std::ranges::range auto prefix_range_for(std::string_view prefix) const;
-
- public:
-  timeunit_t count(
-      const std::vector<perf_test::solution_t>& solutions) const override;
-  timeunit_t find(
-      const std::vector<perf_test::solution_t>& solutions) const override;
-  timeunit_t erase(
-      const std::vector<perf_test::solution_t>& solutions) override;
-};
-
-/**
- * Perf class template for trie.
- */
-class trie_perf final : public perf<trie> {
- public:
-  timeunit_t count(
-      const std::vector<perf_test::solution_t>& solutions) const override;
-  timeunit_t find(
-      const std::vector<perf_test::solution_t>& solutions) const override;
-  timeunit_t erase(
-      const std::vector<perf_test::solution_t>& solutions) override;
-};
 
 // NON VIRTUAL TEMPLATED IMPLEMENTATIONS
 
@@ -272,139 +127,4 @@ std::vector<std::string_view> perf_test::sample(
   std::ranges::sample(word_list, sub_list.begin(),
                       static_cast<int32_t>(sample_size), prng);
   return sub_list;
-}
-
-template <std::ranges::bidirectional_range Container>
-const Container& perf<Container>::peek() const {
-  return words;
-}
-
-template <std::ranges::bidirectional_range Container>
-timeunit_t perf<Container>::count_impl(
-    const std::vector<perf_test::solution_t>& solutions,
-    std::invocable<std::string_view> auto func) const {
-  std::vector<size_t> distances(solutions.size());
-
-  const auto t0 = perf_clock::now();
-  std::ranges::transform(solutions, distances.begin(), func,
-                         &perf_test::solution_t::prefix);
-  const auto t1 = perf_clock::now();
-
-  const auto [miss_expect, miss_actual] = std::ranges::mismatch(
-      solutions, distances, {}, &perf_test::solution_t::count);
-  if (miss_expect != solutions.end() && miss_actual != distances.end()) {
-    throw std::runtime_error(
-        std::format("Expected {} words with prefix {} but counted {}",
-                    miss_expect->count, miss_expect->prefix, *miss_actual));
-  }
-  return t1 - t0;
-}
-
-template <std::ranges::bidirectional_range Container>
-timeunit_t perf<Container>::find_impl(
-    const std::vector<perf_test::solution_t>& solutions,
-    std::invocable<std::string_view> auto func) const {
-  using iter_t = decltype(words)::const_iterator;
-  std::vector<std::ranges::subrange<iter_t, iter_t>> actual_ranges(
-      solutions.size());
-
-  const auto t0 = perf_clock::now();
-  std::ranges::transform(solutions, actual_ranges.begin(), func,
-                         &perf_test::solution_t::prefix);
-  const auto t1 = perf_clock::now();
-
-  const auto [miss_expect, miss_actual] = std::ranges::mismatch(
-      solutions, actual_ranges, {},
-      [](const perf_test::solution_t& sol) {
-        return std::make_pair(sol.begin, sol.end);
-      },
-      [](decltype(actual_ranges)::value_type rng) {
-        return std::make_pair(*rng.begin(), *rng.end());
-      });
-  if (miss_expect != solutions.end() && miss_actual != actual_ranges.end()) {
-    throw std::runtime_error(
-        std::format("Expected prefix range for {} is ({}, {}) but was ({}, {})",
-                    miss_expect->prefix, miss_expect->begin, miss_expect->end,
-                    *miss_actual->begin(), *miss_actual->end()));
-  }
-  return t1 - t0;
-}
-
-template <std::ranges::bidirectional_range Container>
-timeunit_t perf<Container>::erase_impl(
-    const std::vector<perf_test::solution_t>& solutions,
-    std::invocable<std::string_view> auto func) const {
-  const auto count_view =
-      solutions | std::views::transform(&perf_test::solution_t::count);
-  const size_t total_erased =
-      std::accumulate(count_view.begin(), count_view.end(), 0U);
-
-  const auto t0 = perf_clock::now();
-  std::ranges::for_each(solutions, func, &perf_test::solution_t::prefix);
-  const auto t1 = perf_clock::now();
-
-  const auto expected_size = perf_test::WORDS_SIZE - total_erased;
-  if (words.size() != expected_size) {
-    throw std::runtime_error(
-        std::format("Expected {} words after erasing but was {}", expected_size,
-                    words.size()));
-  }
-  return t1 - t0;
-}
-
-template <std::ranges::bidirectional_range Container>
-timeunit_t perf<Container>::insert(const std::vector<std::string>& word_list) {
-  // Time insertion with range constructor.
-  const auto t0 = perf_clock::now();
-  for (const auto& word : word_list) {
-    words.insert(word);
-  }
-  const auto t1 = perf_clock::now();
-  return t1 - t0;
-}
-
-template <std::ranges::bidirectional_range Container>
-timeunit_t perf<Container>::contains(
-    const std::vector<std::string_view>& word_list) const {
-  const auto t0 = perf_clock::now();
-  const auto iter = std::ranges::find_if_not(
-      word_list, [this](std::string_view key) { return words.contains(key); });
-  const auto t1 = perf_clock::now();
-
-  if (iter != word_list.end()) {
-    throw std::runtime_error(
-        std::format("Expected to find {} but did not", *iter));
-  }
-  return t1 - t0;
-}
-
-template <std::ranges::bidirectional_range Container>
-timeunit_t perf<Container>::forward_iterate() const {
-  const auto t0 = perf_clock::now();
-  // Avoid ranges::distance to prevent size check optimization.
-  // We actually want to iterate over the entire container.
-  const auto counter = std::distance(words.begin(), words.end());
-  const auto t1 = perf_clock::now();
-
-  if (perf_test::WORDS_SIZE != counter) {
-    throw std::runtime_error(
-        std::format("Expected {} elements but iterated over {}",
-                    perf_test::WORDS_SIZE, counter));
-  }
-  return t1 - t0;
-}
-
-template <std::ranges::bidirectional_range Container>
-timeunit_t perf<Container>::reverse_iterate() const {
-  const auto t0 = perf_clock::now();
-  const auto counter = std::distance(std::make_reverse_iterator(words.end()),
-                                     std::make_reverse_iterator(words.begin()));
-  const auto t1 = perf_clock::now();
-
-  if (perf_test::WORDS_SIZE != counter) {
-    throw std::runtime_error(
-        std::format("Expected {} elements but iterated over {}",
-                    perf_test::WORDS_SIZE, counter));
-  }
-  return t1 - t0;
 }
