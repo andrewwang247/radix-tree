@@ -14,29 +14,30 @@ Implementation for Trie iterator.
 using std::string;
 using std::unique_ptr;
 
-iterator::iterator(const unique_ptr<node>& rt, const node* p)
+iterator::iterator(const unique_ptr<node>& rt, const node* p) noexcept
     : root(rt.get()), ptr(p) {
   assert(rt);
 }
 
-iterator::iterator(const unique_ptr<node>& rt, const unique_ptr<node>& p)
+iterator::iterator(const unique_ptr<node>& rt,
+                   const unique_ptr<node>& p) noexcept
     : root(rt.get()), ptr(p.get()) {
   assert(rt);
 }
 
-iterator& iterator::operator++() {
+iterator& iterator::operator++() noexcept {
   if (!ptr) return *this;
   ptr = ptr->children.empty() ? ptr->next_node() : ptr->first_key();
   return *this;
 }
 
-iterator iterator::operator++(int) {
+iterator iterator::operator++(int) noexcept {
   auto temp(*this);
   ++(*this);
   return temp;
 }
 
-iterator& iterator::operator--() {
+iterator& iterator::operator--() noexcept {
   if (ptr) {
     // middle of trie
     ptr = ptr->prev_node();
@@ -51,7 +52,7 @@ iterator& iterator::operator--() {
   return *this;
 }
 
-iterator iterator::operator--(int) {
+iterator iterator::operator--(int) noexcept {
   auto temp(*this);
   --(*this);
   return temp;
@@ -65,16 +66,12 @@ iterator::arrow_proxy iterator::operator->() const {
   return arrow_proxy{ptr->underlying_string()};
 }
 
-iterator::operator bool() const { return ptr != nullptr; }
+iterator::operator bool() const noexcept { return ptr != nullptr; }
 
 string iterator::to_json(bool include_ends) const {
   return ptr ? ptr->to_json(include_ends) : "{}";
 }
 
-bool operator==(const iterator& lhs, const iterator& rhs) {
+bool operator==(const iterator& lhs, const iterator& rhs) noexcept {
   return lhs.ptr == rhs.ptr;
-}
-
-bool operator!=(const iterator& lhs, const iterator& rhs) {
-  return lhs.ptr != rhs.ptr;
 }

@@ -30,7 +30,7 @@ class node {
    * @param end The is_end value.
    * @param par The parent pointer.
    */
-  node(bool end, node* par);
+  node(bool end, node* par) noexcept;
 
   /**
    * @brief Deep copy of contents rooted at this.
@@ -44,14 +44,14 @@ class node {
    * @param rhs The right node to check.
    * @return Whether the tree rooted at lhs and rhs are equivalent.
    */
-  static bool deep_equals(const node* lhs, const node* rhs);
+  static bool deep_equals(const node* lhs, const node* rhs) noexcept;
 
   /**
    * @brief Counts the number of keys stored at this and its children.
    * Equivalent to counting the number of true is_end's accessible from this.
    * @return The number of keys stored at or under this.
    */
-  size_t key_count() const;
+  size_t key_count() const noexcept;
 
   /**
    * @brief Depth traversing search for the deepest child N such that a prefix
@@ -61,7 +61,7 @@ class node {
    * @return The node N described above. Since the root node in a Trie is
    * equivalent to the empty string, N is never null.
    */
-  positional approximate_match(std::string_view key);
+  positional approximate_match(std::string_view key) noexcept;
 
   /**
    * @brief Depth traversing search from this for prf.
@@ -71,7 +71,7 @@ class node {
    * @return The deepest child N such that N and all of N's children have prf as
    * prefix. If prf is not a prefix, returns a nullptr.
    */
-  positional prefix_match(std::string_view prf);
+  positional prefix_match(std::string_view prf) noexcept;
 
   /**
    * @brief Depth traversing search from this for the node that matches word.
@@ -79,32 +79,32 @@ class node {
    * @return The first child that exactly matches the given word. If no match is
    * found, returns a nullptr.
    */
-  node* exact_match(std::string_view word);
+  node* exact_match(std::string_view word) noexcept;
 
   /**
    * @brief Find the first child key.
    * @return The first key that's a child of this or nullptr if empty.
    */
-  const node* first_key() const;
+  const node* first_key() const noexcept;
 
   /**
    * @brief Find the last child key.
    * @return The last key that's a child of this or nullptr if empty.
    */
-  const node* last_key() const;
+  const node* last_key() const noexcept;
 
   /**
    * @brief Get the next node after this for in-order traversal.
    * @return The first key after this that is not a child of this. If there
    * isn't such a key, returns nullptr.
    */
-  const node* next_node() const;
+  const node* next_node() const noexcept;
 
   /**
    * @brief Get the next node before this for in-order traversal.
    * @return The first key before this or nullptr if it doesn't exist.
    */
-  const node* prev_node() const;
+  const node* prev_node() const noexcept;
 
   /**
    * @brief Reconstruct string from this.
@@ -118,7 +118,8 @@ class node {
    * @return An iterator to the position which matches other. This is the end
    * iterator if other is not found.
    */
-  decltype(children)::const_iterator find_child(const node* other) const;
+  decltype(children)::const_iterator find_child(
+      const node* other) const noexcept;
 
   /**
    * @brief Convert the tree structure to a JSON object.
@@ -131,5 +132,5 @@ class node {
    * @brief This function is only used for testing! Asserts that this matches
    * structural invariants.
    */
-  void assert_invariants() const;
+  void assert_invariants() const noexcept;
 };

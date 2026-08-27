@@ -30,7 +30,7 @@ using std::vector;
 namespace ranges = std::ranges;
 namespace views = std::views;
 
-node::node(bool end, node* par) : is_end(end), parent(par) {}
+node::node(bool end, node* par) noexcept : is_end(end), parent(par) {}
 
 unique_ptr<node> node::clone() const {
   // Null parent because we do not clone above this node.
@@ -44,7 +44,7 @@ unique_ptr<node> node::clone() const {
   return copy;
 }
 
-bool node::deep_equals(const node* lhs, const node* rhs) {
+bool node::deep_equals(const node* lhs, const node* rhs) noexcept {
   assert(lhs);
   assert(rhs);
   if (lhs->is_end != rhs->is_end) return false;
@@ -64,7 +64,7 @@ bool node::deep_equals(const node* lhs, const node* rhs) {
   return true;
 }
 
-size_t node::key_count() const {
+size_t node::key_count() const noexcept {
   // If is_end, count it as a word.
   size_t counter = is_end ? 1 : 0;
   // Recursively check for words in children
@@ -75,7 +75,7 @@ size_t node::key_count() const {
   return counter;
 }
 
-node::positional node::approximate_match(string_view key_view) {
+node::positional node::approximate_match(string_view key_view) noexcept {
   // If the key is empty, return this.
   if (key_view.empty()) return {.ptr = this, .pos = key_view};
 
@@ -92,7 +92,7 @@ node::positional node::approximate_match(string_view key_view) {
   return {.ptr = this, .pos = key_view};
 }
 
-node::positional node::prefix_match(string_view prf_view) {
+node::positional node::prefix_match(string_view prf_view) noexcept {
   // First compute the approximate root.
   const auto [app_ptr, prf] = approximate_match(prf_view);
   assert(app_ptr);
@@ -111,7 +111,7 @@ node::positional node::prefix_match(string_view prf_view) {
   return {.ptr = nullptr, .pos = prf};
 }
 
-node* node::exact_match(string_view word_view) {
+node* node::exact_match(string_view word_view) noexcept {
   // First compute the approximate root.
   const auto [app_ptr, word] = approximate_match(word_view);
   assert(app_ptr);
@@ -120,7 +120,7 @@ node* node::exact_match(string_view word_view) {
   return nullptr;
 }
 
-const node* node::first_key() const {
+const node* node::first_key() const noexcept {
   if (children.empty()) return nullptr;
   const auto* rt = this;
   // Keep moving down the tree along the left side until is_end.
@@ -133,7 +133,7 @@ const node* node::first_key() const {
   return rt;
 }
 
-const node* node::last_key() const {
+const node* node::last_key() const noexcept {
   if (children.empty()) return nullptr;
   const auto* rt = this;
   // Keep moving down the tree along the right side until no children.
@@ -145,7 +145,7 @@ const node* node::last_key() const {
   return rt;
 }
 
-const node* node::next_node() const {
+const node* node::next_node() const noexcept {
   // Go up until we can move right.
   const auto* ptr = this;
   auto* par = parent;
@@ -179,7 +179,7 @@ const node* node::next_node() const {
   return rn->first_key();
 }
 
-const node* node::prev_node() const {
+const node* node::prev_node() const noexcept {
   // Go up until is_end or we can move left.
   const auto* ptr = this;
   auto* par = parent;
@@ -245,7 +245,7 @@ string node::underlying_string() const {
 }
 
 map<string, unique_ptr<node>>::const_iterator node::find_child(
-    const node* other) const {
+    const node* other) const noexcept {
   return ranges::find(children, other,
                       [](const auto& p) { return p.second.get(); });
 }
@@ -266,7 +266,7 @@ string node::to_json(bool include_ends) const {
   return builder;
 }
 
-void node::assert_invariants() const {
+void node::assert_invariants() const noexcept {
 #ifdef DEBUG
   static constexpr auto max_possible_chars = 1 << 8;
   std::bitset<max_possible_chars> seen;
