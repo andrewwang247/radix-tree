@@ -44,7 +44,7 @@ class perf {
    * @brief Expose underlying container.
    * @return Const reference to container.
    */
-  const Container& peek() const;
+  const Container& peek() const noexcept;
 
   /**
    * @brief Construct and insert words into container.
@@ -167,7 +167,7 @@ class trie_perf final : public perf<trie> {
 // NON VIRTUAL TEMPLATED IMPLEMENTATIONS
 
 template <std::ranges::bidirectional_range Container>
-const Container& perf<Container>::peek() const {
+const Container& perf<Container>::peek() const noexcept {
   return words;
 }
 

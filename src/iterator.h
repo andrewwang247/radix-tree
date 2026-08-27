@@ -35,45 +35,46 @@ class iterator {
   };
 
  public:
-  iterator() = default;
+  iterator() noexcept = default;
 
   /**
    * @brief Root and pointer constructor.
    * @param rt The root node of the trie.
    * @param p The node that the iterator is currently pointing at.
    */
-  iterator(const std::unique_ptr<node>& rt, const node* p);
+  iterator(const std::unique_ptr<node>& rt, const node* p) noexcept;
 
   /**
    * @brief Root and pointer constructor.
    * @param rt The root node of the trie.
    * @param p The node that the iterator is currently pointing at.
    */
-  iterator(const std::unique_ptr<node>& rt, const std::unique_ptr<node>& p);
+  iterator(const std::unique_ptr<node>& rt,
+           const std::unique_ptr<node>& p) noexcept;
 
   /**
    * @brief Prefix increment.
    * @return The next iterator.
    */
-  iterator& operator++();
+  iterator& operator++() noexcept;
 
   /**
    * @brief Postfix increment.
    * @return The current iterator.
    */
-  iterator operator++(int);
+  iterator operator++(int) noexcept;
 
   /**
    * @brief Prefix decrement.
    * @return The next iterator.
    */
-  iterator& operator--();
+  iterator& operator--() noexcept;
 
   /**
    * @brief Postfix decrement.
    * @return The current iterator.
    */
-  iterator operator--(int);
+  iterator operator--(int) noexcept;
 
   /**
    * @brief Dereference operator.
@@ -91,7 +92,7 @@ class iterator {
    * @brief Implicit conversion to bool.
    * @return Whether or not the underlying pointer is null.
    */
-  operator bool() const;
+  operator bool() const noexcept;
 
   /**
    * @brief Convert the trie rooted at this to a JSON object.
@@ -108,13 +109,5 @@ class iterator {
    * @param rhs The right iterator.
    * @return Equality between lhs and rhs.
    */
-  friend bool operator==(const iterator& lhs, const iterator& rhs);
-
-  /**
-   * @brief Check if two iterators are unequal.
-   * @param lhs The left iterator.
-   * @param rhs The right iterator.
-   * @return Inequality between lhs and rhs.
-   */
-  friend bool operator!=(const iterator& lhs, const iterator& rhs);
+  friend bool operator==(const iterator& lhs, const iterator& rhs) noexcept;
 };

@@ -9,9 +9,9 @@ Implementation for Trie.
 #include <cassert>
 #include <compare>
 #include <cstddef>
+#include <exception>
 #include <initializer_list>
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -20,12 +20,12 @@ Implementation for Trie.
 #include "node.h"
 
 using std::initializer_list;
-using std::logic_error;
 using std::make_unique;
 using std::partial_ordering;
 using std::string;
 using std::string_view;
 using std::strong_ordering;
+using std::terminate;
 using std::unique_ptr;
 
 namespace ranges = std::ranges;
@@ -45,12 +45,12 @@ trie& trie::operator=(trie other) {
   return *this;
 }
 
-trie::trie(unique_ptr<node> cloned) {
+trie::trie(unique_ptr<node> cloned) noexcept {
   std::swap(root, cloned);
   root->assert_invariants();
 }
 
-bool trie::empty(string_view prefix_view) const {
+bool trie::empty(string_view prefix_view) const noexcept {
   const auto [prf_rt, _] = root->prefix_match(prefix_view);
   // Check if prefix root is null
   if (!prf_rt) return true;
@@ -58,19 +58,19 @@ bool trie::empty(string_view prefix_view) const {
   return !prf_rt->is_end && prf_rt->children.empty();
 }
 
-size_t trie::size(string_view prefix_view) const {
+size_t trie::size(string_view prefix_view) const noexcept {
   const auto [prf_rt, _] = root->prefix_match(prefix_view);
   return prf_rt ? prf_rt->key_count() : 0U;
 }
 
-bool trie::contains(string_view key_view) const {
+bool trie::contains(string_view key_view) const noexcept {
   if (key_view.empty()) {
     return root->is_end;
   }
   return root->exact_match(key_view);
 }
 
-iterator trie::find(string_view key_view) const {
+iterator trie::find(string_view key_view) const noexcept {
   // Handle edge case of key being empty.
   if (key_view.empty()) {
     return root->is_end ? iterator(root, root) : iterator(root, nullptr);
@@ -78,7 +78,7 @@ iterator trie::find(string_view key_view) const {
   return {root, root->exact_match(key_view)};
 }
 
-iterator trie::find_prefix(string_view prefix_view) const {
+iterator trie::find_prefix(string_view prefix_view) const noexcept {
   // We need only find a word that key is a prefix of.
   const auto [prf_rt, prefix] = root->prefix_match(prefix_view);
   // If key is not a prefix of anything, there is no match.
@@ -232,7 +232,7 @@ void trie::erase_prefix(string_view prefix_view) {
   root->assert_invariants();
 }
 
-void trie::clear() {
+void trie::clear() noexcept {
   // Clear everything under root.
   root->children.clear();
   root->is_end = false;
@@ -244,19 +244,19 @@ string trie::to_json(bool include_ends) const {
   return root->to_json(include_ends);
 }
 
-iterator trie::begin() const {
+iterator trie::begin() const noexcept {
   return root->is_end ? iterator(root, root)
                       : iterator(root, root->first_key());
 }
 
-iterator trie::end() const { return {root, nullptr}; }
+iterator trie::end() const noexcept { return {root, nullptr}; }
 
-iterator trie::begin(string_view prefix_view) const {
+iterator trie::begin(string_view prefix_view) const noexcept {
   // Find the first key that matches the given prefix.
   return find_prefix(prefix_view);
 }
 
-iterator trie::end(string_view prefix_view) const {
+iterator trie::end(string_view prefix_view) const noexcept {
   // Perform an approximate match.
   auto [app_ptr, prefix] = root->approximate_match(prefix_view);
   assert(app_ptr);
@@ -279,7 +279,7 @@ iterator trie::end(string_view prefix_view) const {
   }
 
   // If we've gotten down to here, something has gone wrong.
-  throw logic_error("Unexpected bug in Trie::end(string_view)");
+  terminate();
 }
 
 trie& trie::operator+=(const trie& rhs) {
@@ -304,11 +304,11 @@ trie& trie::operator-=(const trie& rhs) {
 
 trie operator-(trie lhs, const trie& rhs) { return lhs -= rhs; }
 
-bool operator==(const trie& lhs, const trie& rhs) {
+bool operator==(const trie& lhs, const trie& rhs) noexcept {
   return node::deep_equals(lhs.root.get(), rhs.root.get());
 }
 
-partial_ordering operator<=>(const trie& lhs, const trie& rhs) {
+partial_ordering operator<=>(const trie& lhs, const trie& rhs) noexcept {
   auto left_it = lhs.begin();
   auto right_it = rhs.begin();
   const auto left_end = lhs.end();

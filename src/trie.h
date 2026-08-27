@@ -84,7 +84,7 @@ class trie {
    * @brief Private move constructor from a cloned root node.
    * @param cloned The cloned root to move into this.
    */
-  explicit trie(std::unique_ptr<node> cloned);
+  explicit trie(std::unique_ptr<node> cloned) noexcept;
 
  public:
   // --- CONTAINER SIZE ---
@@ -95,7 +95,7 @@ class trie {
    * @return Whether or not the trie is empty starting at given prefix.
    * Prefix defaults to empty string, corresponding to entire trie.
    */
-  bool empty(std::string_view prefix = "") const;
+  bool empty(std::string_view prefix = "") const noexcept;
 
   /**
    * @brief Get the size of the trie under the prefix.
@@ -103,7 +103,7 @@ class trie {
    * @return The number of words stored in the trie with given prefix.
    * Default prefix is empty, which means the full trie size is returned.
    */
-  size_t size(std::string_view prefix = "") const;
+  size_t size(std::string_view prefix = "") const noexcept;
 
   // --- ITERATION ---
 
@@ -111,13 +111,13 @@ class trie {
    * @brief Standard begin iterator getter.
    * @return Iterator to the beginning of the trie.
    */
-  iterator begin() const;
+  iterator begin() const noexcept;
 
   /**
    * @brief Standard end iterator getter.
    * @return Iterator to one past the end of the trie.
    */
-  iterator end() const;
+  iterator end() const noexcept;
 
   // Prefix traversal by iterator. Returns begin and end iterators to the range
   // of items which has prefix given by the parameter. Note that they constitute
@@ -131,14 +131,14 @@ class trie {
    * @param prefix The prefix to obtain a begin iterator for.
    * @return Iterator to the start of the range with given prefix.
    */
-  iterator begin(std::string_view prefix) const;
+  iterator begin(std::string_view prefix) const noexcept;
 
   /**
    * @brief Prefix ranged end iterator.
    * @param prefix The prefix to obtain an end iterator fpr.
    * @return Iterator to one past the end of the range with given prefix.
    */
-  iterator end(std::string_view prefix) const;
+  iterator end(std::string_view prefix) const noexcept;
 
   // --- SEARCHING ---
 
@@ -147,7 +147,7 @@ class trie {
    * @param key The key to check in trie.
    * @return Whether key is contained in trie.
    */
-  bool contains(std::string_view key) const;
+  bool contains(std::string_view key) const noexcept;
 
   /**
    * @brief Searches for key in trie.
@@ -155,7 +155,7 @@ class trie {
    * @return An iterator to key if it exists. Otherwise, returns a null
    * iterator.
    */
-  iterator find(std::string_view key) const;
+  iterator find(std::string_view key) const noexcept;
 
   /**
    * @brief Searches for prefix in trie.
@@ -163,7 +163,7 @@ class trie {
    * @return An iterator to the first key that matches the prefix. Otherwise,
    * null iterator.
    */
-  iterator find_prefix(std::string_view prefix) const;
+  iterator find_prefix(std::string_view prefix) const noexcept;
 
   // --- INSERTION ---
 
@@ -193,7 +193,7 @@ class trie {
   /**
    * @brief Erases all keys from trie. Idempotent on empty tries.
    */
-  void clear();
+  void clear() noexcept;
 
   // --- REPRESENTATION ---
 
@@ -227,7 +227,7 @@ class trie {
    * @param rhs The right trie.
    * @return Whether the 2 tries have matching content.
    */
-  friend bool operator==(const trie& lhs, const trie& rhs);
+  friend bool operator==(const trie& lhs, const trie& rhs) noexcept;
 };
 
 // --- SYMMETRIC BINARY OPERATIONS ---
@@ -236,9 +236,9 @@ class trie {
  * @brief Three way comparison operator for subset partial ordering.
  * @param lhs The left trie.
  * @param rhs The right trie.
- * @return Subset
+ * @return Subset partial ordering.
  */
-std::partial_ordering operator<=>(const trie& lhs, const trie& rhs);
+std::partial_ordering operator<=>(const trie& lhs, const trie& rhs) noexcept;
 
 // Arithmetic operators, uses += and -=.
 
