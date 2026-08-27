@@ -54,7 +54,7 @@ class trie {
    * trie. Duplicates are ignored.
    * @param input_range The string range to insert.
    */
-  explicit trie(const std::ranges::input_range auto& input_range);
+  explicit trie(std::ranges::input_range auto&& input_range);
 
   /**
    * @brief Copy constructor.
@@ -250,8 +250,8 @@ trie operator-(trie lhs, const trie& rhs);
 template <std::input_iterator Iter>
 trie::trie(Iter first, Iter last) : trie(std::ranges::subrange{first, last}) {}
 
-trie::trie(const std::ranges::input_range auto& input_range) : trie() {
-  for (const std::string_view word : input_range) {
+trie::trie(std::ranges::input_range auto&& input_range) : trie() {
+  for (auto&& word : input_range) {
     insert(word);
   }
   root->assert_invariants();

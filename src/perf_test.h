@@ -14,6 +14,7 @@ Interface for performance testing.
 #include <ranges>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <vector>
 
 #include "trie.h"
@@ -62,7 +63,7 @@ std::vector<solution_t> read_solutions(
  * @return A random choosing of sample_size words from the list.
  */
 std::vector<std::string_view> sample(
-    const std::vector<std::string>& word_list, size_t sample_size,
+    std::span<const std::string> word_list, size_t sample_size,
     std::uniform_random_bit_generator auto& prng);
 
 /**
@@ -121,7 +122,7 @@ std::vector<perf_test::solution_t> perf_test::read_solutions(
 }
 
 std::vector<std::string_view> perf_test::sample(
-    const std::vector<std::string>& word_list, size_t sample_size,
+    std::span<const std::string> word_list, size_t sample_size,
     std::uniform_random_bit_generator auto& prng) {
   std::vector<std::string_view> sub_list(sample_size);
   std::ranges::sample(word_list, sub_list.begin(),

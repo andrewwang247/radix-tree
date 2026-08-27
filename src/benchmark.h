@@ -18,6 +18,7 @@ Benchmarking class interfaces.
 #include <random>
 #include <ranges>
 #include <set>
+#include <span>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -50,7 +51,7 @@ class perf {
    * @param word_list The full list of words.
    * @return Filled container and elapsed time.
    */
-  timeunit_t insert(const std::vector<std::string>& word_list);
+  timeunit_t insert(std::span<const std::string> word_list);
 
   /**
    * @brief Count number of words with given prefixes.
@@ -58,7 +59,7 @@ class perf {
    * @return The elapsed time.
    */
   virtual timeunit_t count(
-      const std::vector<perf_test::solution_t>& solutions) const = 0;
+      std::span<const perf_test::solution_t> solutions) const = 0;
 
   /**
    * @brief Find begin and end range of given prefixes.
@@ -66,14 +67,14 @@ class perf {
    * @return The elapsed time.
    */
   virtual timeunit_t find(
-      const std::vector<perf_test::solution_t>& solutions) const = 0;
+      std::span<const perf_test::solution_t> solutions) const = 0;
 
   /**
    * @brief Check for containment of words.
    * @param word_list The words to check.
    * @return The elapsed time.
    */
-  timeunit_t contains(const std::vector<std::string_view>& word_list) const;
+  timeunit_t contains(std::span<const std::string_view> word_list) const;
 
   /**
    * @brief Iterate forward over all words.
@@ -93,7 +94,7 @@ class perf {
    * @return The elapsed time.
    */
   virtual timeunit_t erase(
-      const std::vector<perf_test::solution_t>& solutions) = 0;
+      std::span<const perf_test::solution_t> solutions) = 0;
 
  protected:
   /**
@@ -102,7 +103,7 @@ class perf {
    * @param func The specific count function for this type.
    * @return The elapsed time.
    */
-  timeunit_t count_impl(const std::vector<perf_test::solution_t>& solutions,
+  timeunit_t count_impl(std::span<const perf_test::solution_t> solutions,
                         std::invocable<std::string_view> auto func) const;
 
   /**
@@ -111,7 +112,7 @@ class perf {
    * @param func The specific find function for this type.
    * @return The elapsed time.
    */
-  timeunit_t find_impl(const std::vector<perf_test::solution_t>& solutions,
+  timeunit_t find_impl(std::span<const perf_test::solution_t> solutions,
                        std::invocable<std::string_view> auto func) const;
 
   /**
@@ -120,7 +121,7 @@ class perf {
    * @param func The specific erase function for this type.
    * @return The elapsed time.
    */
-  timeunit_t erase_impl(const std::vector<perf_test::solution_t>& solutions,
+  timeunit_t erase_impl(std::span<const perf_test::solution_t> solutions,
                         std::invocable<std::string_view> auto func) const;
 };
 
@@ -134,7 +135,7 @@ class set_perf final : public perf<std::set<std::string, std::less<>>> {
    * @param word The current string to process.
    * @return The lexicographical earliest string greater than word.
    */
-  static std::string lexicographic_increment(std::string word);
+  static std::string lexicographic_increment(std::string_view word);
 
   /**
    * @brief Locate boundaries of a prefix range.
@@ -145,11 +146,10 @@ class set_perf final : public perf<std::set<std::string, std::less<>>> {
 
  public:
   timeunit_t count(
-      const std::vector<perf_test::solution_t>& solutions) const override;
+      std::span<const perf_test::solution_t> solutions) const override;
   timeunit_t find(
-      const std::vector<perf_test::solution_t>& solutions) const override;
-  timeunit_t erase(
-      const std::vector<perf_test::solution_t>& solutions) override;
+      std::span<const perf_test::solution_t> solutions) const override;
+  timeunit_t erase(std::span<const perf_test::solution_t> solutions) override;
 };
 
 /**
@@ -158,11 +158,10 @@ class set_perf final : public perf<std::set<std::string, std::less<>>> {
 class trie_perf final : public perf<trie> {
  public:
   timeunit_t count(
-      const std::vector<perf_test::solution_t>& solutions) const override;
+      std::span<const perf_test::solution_t> solutions) const override;
   timeunit_t find(
-      const std::vector<perf_test::solution_t>& solutions) const override;
-  timeunit_t erase(
-      const std::vector<perf_test::solution_t>& solutions) override;
+      std::span<const perf_test::solution_t> solutions) const override;
+  timeunit_t erase(std::span<const perf_test::solution_t> solutions) override;
 };
 
 // NON VIRTUAL TEMPLATED IMPLEMENTATIONS
@@ -174,7 +173,7 @@ const Container& perf<Container>::peek() const {
 
 template <std::ranges::bidirectional_range Container>
 timeunit_t perf<Container>::count_impl(
-    const std::vector<perf_test::solution_t>& solutions,
+    std::span<const perf_test::solution_t> solutions,
     std::invocable<std::string_view> auto func) const {
   std::vector<size_t> distances(solutions.size());
 
@@ -195,7 +194,7 @@ timeunit_t perf<Container>::count_impl(
 
 template <std::ranges::bidirectional_range Container>
 timeunit_t perf<Container>::find_impl(
-    const std::vector<perf_test::solution_t>& solutions,
+    std::span<const perf_test::solution_t> solutions,
     std::invocable<std::string_view> auto func) const {
   using iter_t = decltype(words)::const_iterator;
   std::vector<std::ranges::subrange<iter_t, iter_t>> actual_ranges(
@@ -225,7 +224,7 @@ timeunit_t perf<Container>::find_impl(
 
 template <std::ranges::bidirectional_range Container>
 timeunit_t perf<Container>::erase_impl(
-    const std::vector<perf_test::solution_t>& solutions,
+    std::span<const perf_test::solution_t> solutions,
     std::invocable<std::string_view> auto func) const {
   const auto count_view =
       solutions | std::views::transform(&perf_test::solution_t::count);
@@ -246,7 +245,7 @@ timeunit_t perf<Container>::erase_impl(
 }
 
 template <std::ranges::bidirectional_range Container>
-timeunit_t perf<Container>::insert(const std::vector<std::string>& word_list) {
+timeunit_t perf<Container>::insert(std::span<const std::string> word_list) {
   // Time insertion with range constructor.
   const auto t0 = perf_clock::now();
   for (const auto& word : word_list) {
@@ -258,7 +257,7 @@ timeunit_t perf<Container>::insert(const std::vector<std::string>& word_list) {
 
 template <std::ranges::bidirectional_range Container>
 timeunit_t perf<Container>::contains(
-    const std::vector<std::string_view>& word_list) const {
+    std::span<const std::string_view> word_list) const {
   static constexpr std::array<const char*, 108U> non_inc{
       "inte", "nonc", "pseu", "unre", "micr", "nons", "nonp", "coun", "hydr",
       "prot", "nond", "reco", "unpr", "nonr", "unin", "inco", "noni", "undi",

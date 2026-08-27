@@ -23,8 +23,7 @@ cppcheck --language=c++ --std=c++20 --quiet \
     $hfiles $cppfiles
 
 printf "\nRunning cpplint...\n\n"
-cpplint --filter=-build/include_subdir,-build/c++11,-runtime/references \
-    --quiet $hfiles $cppfiles
+cpplint --filter=-build/include_subdir --quiet $hfiles $cppfiles
 
 printf "\nRunning clang-tidy...\n\n"
 if [[ ! -f "compile_commands.json" ]]; then
