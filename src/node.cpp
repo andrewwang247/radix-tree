@@ -6,7 +6,9 @@ Implementation for Node.
 #include "node.h"
 
 #include <algorithm>
-#include <bitset>  // NOLINT(misc-include-cleaner)
+#ifdef DEBUG
+#include <bitset>
+#endif
 #include <cassert>
 #include <cstddef>
 #include <format>
@@ -268,7 +270,7 @@ string node::to_json(bool include_ends) const {
 
 void node::assert_invariants() const noexcept {
 #ifdef DEBUG
-  static constexpr auto max_possible_chars = 1 << 8;
+  constexpr auto max_possible_chars = 1 << 8;
   std::bitset<max_possible_chars> seen;
   for (const auto& [str, ptr] : children) {
     assert(ptr);

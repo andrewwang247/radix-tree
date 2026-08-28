@@ -45,7 +45,8 @@ int main() {
 }
 
 trie unit_test::get_trie() {
-  static default_random_engine prng{random_device{}()};  // NOLINT
+  static default_random_engine prng{
+      random_device{}()};  // NOLINT(whitespace/braces)
   auto copy{SORTED_WORDS};
   ranges::shuffle(copy, prng);
   return trie{copy};
