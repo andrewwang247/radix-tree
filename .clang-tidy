@@ -15,7 +15,7 @@ ImplementationFileExtensions:
 HeaderFilterRegex: '.*'
 ExcludeHeaderFilterRegex: ''
 ExtraArgs:
-  - '-std=c++20'
+  - '-std=c++23'
   - '-stdlib=libstdc++' # change depending on platform
 FormatStyle:     none
 User:            andrew-wang
