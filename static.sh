@@ -13,7 +13,7 @@ printf "Running clang-format...\n\n"
 clang-format -i -style=file $hfiles $cppfiles
 
 printf "Running cppcheck...\n\n"
-cppcheck --language=c++ --std=c++20 --quiet \
+cppcheck --language=c++ --std=c++23 --quiet \
     --check-level=exhaustive \
     --enable=all \
     --template=gcc \
