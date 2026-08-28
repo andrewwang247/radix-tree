@@ -5,9 +5,7 @@ Benchmarking class implementations.
 */
 #include "benchmark.h"
 
-#include <algorithm>
 #include <iterator>
-#include <limits>
 #include <ranges>
 #include <span>
 #include <string>
@@ -15,30 +13,11 @@ Benchmarking class implementations.
 
 #include "perf_test.h"
 
-using std::numeric_limits;
 using std::span;
 using std::string;
 using std::string_view;
 
 namespace ranges = std::ranges;
-namespace views = std::views;
-
-string set_perf::lexicographic_increment(string_view word) {
-  string owning_word{word};
-  constexpr auto max_char = numeric_limits<char>::max();
-  const auto last_non_max =
-      ranges::find_if_not(owning_word | views::reverse,
-                          [max_char](auto c) { return c == max_char; });
-  // All characters are max char. Append min char.
-  if (last_non_max == owning_word.rend()) {
-    constexpr auto min_char = numeric_limits<char>::min();
-    return owning_word + min_char;
-  }
-  // Increment the last non max char and remove everything after.
-  ++*last_non_max;
-  owning_word.erase(last_non_max.base(), owning_word.end());
-  return owning_word;
-}
 
 ranges::range auto set_perf::prefix_range_for(string_view prefix) const {
   // Find the first item that's a prefix

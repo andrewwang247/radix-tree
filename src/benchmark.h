@@ -14,6 +14,7 @@ Benchmarking class interfaces.
 #include <functional>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <numeric>
 #include <random>
 #include <ranges>
@@ -98,13 +99,20 @@ class perf {
 
  protected:
   /**
+   * @brief Increment a string to the next possible in lexicographic order.
+   * @param word The current string to process.
+   * @return The lexicographical earliest string greater than word.
+   */
+  static std::string lexicographic_increment(std::string_view word);
+
+  /**
    * @brief Helper implementation function for count benchmark.
    * @param solutions The prefixes to count.
    * @param func The specific count function for this type.
    * @return The elapsed time.
    */
-  timeunit_t count_impl(std::span<const perf_test::solution_t> solutions,
-                        std::invocable<std::string_view> auto func) const;
+  static timeunit_t count_impl(std::span<const perf_test::solution_t> solutions,
+                               std::invocable<std::string_view> auto func);
 
   /**
    * @brief Helper implementation function for find benchmark.
@@ -112,8 +120,8 @@ class perf {
    * @param func The specific find function for this type.
    * @return The elapsed time.
    */
-  timeunit_t find_impl(std::span<const perf_test::solution_t> solutions,
-                       std::invocable<std::string_view> auto func) const;
+  static timeunit_t find_impl(std::span<const perf_test::solution_t> solutions,
+                              std::invocable<std::string_view> auto func);
 
   /**
    * @brief Helper implementation function for erase benchmark.
@@ -130,13 +138,6 @@ class perf {
  */
 class set_perf final : public perf<std::set<std::string, std::less<>>> {
  private:
-  /**
-   * @brief Increment a string to the next possible in lexicographic order.
-   * @param word The current string to process.
-   * @return The lexicographical earliest string greater than word.
-   */
-  static std::string lexicographic_increment(std::string_view word);
-
   /**
    * @brief Locate boundaries of a prefix range.
    * @param prefix The prefix to locate.
@@ -172,9 +173,27 @@ const Container& perf<Container>::peek() const noexcept {
 }
 
 template <std::ranges::bidirectional_range Container>
+std::string perf<Container>::lexicographic_increment(std::string_view word) {
+  std::string owning_word{word};
+  constexpr auto max_char = std::numeric_limits<char>::max();
+  const auto last_non_max =
+      std::ranges::find_if_not(owning_word | std::views::reverse,
+                               [max_char](auto c) { return c == max_char; });
+  // All characters are max char. Append min char.
+  if (last_non_max == owning_word.rend()) {
+    constexpr auto min_char = std::numeric_limits<char>::min();
+    return owning_word + min_char;
+  }
+  // Increment the last non max char and remove everything after.
+  ++*last_non_max;
+  owning_word.erase(last_non_max.base(), owning_word.end());
+  return owning_word;
+}
+
+template <std::ranges::bidirectional_range Container>
 timeunit_t perf<Container>::count_impl(
     std::span<const perf_test::solution_t> solutions,
-    std::invocable<std::string_view> auto func) const {
+    std::invocable<std::string_view> auto func) {
   std::vector<size_t> distances(solutions.size());
 
   const auto t0 = perf_clock::now();
@@ -195,7 +214,7 @@ timeunit_t perf<Container>::count_impl(
 template <std::ranges::bidirectional_range Container>
 timeunit_t perf<Container>::find_impl(
     std::span<const perf_test::solution_t> solutions,
-    std::invocable<std::string_view> auto func) const {
+    std::invocable<std::string_view> auto func) {
   using iter_t = decltype(words)::const_iterator;
   std::vector<std::ranges::subrange<iter_t, iter_t>> actual_ranges(
       solutions.size());
