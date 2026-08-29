@@ -9,7 +9,7 @@ Interface for performance testing.
 #include <cstddef>
 #include <format>
 #include <fstream>
-#include <iostream>
+#include <print>
 #include <random>
 #include <ranges>
 #include <string>
@@ -23,10 +23,10 @@ using timeunit_t = std::chrono::nanoseconds;
 
 namespace perf_test {
 static constexpr auto WORDS_FILE = "./resources/words.txt";
-static constexpr size_t WORDS_SIZE = 370105;
+static constexpr auto WORDS_SIZE = 370105UZ;
 
 static constexpr auto SOLUTIONS_FILE = "./resources/solutions.txt";
-static constexpr size_t SOLUTIONS_SIZE = 114;
+static constexpr auto SOLUTIONS_SIZE = 114UZ;
 
 /**
  * @brief Reads words from the WORDS_FILE into a vector of strings. Randomly
@@ -42,7 +42,7 @@ std::vector<std::string> read_words(
  */
 struct solution_t {
   std::string prefix;
-  size_t count = 0;
+  std::size_t count = 0UZ;
   std::string begin, end;
 };
 
@@ -63,7 +63,7 @@ std::vector<solution_t> read_solutions(
  * @return A random choosing of sample_size words from the list.
  */
 std::vector<std::string_view> sample(
-    std::span<const std::string> word_list, size_t sample_size,
+    std::span<const std::string> word_list, std::size_t sample_size,
     std::uniform_random_bit_generator auto& prng);
 
 /**
@@ -93,8 +93,7 @@ std::vector<std::string> perf_test::read_words(
         std::format("Expected {} words but got {}", WORDS_SIZE, words.size()));
   }
   std::ranges::shuffle(words, prng);
-  std::cout << std::format("Imported {} randomly shuffled words\n",
-                           words.size());
+  std::println("Imported {} randomly shuffled words", words.size());
   return words;
 }
 
@@ -106,7 +105,7 @@ std::vector<perf_test::solution_t> perf_test::read_solutions(
   std::ifstream fin{SOLUTIONS_FILE};
   if (!fin)
     throw std::runtime_error(std::format("Could not open {}", SOLUTIONS_FILE));
-  size_t count = 0;
+  auto count = 0UZ;
   for (std::string word, begin, end; fin >> word >> count >> begin >> end;) {
     solutions.emplace_back(word, count, begin, end);
   }
@@ -116,13 +115,12 @@ std::vector<perf_test::solution_t> perf_test::read_solutions(
                                          SOLUTIONS_SIZE, solutions.size()));
   }
   std::ranges::shuffle(solutions, prng);
-  std::cout << std::format("Imported {} randomly shuffled words\n",
-                           solutions.size());
+  std::println("Imported {} randomly shuffled words", solutions.size());
   return solutions;
 }
 
 std::vector<std::string_view> perf_test::sample(
-    std::span<const std::string> word_list, size_t sample_size,
+    std::span<const std::string> word_list, std::size_t sample_size,
     std::uniform_random_bit_generator auto& prng) {
   std::vector<std::string_view> sub_list(sample_size);
   std::ranges::sample(word_list, sub_list.begin(),

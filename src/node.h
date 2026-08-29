@@ -51,7 +51,7 @@ class node {
    * Equivalent to counting the number of true is_end's accessible from this.
    * @return The number of keys stored at or under this.
    */
-  size_t key_count() const noexcept;
+  std::size_t key_count() const noexcept;
 
   /**
    * @brief Depth traversing search for the deepest child N such that a prefix

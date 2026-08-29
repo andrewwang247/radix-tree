@@ -22,6 +22,7 @@ Implementation for Trie.
 using std::initializer_list;
 using std::make_unique;
 using std::partial_ordering;
+using std::size_t;
 using std::string;
 using std::string_view;
 using std::strong_ordering;
