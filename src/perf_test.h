@@ -85,7 +85,7 @@ std::vector<std::string> perf_test::read_words(
   if (!fin)
     throw std::runtime_error(std::format("Could not open {}", WORDS_FILE));
   for (std::string word; fin >> word;) {
-    words.push_back(word);
+    words.emplace_back(word);
   }
 
   if (WORDS_SIZE != words.size()) {
