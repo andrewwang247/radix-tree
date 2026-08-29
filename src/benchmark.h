@@ -194,11 +194,10 @@ template <std::ranges::bidirectional_range Container>
 timeunit_t perf<Container>::count_impl(
     std::span<const perf_test::solution_t> solutions,
     std::invocable<std::string_view> auto func) {
-  std::vector<std::size_t> distances(solutions.size());
-
   const auto t0 = perf_clock::now();
-  std::ranges::transform(solutions, distances.begin(), func,
-                         &perf_test::solution_t::prefix);
+  const auto distances =
+      solutions | std::views::transform(&perf_test::solution_t::prefix) |
+      std::views::transform(func) | std::ranges::to<std::vector>();
   const auto t1 = perf_clock::now();
 
   const auto [miss_expect, miss_actual] = std::ranges::mismatch(
@@ -215,13 +214,10 @@ template <std::ranges::bidirectional_range Container>
 timeunit_t perf<Container>::find_impl(
     std::span<const perf_test::solution_t> solutions,
     std::invocable<std::string_view> auto func) {
-  using iter_t = decltype(words)::const_iterator;
-  std::vector<std::ranges::subrange<iter_t, iter_t>> actual_ranges(
-      solutions.size());
-
   const auto t0 = perf_clock::now();
-  std::ranges::transform(solutions, actual_ranges.begin(), func,
-                         &perf_test::solution_t::prefix);
+  const auto actual_ranges =
+      solutions | std::views::transform(&perf_test::solution_t::prefix) |
+      std::views::transform(func) | std::ranges::to<std::vector>();
   const auto t1 = perf_clock::now();
 
   const auto [miss_expect, miss_actual] = std::ranges::mismatch(
