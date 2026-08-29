@@ -9,10 +9,10 @@ set -uo pipefail
 hfiles="src/*.h"
 cppfiles="src/*.cpp"
 
-printf "Running clang-format...\n\n"
+printf "Running clang-format...\n"
 clang-format -i -style=file $hfiles $cppfiles
 
-printf "Running cppcheck...\n\n"
+printf "Running cppcheck...\n"
 cppcheck --language=c++ --std=c++23 --quiet \
     --check-level=exhaustive \
     --enable=all \
@@ -22,12 +22,11 @@ cppcheck --language=c++ --std=c++23 --quiet \
     --suppress=unusedStructMember \
     $hfiles $cppfiles
 
-printf "\nRunning cpplint...\n\n"
+printf "Running cpplint...\n"
 cpplint --filter=-build/include_subdir --quiet $hfiles $cppfiles
 
-printf "\nRunning clang-tidy...\n\n"
 if [[ ! -f "compile_commands.json" ]]; then
-    printf "Generating compile commands\n"
+    printf "Generating compile commands...\n"
     bear -- make clean debug release
 fi
-clang-tidy $cppfiles
+run-clang-tidy -quiet $cppfiles
