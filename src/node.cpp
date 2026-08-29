@@ -215,6 +215,7 @@ const node* node::prev_node() const noexcept {
 
 string node::underlying_string() const {
   vector<string_view> history;
+  auto len_sum = 0UZ;
 
   // Move up in trie until we get to root.
   for (const auto* ptr = this; ptr->parent; ptr = ptr->parent) {
@@ -225,10 +226,16 @@ string node::underlying_string() const {
 
     // Push the string representation onto the stack.
     history.emplace_back(iter->first);
+    len_sum += iter->first.size();
   }
 
   // If par is null, then ptr must be root. Concatenate strings in reverse.
-  return ranges::to<string>(history | views::reverse | views::join);
+  string out;
+  out.reserve(len_sum);
+  for (auto part : history | views::reverse) {
+    out += part;
+  }
+  return out;
 }
 
 map<string, unique_ptr<node>>::const_iterator node::find_child(

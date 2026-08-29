@@ -200,12 +200,12 @@ timeunit_t perf<Container>::count_impl(
       std::views::transform(func) | std::ranges::to<std::vector>();
   const auto t1 = perf_clock::now();
 
-  const auto [miss_expect, miss_actual] = std::ranges::mismatch(
-      solutions, distances, {}, &perf_test::solution_t::count);
-  if (miss_expect != solutions.end() && miss_actual != distances.end()) {
-    throw std::runtime_error(
-        std::format("Expected {} words with prefix {} but counted {}",
-                    miss_expect->count, miss_expect->prefix, *miss_actual));
+  for (auto&& [expected, actual] : std::views::zip(solutions, distances)) {
+    if (std::cmp_not_equal(expected.count, actual)) {
+      throw std::runtime_error(
+          std::format("Expected {} words with prefix {} but counted {}",
+                      expected.count, expected.prefix, actual));
+    }
   }
   return t1 - t0;
 }
@@ -220,19 +220,16 @@ timeunit_t perf<Container>::find_impl(
       std::views::transform(func) | std::ranges::to<std::vector>();
   const auto t1 = perf_clock::now();
 
-  const auto [miss_expect, miss_actual] = std::ranges::mismatch(
-      solutions, actual_ranges, {},
-      [](const perf_test::solution_t& sol) static {
-        return std::make_pair(sol.begin, sol.end);
-      },
-      [](decltype(actual_ranges)::value_type rng) static {
-        return std::make_pair(*rng.begin(), *rng.end());
-      });
-  if (miss_expect != solutions.end() && miss_actual != actual_ranges.end()) {
-    throw std::runtime_error(std::format(
-        "Expected prefix range for {} to be ({}, {}) but was ({}, {})",
-        miss_expect->prefix, miss_expect->begin, miss_expect->end,
-        *miss_actual->begin(), *miss_actual->end()));
+  for (auto&& [expected, actual] : std::views::zip(solutions, actual_ranges)) {
+    std::string_view exp_beg = expected.begin;
+    std::string_view exp_end = expected.end;
+    auto act_beg = *actual.begin();
+    auto act_end = *actual.end();
+    if (exp_beg != act_beg || exp_end != act_end) {
+      throw std::runtime_error(std::format(
+          "Expected prefix range for {} to be ({}, {}) but was ({}, {})",
+          expected.prefix, exp_beg, exp_end, act_beg, act_end));
+    }
   }
   return t1 - t0;
 }
@@ -241,20 +238,18 @@ template <std::ranges::bidirectional_range Container>
 timeunit_t perf<Container>::erase_impl(
     std::span<const perf_test::solution_t> solutions,
     std::invocable<std::string_view> auto func) const {
-  const auto count_view =
-      solutions | std::views::transform(&perf_test::solution_t::count);
-  const auto total_erased =
-      std::ranges::fold_left(count_view, 0UZ, std::plus{});
+  const auto total_erased = std::ranges::fold_left(
+      solutions | std::views::transform(&perf_test::solution_t::count), 0UZ,
+      std::plus{});
 
   const auto t0 = perf_clock::now();
   std::ranges::for_each(solutions, func, &perf_test::solution_t::prefix);
   const auto t1 = perf_clock::now();
 
-  const auto expected_size = perf_test::WORDS_SIZE - total_erased;
-  if (words.size() != expected_size) {
-    throw std::runtime_error(
-        std::format("Expected {} words after erasing but was {}", expected_size,
-                    words.size()));
+  const auto expected = perf_test::WORDS_SIZE - total_erased;
+  if (words.size() != expected) {
+    throw std::runtime_error(std::format(
+        "Expected {} words after erasing but was {}", expected, words.size()));
   }
   return t1 - t0;
 }
