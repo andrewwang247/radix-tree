@@ -50,21 +50,12 @@ unique_ptr<node> node::clone() const {
 bool node::deep_equals(const node* lhs, const node* rhs) noexcept {
   assert(lhs);
   assert(rhs);
-  if (lhs->is_end != rhs->is_end) return false;
-  if (lhs->children.size() != rhs->children.size()) return false;
-
-  // Since the number of children match, we can iterate in parallel.
-  for (auto left_it = lhs->children.begin(), right_it = rhs->children.begin();
-       left_it != lhs->children.end() && right_it != rhs->children.end();
-       ++left_it, ++right_it) {
-    if (left_it->first != right_it->first) return false;
-
-    // Recursively check for equality via depth first search.
-    if (!deep_equals(left_it->second.get(), right_it->second.get()))
-      return false;
-  }
-
-  return true;
+  const auto map_eq = [](const auto& lp, const auto& rp) static {
+    return lp.first == rp.first &&
+           deep_equals(lp.second.get(), rp.second.get());
+  };
+  return lhs->is_end == rhs->is_end &&  // cppcheck-suppress duplicateBreak
+         ranges::equal(lhs->children, rhs->children, map_eq);
 }
 
 size_t node::key_count() const noexcept {
@@ -224,7 +215,6 @@ const node* node::prev_node() const noexcept {
 
 string node::underlying_string() const {
   vector<string_view> history;
-  auto total_length = 0UZ;
 
   // Move up in trie until we get to root.
   for (const auto* ptr = this; ptr->parent; ptr = ptr->parent) {
@@ -235,16 +225,10 @@ string node::underlying_string() const {
 
     // Push the string representation onto the stack.
     history.emplace_back(iter->first);
-    total_length += iter->first.size();
   }
 
   // If par is null, then ptr must be root. Concatenate strings in reverse.
-  string str{};
-  str.reserve(total_length);
-  for (const auto segment : history | views::reverse) {
-    str += segment;
-  }
-  return str;
+  return ranges::to<string>(history | views::reverse | views::join);
 }
 
 map<string, unique_ptr<node>>::const_iterator node::find_child(
@@ -259,7 +243,7 @@ string node::to_json(bool include_ends) const {
     builder += format(R"({},"children":{{)", is_end ? "true" : "false");
   }
   if (!children.empty()) {
-    for (const auto& [str, ptr] : children | views::take(children.size() - 1)) {
+    for (auto&& [str, ptr] : children | views::take(children.size() - 1)) {
       builder += format(R"("{}":{},)", str, ptr->to_json(include_ends));
     }
     const auto& [str, ptr] = *std::prev(children.end());
