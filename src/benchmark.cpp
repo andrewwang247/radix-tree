@@ -23,7 +23,7 @@ ranges::range auto set_perf::prefix_range_for(string_view prefix) const {
   // Find the first item that's a prefix
   const auto begin = words.lower_bound(prefix);
   // Find where it stops being a prefix.
-  const auto right_bound = lexicographic_increment(prefix);
+  const auto right_bound = lexicographic_increment(string{prefix});
   const auto end = words.lower_bound(right_bound);
   return ranges::subrange{begin, end};
 }

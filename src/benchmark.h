@@ -31,7 +31,7 @@ Benchmarking class interfaces.
 using perf_clock = std::chrono::steady_clock;
 
 /**
- * Interface for performance testing.
+ * @brief Interface for performance testing.
  */
 template <std::ranges::bidirectional_range Container>
 class perf {
@@ -103,7 +103,7 @@ class perf {
    * @param word The current string to process.
    * @return The lexicographical earliest string greater than word.
    */
-  static std::string lexicographic_increment(std::string_view word);
+  constexpr static std::string lexicographic_increment(std::string word);
 
   /**
    * @brief Helper implementation function for count benchmark.
@@ -134,7 +134,7 @@ class perf {
 };
 
 /**
- * Perf class template for std::set.
+ * @brief Perf class template for std::set.
  */
 class set_perf final : public perf<std::set<std::string, std::less<>>> {
  private:
@@ -154,7 +154,7 @@ class set_perf final : public perf<std::set<std::string, std::less<>>> {
 };
 
 /**
- * Perf class template for trie.
+ * @brief Perf class template for trie.
  */
 class trie_perf final : public perf<trie> {
  public:
@@ -173,21 +173,19 @@ const Container& perf<Container>::peek() const noexcept {
 }
 
 template <std::ranges::bidirectional_range Container>
-std::string perf<Container>::lexicographic_increment(std::string_view word) {
-  std::string owning_word{word};
-  constexpr auto max_char = std::numeric_limits<char>::max();
+constexpr std::string perf<Container>::lexicographic_increment(
+    std::string word) {
   const auto last_non_max =
-      std::ranges::find_if_not(owning_word | std::views::reverse,
-                               [max_char](auto c) { return c == max_char; });
-  // All characters are max char. Append min char.
-  if (last_non_max == owning_word.rend()) {
-    constexpr auto min_char = std::numeric_limits<char>::min();
-    return owning_word + min_char;
+      word.find_last_not_of(std::numeric_limits<char>::max());
+  if (last_non_max != std::string::npos) {
+    // Increment last non max char and remove everything after.
+    ++word[last_non_max];
+    word.erase(last_non_max + 1);
+  } else {
+    // All characters are max char. Append min char.
+    word += std::numeric_limits<char>::min();
   }
-  // Increment the last non max char and remove everything after.
-  ++*last_non_max;
-  owning_word.erase(last_non_max.base(), owning_word.end());
-  return owning_word;
+  return word;
 }
 
 template <std::ranges::bidirectional_range Container>

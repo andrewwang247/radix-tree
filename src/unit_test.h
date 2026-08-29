@@ -9,6 +9,10 @@ Interface for unit testing.
 #include <string_view>
 
 #include "trie.h"
+
+/**
+ * @brief Unit testing.
+ */
 namespace unit_test {
 static constexpr auto RESULT_TEMPLATE = "Test {:<20} passed";
 // NOLINTBEGIN(whitespace/indent_namespace)

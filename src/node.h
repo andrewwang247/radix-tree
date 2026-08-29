@@ -15,6 +15,9 @@ Interface for Node.
  */
 class node {
  private:
+  /**
+   * @brief Tracks built up string at a position.
+   */
   struct positional {
     node* ptr;
     std::string_view pos;

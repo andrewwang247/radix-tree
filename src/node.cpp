@@ -240,8 +240,9 @@ string node::underlying_string() const {
 
 map<string, unique_ptr<node>>::const_iterator node::find_child(
     const node* other) const noexcept {
-  return ranges::find(children, other,
-                      [](const auto& p) static { return p.second.get(); });
+  return ranges::find(children, other, [](const auto& p) static constexpr {
+    return p.second.get();
+  });
 }
 
 string node::to_json(bool include_ends) const {
