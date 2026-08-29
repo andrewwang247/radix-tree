@@ -194,7 +194,7 @@ template <std::ranges::bidirectional_range Container>
 timeunit_t perf<Container>::count_impl(
     std::span<const perf_test::solution_t> solutions,
     std::invocable<std::string_view> auto func) {
-  std::vector<size_t> distances(solutions.size());
+  std::vector<std::size_t> distances(solutions.size());
 
   const auto t0 = perf_clock::now();
   std::ranges::transform(solutions, distances.begin(), func,
@@ -226,10 +226,10 @@ timeunit_t perf<Container>::find_impl(
 
   const auto [miss_expect, miss_actual] = std::ranges::mismatch(
       solutions, actual_ranges, {},
-      [](const perf_test::solution_t& sol) {
+      [](const perf_test::solution_t& sol) static {
         return std::make_pair(sol.begin, sol.end);
       },
-      [](decltype(actual_ranges)::value_type rng) {
+      [](decltype(actual_ranges)::value_type rng) static {
         return std::make_pair(*rng.begin(), *rng.end());
       });
   if (miss_expect != solutions.end() && miss_actual != actual_ranges.end()) {
@@ -247,8 +247,8 @@ timeunit_t perf<Container>::erase_impl(
     std::invocable<std::string_view> auto func) const {
   const auto count_view =
       solutions | std::views::transform(&perf_test::solution_t::count);
-  const size_t total_erased =
-      std::accumulate(count_view.begin(), count_view.end(), 0U);
+  const auto total_erased =
+      std::ranges::fold_left(count_view, 0UZ, std::plus{});
 
   const auto t0 = perf_clock::now();
   std::ranges::for_each(solutions, func, &perf_test::solution_t::prefix);

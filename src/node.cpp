@@ -24,6 +24,7 @@ Implementation for Node.
 using std::format;
 using std::make_unique;
 using std::map;
+using std::size_t;
 using std::string;
 using std::string_view;
 using std::unique_ptr;
@@ -68,7 +69,7 @@ bool node::deep_equals(const node* lhs, const node* rhs) noexcept {
 
 size_t node::key_count() const noexcept {
   // If is_end, count it as a word.
-  size_t counter = is_end ? 1 : 0;
+  auto counter = is_end ? 1UZ : 0UZ;
   // Recursively check for words in children
   for (const auto& [_, ptr] : children) {
     assert(ptr);
@@ -223,7 +224,7 @@ const node* node::prev_node() const noexcept {
 
 string node::underlying_string() const {
   vector<string_view> history;
-  size_t total_length = 0;
+  auto total_length = 0UZ;
 
   // Move up in trie until we get to root.
   for (const auto* ptr = this; ptr->parent; ptr = ptr->parent) {
@@ -249,7 +250,7 @@ string node::underlying_string() const {
 map<string, unique_ptr<node>>::const_iterator node::find_child(
     const node* other) const noexcept {
   return ranges::find(children, other,
-                      [](const auto& p) { return p.second.get(); });
+                      [](const auto& p) static { return p.second.get(); });
 }
 
 string node::to_json(bool include_ends) const {

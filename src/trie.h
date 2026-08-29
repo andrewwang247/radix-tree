@@ -103,7 +103,7 @@ class trie {
    * @return The number of words stored in the trie with given prefix.
    * Default prefix is empty, which means the full trie size is returned.
    */
-  size_t size(std::string_view prefix = "") const noexcept;
+  std::size_t size(std::string_view prefix = "") const noexcept;
 
   // --- ITERATION ---
 

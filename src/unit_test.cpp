@@ -7,29 +7,25 @@ Unit testing implementation.
 
 #include <algorithm>
 #include <cassert>
-#include <format>
-#include <iostream>
 #include <iterator>
+#include <print>
 #include <random>
 #include <ranges>
 #include <utility>
 
 #include "trie.h"
 
-using std::cout;
 using std::default_random_engine;
-using std::format;
-using std::ios_base;
+using std::println;
 using std::random_device;
 
 namespace ranges = std::ranges;
 
 int main() {
-  ios_base::sync_with_stdio(false);
   static_assert(ranges::is_sorted(unit_test::SORTED_WORDS),
                 "Unit tests assume provided words are sorted");
 
-  cout << "--- EXECUTING UNIT TESTS ---\n";
+  println("--- EXECUTING UNIT TESTS ---");
   unit_test::empty();
   unit_test::single();
   unit_test::find();
@@ -41,7 +37,7 @@ int main() {
   unit_test::comparison();
   unit_test::arithmetic();
   unit_test::representation();
-  cout << "--- FINISHED UNIT TESTS ---\n";
+  println("--- FINISHED UNIT TESTS ---");
 }
 
 trie unit_test::get_trie() {
@@ -79,7 +75,7 @@ void unit_test::empty() {
   assert(tr.find("")->empty());
   assert(tr.find_prefix("")->empty());
 
-  cout << format(RESULT_TEMPLATE, "empty");
+  println(RESULT_TEMPLATE, "empty");
 }
 
 void unit_test::single() {
@@ -108,7 +104,7 @@ void unit_test::single() {
   assert(*tr.find("single") == "single");
   assert(*tr.find_prefix("single") == "single");
 
-  cout << format(RESULT_TEMPLATE, "singleton");
+  println(RESULT_TEMPLATE, "singleton");
 }
 
 void unit_test::find() {
@@ -143,7 +139,7 @@ void unit_test::find() {
   const auto missing_prf_iter = tr.find("conk");
   assert(missing_prf_iter == tr.end());
 
-  cout << format(RESULT_TEMPLATE, "find");
+  println(RESULT_TEMPLATE, "find");
 }
 
 void unit_test::insert() {
@@ -175,7 +171,7 @@ void unit_test::insert() {
   assert(tr.size() == 3);
   assert(!tr.empty("reg"));
 
-  cout << format(RESULT_TEMPLATE, "insert");
+  println(RESULT_TEMPLATE, "insert");
 }
 
 void unit_test::erase() {
@@ -228,7 +224,7 @@ void unit_test::erase() {
   assert(tr.empty());
   assert(tr.size() == 0);
 
-  cout << format(RESULT_TEMPLATE, "erase");
+  println(RESULT_TEMPLATE, "erase");
 }
 
 void unit_test::forward_iterate() {
@@ -261,7 +257,7 @@ void unit_test::forward_iterate() {
   assert(*tr.end("cops") == "corn");
   assert(!tr.end());
 
-  cout << format(RESULT_TEMPLATE, "forward iterate");
+  println(RESULT_TEMPLATE, "forward iterate");
 }
 
 void unit_test::reverse_iterate() {
@@ -284,7 +280,7 @@ void unit_test::reverse_iterate() {
       ranges::subrange{find_matrix, std::next(find_mahjong)},
       ranges::reverse_view(ranges::subrange{tr.begin("ma"), tr.end("ma")})));
 
-  cout << format(RESULT_TEMPLATE, "reverse iterate");
+  println(RESULT_TEMPLATE, "reverse iterate");
 }
 
 void unit_test::copy_move() {
@@ -304,7 +300,7 @@ void unit_test::copy_move() {
   moved = std::move(copied);
   assert(ranges::empty(moved));
 
-  cout << format(RESULT_TEMPLATE, "copy and move");
+  println(RESULT_TEMPLATE, "copy and move");
 }
 
 void unit_test::comparison() {
@@ -321,7 +317,7 @@ void unit_test::comparison() {
   assert(t1 <= t2);
   assert(t2 >= t1);
 
-  cout << format(RESULT_TEMPLATE, "comparison");
+  println(RESULT_TEMPLATE, "comparison");
 }
 
 void unit_test::arithmetic() {
@@ -342,7 +338,7 @@ void unit_test::arithmetic() {
   assert(tr - ex == tr);
   assert(tr < tr + ex);
 
-  cout << format(RESULT_TEMPLATE, "arithmetic");
+  println(RESULT_TEMPLATE, "arithmetic");
 }
 
 void unit_test::representation() {
@@ -369,5 +365,5 @@ void unit_test::representation() {
   constexpr auto MAT_JSON = R"({"er":{"ial":{},"nal":{}},"h":{},"rix":{}})";
   assert(mat_iter.to_json(false) == MAT_JSON);
 
-  cout << format(RESULT_TEMPLATE, "representation");
+  println(RESULT_TEMPLATE, "representation");
 }
