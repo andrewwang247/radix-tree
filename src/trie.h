@@ -18,8 +18,9 @@ Interface for Trie.
 #include "node.h"
 
 /**
- * @brief A compact prefix tree with keys as std::string. The empty string
- * is always contained in the trie.
+ * @brief A compact prefix tree with keys as std::string.
+ *
+ * The empty string is always contained in the trie.
  */
 class trie {
  private:

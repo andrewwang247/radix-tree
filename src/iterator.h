@@ -101,8 +101,6 @@ class iterator {
    */
   std::string to_json(bool include_ends = false) const;
 
-  // Iterators are compared element-wise.
-
   /**
    * @brief Check if two iterators are equal.
    * @param lhs The left iterator.

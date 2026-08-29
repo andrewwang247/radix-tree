@@ -21,6 +21,9 @@ Interface for performance testing.
 
 using timeunit_t = std::chrono::nanoseconds;
 
+/**
+ * @brief Performance testing.
+ */
 namespace perf_test {
 static constexpr auto WORDS_FILE = "./resources/words.txt";
 static constexpr auto WORDS_SIZE = 370105UZ;
@@ -38,7 +41,7 @@ std::vector<std::string> read_words(
     std::uniform_random_bit_generator auto& prng);
 
 /**
- * Solution to finding and counting a prefix.
+ * @brief Solution to finding and counting a prefix.
  */
 struct solution_t {
   std::string prefix;
