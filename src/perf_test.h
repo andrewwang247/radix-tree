@@ -31,14 +31,16 @@ static constexpr auto WORDS_SIZE = 370105UZ;
 static constexpr auto SOLUTIONS_FILE = "./resources/solutions.txt";
 static constexpr auto SOLUTIONS_SIZE = 114UZ;
 
+template <typename T>
+concept PRNG = std::uniform_random_bit_generator<std::remove_cvref_t<T>>;
+
 /**
  * @brief Reads words from the WORDS_FILE into a vector of strings. Randomly
  * permutes before returning.
- * @param prng The random engine to use for shuffling words.
+ * @param prng The random bit generator to use for shuffling words.
  * @return A vector of strings containing all words from the file.
  */
-std::vector<std::string> read_words(
-    std::uniform_random_bit_generator auto& prng);
+std::vector<std::string> read_words(PRNG auto&& prng);
 
 /**
  * @brief Solution to finding and counting a prefix.
@@ -52,22 +54,20 @@ struct solution_t {
 /**
  * @brief Reads solutions from the SOLUTIONS_FILE into a vector of. Randomly
  * permutes before returning.
- * @param prng The random engine to use for shuffling solution.
+ * @param prng The random bit generator to use for shuffling solution.
  * @return A vector of solutions containing all entries from the file.
  */
-std::vector<solution_t> read_solutions(
-    std::uniform_random_bit_generator auto& prng);
+std::vector<solution_t> read_solutions(PRNG auto&& prng);
 
 /**
  * @brief Randomly sample without replacement from the word list.
  * @param word_list The original words to sample from.
  * @param sample_size Number of samples to retrieve.
- * @param prng The random engine to use for sampling.
+ * @param prng The random bit generator to use for sampling.
  * @return A random choosing of sample_size words from the list.
  */
-std::vector<std::string_view> sample(
-    std::span<const std::string> word_list, std::size_t sample_size,
-    std::uniform_random_bit_generator auto& prng);
+std::vector<std::string_view> sample(std::span<const std::string> word_list,
+                                     std::size_t sample_size, PRNG auto&& prng);
 
 /**
  * @brief Display performance comparison between set and Trie operations.
@@ -77,10 +77,9 @@ std::vector<std::string_view> sample(
 void show_comparison(timeunit_t set_time, timeunit_t trie_time);
 }  // namespace perf_test
 
-// NON VIRTUAL TEMPLATED IMPLEMENTATIONS
+// TEMPLATED IMPLEMENTATIONS
 
-std::vector<std::string> perf_test::read_words(
-    std::uniform_random_bit_generator auto& prng) {
+std::vector<std::string> perf_test::read_words(PRNG auto&& prng) {
   std::vector<std::string> words;
   words.reserve(WORDS_SIZE);
 
@@ -100,8 +99,7 @@ std::vector<std::string> perf_test::read_words(
   return words;
 }
 
-std::vector<perf_test::solution_t> perf_test::read_solutions(
-    std::uniform_random_bit_generator auto& prng) {
+std::vector<perf_test::solution_t> perf_test::read_solutions(PRNG auto&& prng) {
   std::vector<solution_t> solutions;
   solutions.reserve(SOLUTIONS_SIZE);
 
@@ -124,7 +122,7 @@ std::vector<perf_test::solution_t> perf_test::read_solutions(
 
 std::vector<std::string_view> perf_test::sample(
     std::span<const std::string> word_list, std::size_t sample_size,
-    std::uniform_random_bit_generator auto& prng) {
+    PRNG auto&& prng) {
   std::vector<std::string_view> sub_list(sample_size);
   std::ranges::sample(word_list, sub_list.begin(),
                       static_cast<int32_t>(sample_size), prng);
