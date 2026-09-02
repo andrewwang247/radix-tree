@@ -9,6 +9,7 @@ Interface for performance testing.
 #include <cstddef>
 #include <format>
 #include <fstream>
+#include <limits>
 #include <print>
 #include <random>
 #include <ranges>
@@ -70,6 +71,13 @@ std::vector<std::string_view> sample(std::span<const std::string> word_list,
                                      std::size_t sample_size, PRNG auto&& prng);
 
 /**
+ * @brief Increment a string to the next possible in lexicographic order.
+ * @param word The current string to process.
+ * @return The lexicographical earliest string greater than word.
+ */
+constexpr std::string lexicographic_increment(std::string word);
+
+/**
  * @brief Display performance comparison between set and Trie operations.
  * @param set_time The time taken by the set.
  * @param trie_time The time taken by the Trie.
@@ -77,7 +85,7 @@ std::vector<std::string_view> sample(std::span<const std::string> word_list,
 void show_comparison(timeunit_t set_time, timeunit_t trie_time);
 }  // namespace perf_test
 
-// TEMPLATED IMPLEMENTATIONS
+// CONSTEXPR AND TEMPLATED IMPLEMENTATIONS
 
 std::vector<std::string> perf_test::read_words(PRNG auto&& prng) {
   std::vector<std::string> words;
@@ -127,4 +135,18 @@ std::vector<std::string_view> perf_test::sample(
   std::ranges::sample(word_list, sub_list.begin(),
                       static_cast<int32_t>(sample_size), prng);
   return sub_list;
+}
+
+constexpr std::string perf_test::lexicographic_increment(std::string word) {
+  const auto last_non_max =
+      word.find_last_not_of(std::numeric_limits<char>::max());
+  if (last_non_max != std::string::npos) {
+    // Increment last non max char and remove everything after.
+    ++word[last_non_max];
+    word.erase(last_non_max + 1);
+  } else {
+    // All characters are max char. Append min char.
+    word += std::numeric_limits<char>::min();
+  }
+  return word;
 }
