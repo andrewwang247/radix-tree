@@ -5,12 +5,10 @@
 
 set -uo pipefail
 
-# List of all C++ files.
-hfiles="src/*.h"
-cppfiles="src/*.cpp"
+sources="src/*"
 
 printf "Running clang-format...\n"
-clang-format -i -style=file $hfiles $cppfiles
+clang-format -i -style=file $sources
 
 printf "Running cppcheck...\n"
 cppcheck --language=c++ --std=c++23 \
@@ -21,13 +19,13 @@ cppcheck --language=c++ --std=c++23 \
     --suppress=checkersReport \
     --suppress=missingIncludeSystem \
     --suppress=unusedStructMember \
-    $hfiles $cppfiles
-
-printf "Running cpplint...\n"
-cpplint --filter=-build/include_subdir --quiet $hfiles $cppfiles
+    $sources
 
 if [[ ! -f "compile_commands.json" ]]; then
     printf "Generating compile commands...\n"
     bear -- make clean debug release
 fi
-run-clang-tidy -quiet $cppfiles
+run-clang-tidy -quiet -fix
+
+printf "Running cpplint...\n"
+cpplint --filter=-build/include_subdir --quiet $sources

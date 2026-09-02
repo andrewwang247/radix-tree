@@ -246,19 +246,17 @@ map<string, unique_ptr<node>>::const_iterator node::find_child(
 }
 
 string node::to_json(bool include_ends) const {
-  string builder = include_ends ? R"({"end":)" : "{";
+  string header = "{";
   if (include_ends) {
-    builder += format(R"({},"children":{{)", is_end ? "true" : "false");
+    header += format(R"("end":{},"children":{{)", is_end ? "true" : "false");
   }
-  if (!children.empty()) {
-    for (auto&& [str, ptr] : children | views::take(children.size() - 1)) {
-      builder += format(R"("{}":{},)", str, ptr->to_json(include_ends));
-    }
-    const auto& [str, ptr] = *std::prev(children.end());
-    builder += format(R"("{}":{})", str, ptr->to_json(include_ends));
-  }
-  builder += include_ends ? "}}" : "}";
-  return builder;
+  const auto content =
+      children | views::transform([include_ends](const auto& entry) {
+        const auto& [str, ptr] = entry;
+        return format(R"("{}":{})", str, ptr->to_json(include_ends));
+      }) |
+      views::join_with(',') | ranges::to<string>();
+  return header + content + (include_ends ? "}}" : "}");
 }
 
 void node::assert_invariants() const noexcept {
