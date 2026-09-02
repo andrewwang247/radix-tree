@@ -69,48 +69,48 @@ size_t node::key_count() const noexcept {
   return counter;
 }
 
-node::positional node::approximate_match(string_view key_view) noexcept {
+node::positional node::approximate_match(string_view key) noexcept {
   // If the key is empty, return this.
-  if (key_view.empty()) return {.ptr = this, .pos = key_view};
+  if (key.empty()) return {.ptr = this, .pos = key};
 
   for (const auto& [str, ptr] : children) {
     assert(ptr);
     // If one of the children is a prefix of key, recurse.
-    if (key_view.starts_with(str)) {
+    if (key.starts_with(str)) {
       // Remove the child string off the front of key.
-      return ptr->approximate_match(key_view.substr(str.length()));
+      return ptr->approximate_match(key.substr(str.length()));
     }
   }
 
   // If none of the children form a prefix for key, simply return this.
-  return {.ptr = this, .pos = key_view};
+  return {.ptr = this, .pos = key};
 }
 
-node::positional node::prefix_match(string_view prf_view) noexcept {
+node::positional node::prefix_match(string_view prf) noexcept {
   // First compute the approximate root.
-  const auto [app_ptr, prf] = approximate_match(prf_view);
+  const auto [app_ptr, prf_pos] = approximate_match(prf);
   assert(app_ptr);
   // If the given prf is empty, it's a perfect match.
-  if (prf.empty()) return {.ptr = app_ptr, .pos = prf};
+  if (prf_pos.empty()) return {.ptr = app_ptr, .pos = prf_pos};
 
   // If any of the node's children have prf as prefix, return that child.
   for (const auto& [str, ptr] : app_ptr->children) {
     assert(ptr);
-    if (str.starts_with(prf)) {
+    if (str.starts_with(prf_pos)) {
       return {.ptr = ptr.get(), .pos = string_view{}};
     }
   }
 
   // No way to make prf a prefix. Return null.
-  return {.ptr = nullptr, .pos = prf};
+  return {.ptr = nullptr, .pos = prf_pos};
 }
 
-node* node::exact_match(string_view word_view) noexcept {
+node* node::exact_match(string_view word) noexcept {
   // First compute the approximate root.
-  const auto [app_ptr, word] = approximate_match(word_view);
+  const auto [app_ptr, word_pos] = approximate_match(word);
   assert(app_ptr);
   // Match if and only if we've used entire word and app_ptr is_end.
-  if (word.empty() && app_ptr->is_end) return app_ptr;
+  if (word_pos.empty() && app_ptr->is_end) return app_ptr;
   return nullptr;
 }
 

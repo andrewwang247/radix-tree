@@ -57,27 +57,25 @@ class node {
   std::size_t key_count() const noexcept;
 
   /**
-   * @brief Depth traversing search for the deepest child N such that a prefix
-   * of key matches the string representation at N when starting from this.
-   * @param key The key on which to make an approximate match. Modifies key
-   * such that the string representation at N is removed.
-   * @return The node N described above. Since the root node in a Trie is
-   * equivalent to the empty string, N is never null.
+   * @brief Search for the deepest child N such that a
+   * prefix of key matches the string rep at N starting from this.
+   * @param key The key on which to make an approximate match.
+   * @return Node N and view of key where the string rep at N is
+   * removed.
    */
   positional approximate_match(std::string_view key) noexcept;
 
   /**
-   * @brief Depth traversing search from this for prf.
-   * @param prf The prefix which the return node should be a root of. Modifies
-   * so that the string at prefix_match is removed from prf. Note that if prf is
-   * not a prefix, the modified prf reflects as far as it got.
-   * @return The deepest child N such that N and all of N's children have prf as
-   * prefix. If prf is not a prefix, returns a nullptr.
+   * @brief Search for deepest child N such that prf is a
+   * prefix of the string rep at N starting from this.
+   * @param prf The prefix which the return node should be a root of.
+   * @return If prf is not a prefix, returns nullptr and string_view reflecting
+   * as far as the traversal got. Otherwise, pointer to N.
    */
   positional prefix_match(std::string_view prf) noexcept;
 
   /**
-   * @brief Depth traversing search from this for the node that matches word.
+   * @brief Search from this for the node that matches word.
    * @param word The string we are trying to match.
    * @return The first child that exactly matches the given word. If no match is
    * found, returns a nullptr.
