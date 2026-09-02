@@ -15,6 +15,7 @@ cppcheck --language=c++ --std=c++23 \
     --inline-suppr --quiet \
     --check-level=exhaustive \
     --enable=all \
+    --inconclusive \
     --template=gcc \
     --suppress=checkersReport \
     --suppress=missingIncludeSystem \

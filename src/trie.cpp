@@ -51,57 +51,58 @@ trie::trie(unique_ptr<node> cloned) noexcept {
   root->assert_invariants();
 }
 
-bool trie::empty(string_view prefix_view) const noexcept {
-  const auto [prf_rt, _] = root->prefix_match(prefix_view);
+bool trie::empty(string_view prefix) const noexcept {
+  const auto [prf_rt, _] = root->prefix_match(prefix);
   // Check if prefix root is null
   if (!prf_rt) return true;
   // It's empty if prf_rt is not a word and has no children.
   return !prf_rt->is_end && prf_rt->children.empty();
 }
 
-size_t trie::size(string_view prefix_view) const noexcept {
-  const auto [prf_rt, _] = root->prefix_match(prefix_view);
+size_t trie::size(string_view prefix) const noexcept {
+  const auto [prf_rt, _] = root->prefix_match(prefix);
   return prf_rt ? prf_rt->key_count() : 0U;
 }
 
-bool trie::contains(string_view key_view) const noexcept {
-  if (key_view.empty()) {
+bool trie::contains(string_view key) const noexcept {
+  if (key.empty()) {
     return root->is_end;
   }
-  return root->exact_match(key_view);
+  return root->exact_match(key);
 }
 
-iterator trie::find(string_view key_view) const noexcept {
+iterator trie::find(string_view key) const noexcept {
   // Handle edge case of key being empty.
-  if (key_view.empty()) {
+  if (key.empty()) {
     return root->is_end ? iterator(root, root) : iterator(root, nullptr);
   }
-  return {root, root->exact_match(key_view)};
+  return {root, root->exact_match(key)};
 }
 
-iterator trie::find_prefix(string_view prefix_view) const noexcept {
+iterator trie::find_prefix(string_view prefix) const noexcept {
   // We need only find a word that key is a prefix of.
-  const auto [prf_rt, prefix] = root->prefix_match(prefix_view);
+  const auto [prf_rt, prf_pos] = root->prefix_match(prefix);
   // If key is not a prefix of anything, there is no match.
   if (!prf_rt) return {root, nullptr};
 
   // Find the first child key rooted at prt_rt.
   // If key is empty and prf_rt is and end node, then it is the "first key".
-  return prefix.empty() && prf_rt->is_end ? iterator(root, prf_rt)
-                                          : iterator(root, prf_rt->first_key());
+  return prf_pos.empty() && prf_rt->is_end
+             ? iterator(root, prf_rt)
+             : iterator(root, prf_rt->first_key());
 }
 
-iterator trie::insert(string_view key_view) {
+iterator trie::insert(string_view key) {
   // Note: inserting key at root, is the same
   // as inserting reduced key at loc.
   // The problem space has been reduced.
-  const auto [loc, key] = root->approximate_match(key_view);
+  const auto [loc, key_pos] = root->approximate_match(key);
   assert(loc);
 
   // INSERT KEY AT LOC
 
   // If the key is now empty, simply set is_end to true.
-  if (key.empty()) {
+  if (key_pos.empty()) {
     loc->is_end = true;
     root->assert_invariants();
     return {root, loc};
@@ -111,7 +112,8 @@ iterator trie::insert(string_view key_view) {
   // a child.
   if (loc->children.empty()) {
     auto child = make_unique<node>(true, loc);
-    const auto [result_iter, _1] = loc->children.emplace(key, std::move(child));
+    const auto [result_iter, _1] =
+        loc->children.emplace(key_pos, std::move(child));
     root->assert_invariants();
     return {root, result_iter->second};
   }
@@ -121,13 +123,13 @@ iterator trie::insert(string_view key_view) {
     assert(!child_str.empty());
 
     // Keep iterating until a first letter match is found.
-    if (child_str.front() != key.front()) continue;
+    if (child_str.front() != key_pos.front()) continue;
 
     // Use mismatch to compute the spot where the prefix fails.
-    auto iter_pair = ranges::mismatch(key, child_str);
+    auto iter_pair = ranges::mismatch(key_pos, child_str);
     // Extract the common prefix and unique postfixes of key and child.
-    string_view common{key.begin(), iter_pair.in1};
-    string_view post_key{iter_pair.in1, key.end()};
+    string_view common{key_pos.begin(), iter_pair.in1};
+    string_view post_key{iter_pair.in1, key_pos.end()};
     string_view post_child{iter_pair.in2, child_str.end()};
     // If remaining key's prefix can match a child, then approximate_match
     // failed.
@@ -162,7 +164,8 @@ iterator trie::insert(string_view key_view) {
 
   // If there are no shared prefixes, then simply create a node under loc.
   auto key_node = make_unique<node>(true, loc);
-  const auto [key_iter, _5] = loc->children.emplace(key, std::move(key_node));
+  const auto [key_iter, _5] =
+      loc->children.emplace(key_pos, std::move(key_node));
   root->assert_invariants();
   return {root, key_iter->second};
 }
@@ -220,8 +223,8 @@ void trie::erase(string_view key) {
   // If match has multiple children, nothing can be joined.
 }
 
-void trie::erase_prefix(string_view prefix_view) {
-  const auto [prf_ptr, prefix] = root->prefix_match(prefix_view);
+void trie::erase_prefix(string_view prefix) {
+  const auto [prf_ptr, prf_pos] = root->prefix_match(prefix);
   if (!prf_ptr) return;
   if (prf_ptr == root.get()) {
     clear();
@@ -252,28 +255,28 @@ iterator trie::begin() const noexcept {
 
 iterator trie::end() const noexcept { return {root, nullptr}; }
 
-iterator trie::begin(string_view prefix_view) const noexcept {
+iterator trie::begin(string_view prefix) const noexcept {
   // Find the first key that matches the given prefix.
-  return find_prefix(prefix_view);
+  return find_prefix(prefix);
 }
 
-iterator trie::end(string_view prefix_view) const noexcept {
+iterator trie::end(string_view prefix) const noexcept {
   // Perform an approximate match.
-  auto [app_ptr, prefix] = root->approximate_match(prefix_view);
+  auto [app_ptr, prf_pos] = root->approximate_match(prefix);
   assert(app_ptr);
 
   // If prefix is empty, app_ptr is a prefix match and
   // none of its children work. If all children of app_ptr
   // are less than prefix, nothing under app_ptr works.
-  if (prefix.empty() || app_ptr->children.empty() ||
-      app_ptr->children.rbegin()->first < prefix)
+  if (prf_pos.empty() || app_ptr->children.empty() ||
+      app_ptr->children.rbegin()->first < prf_pos)
     return {root, app_ptr->next_node()};
 
   // Find the first child that is greater than prefix
   for (auto& [str, ptr] : app_ptr->children) {
     // If equality, then approximate_match failed.
-    assert(str != prefix);
-    if (str.front() > prefix.front()) {
+    assert(str != prf_pos);
+    if (str.front() > prf_pos.front()) {
       return ptr->is_end ? iterator(root, ptr)
                          : iterator(root, ptr->first_key());
     }

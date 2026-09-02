@@ -31,7 +31,7 @@ class iterator {
    */
   struct arrow_proxy {
     value_type value;
-    pointer operator->() { return &value; }
+    pointer operator->() const { return &value; }
   };
 
  public:
