@@ -33,7 +33,7 @@ using std::vector;
 namespace ranges = std::ranges;
 namespace views = std::views;
 
-node::node(bool end, node* par) noexcept : is_end(end), parent(par) {}
+node::node(bool end, node* par) noexcept : parent(par), is_end(end) {}
 
 unique_ptr<node> node::clone() const {
   // Null parent because we do not clone above this node.
@@ -71,7 +71,7 @@ size_t node::key_count() const noexcept {
 
 node::positional node::approximate_match(string_view key) noexcept {
   // If the key is empty, return this.
-  if (key.empty()) return {.ptr = this, .pos = key};
+  if (key.empty()) return {.pos = key, .ptr = this};
 
   for (const auto& [str, ptr] : children) {
     assert(ptr);
@@ -83,31 +83,31 @@ node::positional node::approximate_match(string_view key) noexcept {
   }
 
   // If none of the children form a prefix for key, simply return this.
-  return {.ptr = this, .pos = key};
+  return {.pos = key, .ptr = this};
 }
 
 node::positional node::prefix_match(string_view prf) noexcept {
   // First compute the approximate root.
-  const auto [app_ptr, prf_pos] = approximate_match(prf);
+  const auto [prf_pos, app_ptr] = approximate_match(prf);
   assert(app_ptr);
   // If the given prf is empty, it's a perfect match.
-  if (prf_pos.empty()) return {.ptr = app_ptr, .pos = prf_pos};
+  if (prf_pos.empty()) return {.pos = prf_pos, .ptr = app_ptr};
 
   // If any of the node's children have prf as prefix, return that child.
   for (const auto& [str, ptr] : app_ptr->children) {
     assert(ptr);
     if (str.starts_with(prf_pos)) {
-      return {.ptr = ptr.get(), .pos = string_view{}};
+      return {.pos = string_view{}, .ptr = ptr.get()};
     }
   }
 
   // No way to make prf a prefix. Return null.
-  return {.ptr = nullptr, .pos = prf_pos};
+  return {.pos = prf_pos, .ptr = nullptr};
 }
 
 node* node::exact_match(string_view word) noexcept {
   // First compute the approximate root.
-  const auto [app_ptr, word_pos] = approximate_match(word);
+  const auto [word_pos, app_ptr] = approximate_match(word);
   assert(app_ptr);
   // Match if and only if we've used entire word and app_ptr is_end.
   if (word_pos.empty() && app_ptr->is_end) return app_ptr;
