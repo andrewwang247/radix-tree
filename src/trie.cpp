@@ -52,7 +52,7 @@ trie::trie(unique_ptr<node> cloned) noexcept {
 }
 
 bool trie::empty(string_view prefix) const noexcept {
-  const auto [prf_rt, _] = root->prefix_match(prefix);
+  const auto [_, prf_rt] = root->prefix_match(prefix);
   // Check if prefix root is null
   if (!prf_rt) return true;
   // It's empty if prf_rt is not a word and has no children.
@@ -60,7 +60,7 @@ bool trie::empty(string_view prefix) const noexcept {
 }
 
 size_t trie::size(string_view prefix) const noexcept {
-  const auto [prf_rt, _] = root->prefix_match(prefix);
+  const auto [_, prf_rt] = root->prefix_match(prefix);
   return prf_rt ? prf_rt->key_count() : 0U;
 }
 
@@ -81,7 +81,7 @@ iterator trie::find(string_view key) const noexcept {
 
 iterator trie::find_prefix(string_view prefix) const noexcept {
   // We need only find a word that key is a prefix of.
-  const auto [prf_rt, prf_pos] = root->prefix_match(prefix);
+  const auto [prf_pos, prf_rt] = root->prefix_match(prefix);
   // If key is not a prefix of anything, there is no match.
   if (!prf_rt) return {root, nullptr};
 
@@ -96,7 +96,7 @@ iterator trie::insert(string_view key) {
   // Note: inserting key at root, is the same
   // as inserting reduced key at loc.
   // The problem space has been reduced.
-  const auto [loc, key_pos] = root->approximate_match(key);
+  const auto [key_pos, loc] = root->approximate_match(key);
   assert(loc);
 
   // INSERT KEY AT LOC
@@ -224,7 +224,7 @@ void trie::erase(string_view key) {
 }
 
 void trie::erase_prefix(string_view prefix) {
-  const auto [prf_ptr, prf_pos] = root->prefix_match(prefix);
+  const auto [prf_pos, prf_ptr] = root->prefix_match(prefix);
   if (!prf_ptr) return;
   if (prf_ptr == root.get()) {
     clear();
@@ -262,7 +262,7 @@ iterator trie::begin(string_view prefix) const noexcept {
 
 iterator trie::end(string_view prefix) const noexcept {
   // Perform an approximate match.
-  auto [app_ptr, prf_pos] = root->approximate_match(prefix);
+  auto [prf_pos, app_ptr] = root->approximate_match(prefix);
   assert(app_ptr);
 
   // If prefix is empty, app_ptr is a prefix match and

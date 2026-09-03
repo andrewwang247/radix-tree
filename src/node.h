@@ -19,14 +19,14 @@ class node {
    * @brief Tracks built up string at a position.
    */
   struct positional {
-    node* ptr;
     std::string_view pos;
+    node* ptr;
   };
 
  public:
-  bool is_end;
-  node* parent;
   std::map<std::string, std::unique_ptr<node>> children;
+  node* parent;
+  bool is_end;
 
   /**
    * @brief Construct a new node with no children.
