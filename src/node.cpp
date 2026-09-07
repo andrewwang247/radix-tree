@@ -13,7 +13,6 @@ Implementation for Node.
 #include <cstddef>
 #include <format>
 #include <iterator>
-#include <map>
 #include <memory>
 #include <ranges>
 #include <string>
@@ -23,7 +22,6 @@ Implementation for Node.
 
 using std::format;
 using std::make_unique;
-using std::map;
 using std::size_t;
 using std::string;
 using std::string_view;
@@ -51,8 +49,9 @@ bool node::deep_equals(const node* lhs, const node* rhs) noexcept {
   assert(lhs);
   assert(rhs);
   const auto map_eq = [](const auto& lp, const auto& rp) static {
-    return lp.first == rp.first &&
-           deep_equals(lp.second.get(), rp.second.get());
+    const auto& [l_str, l_ptr] = lp;
+    const auto& [r_str, r_ptr] = rp;
+    return l_str == r_str && deep_equals(l_ptr.get(), r_ptr.get());
   };
   return lhs->is_end == rhs->is_end &&  // cppcheck-suppress duplicateBreak
          ranges::equal(lhs->children, rhs->children, map_eq);
@@ -225,8 +224,9 @@ string node::underlying_string() const {
     assert(iter != par->children.end());
 
     // Push the string representation onto the stack.
-    history.emplace_back(iter->first);
-    len_sum += iter->first.size();
+    const auto& str_rep = iter->first;
+    history.emplace_back(str_rep);
+    len_sum += str_rep.size();
   }
 
   // If par is null, then ptr must be root. Concatenate strings in reverse.
@@ -236,13 +236,6 @@ string node::underlying_string() const {
     out += part;
   }
   return out;
-}
-
-map<string, unique_ptr<node>>::const_iterator node::find_child(
-    const node* other) const noexcept {
-  return ranges::find(children, other, [](const auto& p) static constexpr {
-    return p.second.get();
-  });
 }
 
 string node::to_json(bool include_ends) const {
