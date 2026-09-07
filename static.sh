@@ -26,7 +26,7 @@ if [[ ! -f "compile_commands.json" ]]; then
     printf "Generating compile commands...\n"
     bear -- make clean debug release
 fi
-run-clang-tidy -quiet -fix
+run-clang-tidy -quiet
 
 printf "Running cpplint...\n"
 cpplint --filter=-build/include_subdir --quiet $sources

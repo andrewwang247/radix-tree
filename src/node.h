@@ -4,6 +4,7 @@ Copyright 2026. Andrew Wang.
 Interface for Node.
 */
 #pragma once
+#include <algorithm>
 #include <cstddef>
 #include <map>
 #include <memory>
@@ -60,8 +61,8 @@ class node {
    * @brief Search for the deepest child N such that a
    * prefix of key matches the string rep at N starting from this.
    * @param key The key on which to make an approximate match.
-   * @return Node N and view of key where the string rep at N is
-   * removed.
+   * @return Node N and string_view reflecting where the string representation
+   * at N is removed.
    */
   positional approximate_match(std::string_view key) noexcept;
 
@@ -119,8 +120,7 @@ class node {
    * @return An iterator to the position which matches other. This is the end
    * iterator if other is not found.
    */
-  decltype(children)::const_iterator find_child(
-      const node* other) const noexcept;
+  auto find_child(const node* other) const noexcept;
 
   /**
    * @brief Convert the tree structure to a JSON object.
@@ -135,3 +135,11 @@ class node {
    */
   void assert_invariants() const noexcept;
 };
+
+// AUTO RETURN IMPLEMENTATIONS
+
+inline auto node::find_child(const node* other) const noexcept {
+  return std::ranges::find(children, other, [](const auto& p) static constexpr {
+    return p.second.get();
+  });
+}

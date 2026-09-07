@@ -126,13 +126,12 @@ iterator trie::insert(string_view key) {
     if (child_str.front() != key_pos.front()) continue;
 
     // Use mismatch to compute the spot where the prefix fails.
-    auto iter_pair = ranges::mismatch(key_pos, child_str);
+    const auto [key_it, child_it] = ranges::mismatch(key_pos, child_str);
     // Extract the common prefix and unique postfixes of key and child.
-    string_view common{key_pos.begin(), iter_pair.in1};
-    string_view post_key{iter_pair.in1, key_pos.end()};
-    string_view post_child{iter_pair.in2, child_str.end()};
-    // If remaining key's prefix can match a child, then approximate_match
-    // failed.
+    string_view common{key_pos.begin(), key_it};
+    string_view post_key{key_it, key_pos.end()};
+    string_view post_child{child_it, child_str.end()};
+    // If key_pos prefix matches a child, approximate_match failed.
     assert(!post_child.empty());
 
     // Create a child for the common part. junction's parent is set.
@@ -273,7 +272,7 @@ iterator trie::end(string_view prefix) const noexcept {
     return {root, app_ptr->next_node()};
 
   // Find the first child that is greater than prefix
-  for (auto& [str, ptr] : app_ptr->children) {
+  for (const auto& [str, ptr] : app_ptr->children) {
     // If equality, then approximate_match failed.
     assert(str != prf_pos);
     if (str.front() > prf_pos.front()) {
@@ -288,7 +287,7 @@ iterator trie::end(string_view prefix) const noexcept {
 
 trie& trie::operator+=(const trie& rhs) {
   assert(this != &rhs);
-  for (const auto key : rhs) {
+  for (const auto& key : rhs) {
     insert(key);
   }
   root->assert_invariants();
@@ -299,7 +298,7 @@ trie operator+(trie lhs, const trie& rhs) { return lhs += rhs; }
 
 trie& trie::operator-=(const trie& rhs) {
   assert(this != &rhs);
-  for (const auto key : rhs) {
+  for (const auto& key : rhs) {
     erase(key);
   }
   root->assert_invariants();
