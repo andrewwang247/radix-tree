@@ -108,55 +108,54 @@ iterator trie::insert(string_view key) {
     return {root, loc};
   }
 
+  const auto first_char_match = [key_pos](string_view sv) constexpr {
+    assert(!sv.empty());
+    return sv.front() == key_pos.front();
+  };
   // Check children of loc for shared prefixes.
-  for (auto& [child_str, child_ptr] : loc->children) {
-    assert(!child_str.empty());
-
-    // Keep iterating until a first letter match is found.
-    if (child_str.front() != key_pos.front()) continue;
-
-    // Use mismatch to compute the spot where the prefix fails.
-    const auto [key_it, child_it] = ranges::mismatch(key_pos, child_str);
-    // Extract the common prefix and unique postfixes of key and child.
-    string_view common{key_pos.begin(), key_it};
-    string_view post_key{key_it, key_pos.end()};
-    string_view post_child{child_it, child_str.end()};
-    // If key_pos prefix matches a child, approximate_match failed.
-    assert(!post_child.empty());
-
-    // Create a child for the common part. junction's parent is set.
-    auto junction_node = make_unique<node>(post_key.empty(), loc);
-    // Add junction to loc under common.
-    const auto [common_iter, _1] =
-        loc->children.emplace(common, std::move(junction_node));
-    const auto& junction = common_iter->second;
-
-    // loc child is added to junction's children map.
-    auto [post_iter, _2] =
-        junction->children.emplace(post_child, std::move(child_ptr));
-    // The original child's parent pointer is set to junction.
-    post_iter->second->parent = junction.get();
-    // Remove child_str from loc child map, cleaning up released child_ptr.
-    loc->children.erase(child_str);
-
-    if (!post_key.empty()) {
-      // Add an additional node for the split.
-      auto key_node = make_unique<node>(true, junction.get());
-      const auto [junction_iter, _3] =
-          junction->children.emplace(post_key, std::move(key_node));
-      root->assert_invariants();
-      return {root, junction_iter->second};
-    }
-    root->assert_invariants();
-    return {root, junction};
-  }
+  auto loc_it = ranges::find_if(loc->children, first_char_match,
+                                &decltype(loc->children)::value_type::first);
 
   // If there are no shared prefixes, then simply create a node under loc.
-  auto key_node = make_unique<node>(true, loc);
-  const auto [key_iter, _] =
-      loc->children.emplace(key_pos, std::move(key_node));
+  if (loc_it == loc->children.end()) {
+    const auto [key_iter, _] =
+        loc->children.emplace(key_pos, make_unique<node>(true, loc));
+    root->assert_invariants();
+    return {root, key_iter->second};
+  }
+
+  // Use mismatch to compute the spot where the prefix fails.
+  const string_view child_str = loc_it->first;
+  const auto [key_it, child_it] = ranges::mismatch(key_pos, child_str);
+  // Extract the common prefix and unique postfixes of key and child.
+  string_view common{key_pos.begin(), key_it};
+  string_view post_key{key_it, key_pos.end()};
+  string_view post_child{child_it, child_str.end()};
+  // If key_pos prefix matches a child, approximate_match failed.
+  assert(!post_child.empty());
+
+  // Create a child for the common part.
+  const auto [common_iter, _1] =
+      loc->children.emplace(common, make_unique<node>(post_key.empty(), loc));
+  const auto& junction = common_iter->second;
+
+  // loc child is added to junction's children map.
+  auto [post_iter, _2] =
+      junction->children.emplace(post_child, std::move(loc_it->second));
+  // The original child's parent pointer is set to junction.
+  post_iter->second->parent = junction.get();
+  // Remove child_str from loc child map, cleaning up released child_ptr.
+  loc->children.erase(loc_it);
+
+  if (!post_key.empty()) {
+    // Add an additional node for the split.
+    const auto [junction_iter, _3] = junction->children.emplace(
+        post_key, make_unique<node>(true, junction.get()));
+    root->assert_invariants();
+    return {root, junction_iter->second};
+  }
   root->assert_invariants();
-  return {root, key_iter->second};
+  return {root, junction};
 }
 
 void trie::erase(string_view key) {
