@@ -27,8 +27,6 @@ class trie {
   std::unique_ptr<node> root;
 
  public:
-  using const_iterator = iterator;
-
   /**
    * @brief Default constructor initializes empty trie.
    */
