@@ -108,16 +108,6 @@ iterator trie::insert(string_view key) {
     return {root, loc};
   }
 
-  // At this point, the key is non-empty. If loc has no children, then just make
-  // a child.
-  if (loc->children.empty()) {
-    auto child = make_unique<node>(true, loc);
-    const auto [result_iter, _1] =
-        loc->children.emplace(key_pos, std::move(child));
-    root->assert_invariants();
-    return {root, result_iter->second};
-  }
-
   // Check children of loc for shared prefixes.
   for (auto& [child_str, child_ptr] : loc->children) {
     assert(!child_str.empty());
@@ -137,12 +127,12 @@ iterator trie::insert(string_view key) {
     // Create a child for the common part. junction's parent is set.
     auto junction_node = make_unique<node>(post_key.empty(), loc);
     // Add junction to loc under common.
-    const auto [common_iter, _2] =
+    const auto [common_iter, _1] =
         loc->children.emplace(common, std::move(junction_node));
     const auto& junction = common_iter->second;
 
     // loc child is added to junction's children map.
-    auto [post_iter, _3] =
+    auto [post_iter, _2] =
         junction->children.emplace(post_child, std::move(child_ptr));
     // The original child's parent pointer is set to junction.
     post_iter->second->parent = junction.get();
@@ -152,7 +142,7 @@ iterator trie::insert(string_view key) {
     if (!post_key.empty()) {
       // Add an additional node for the split.
       auto key_node = make_unique<node>(true, junction.get());
-      const auto [junction_iter, _4] =
+      const auto [junction_iter, _3] =
           junction->children.emplace(post_key, std::move(key_node));
       root->assert_invariants();
       return {root, junction_iter->second};
@@ -163,7 +153,7 @@ iterator trie::insert(string_view key) {
 
   // If there are no shared prefixes, then simply create a node under loc.
   auto key_node = make_unique<node>(true, loc);
-  const auto [key_iter, _5] =
+  const auto [key_iter, _] =
       loc->children.emplace(key_pos, std::move(key_node));
   root->assert_invariants();
   return {root, key_iter->second};
@@ -185,8 +175,10 @@ void trie::erase(string_view key) {
     return;
   }
 
+  auto* const par = match->parent;
+  assert(par);
+
   if (match->children.empty()) {
-    auto* const par = match->parent;
     auto match_iter = par->find_child(match);
     par->children.erase(match_iter);
 
@@ -208,8 +200,6 @@ void trie::erase(string_view key) {
   } else if (match->children.size() == 1) {
     // Extract child and parent string to form joined key.
     const auto only_child = match->children.begin();
-    auto* const par = match->parent;
-    assert(par);
     const auto match_iter = par->find_child(match);
     const auto joined_key = match_iter->first + only_child->first;
 
