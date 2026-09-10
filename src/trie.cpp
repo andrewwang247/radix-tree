@@ -74,7 +74,7 @@ bool trie::contains(string_view key) const noexcept {
 iterator trie::find(string_view key) const noexcept {
   // Handle edge case of key being empty.
   if (key.empty()) {
-    return root->is_end ? iterator(root, root) : iterator(root, nullptr);
+    return root->is_end ? iterator{root, root} : iterator{root, nullptr};
   }
   return {root, root->exact_match(key)};
 }
@@ -88,8 +88,8 @@ iterator trie::find_prefix(string_view prefix) const noexcept {
   // Find the first child key rooted at prt_rt.
   // If key is empty and prf_rt is and end node, then it is the "first key".
   return prf_pos.empty() && prf_rt->is_end
-             ? iterator(root, prf_rt)
-             : iterator(root, prf_rt->first_key());
+             ? iterator{root, prf_rt}
+             : iterator{root, prf_rt->first_key()};
 }
 
 iterator trie::insert(string_view key) {
@@ -125,12 +125,12 @@ iterator trie::insert(string_view key) {
   }
 
   // Use mismatch to compute the spot where the prefix fails.
-  const string_view child_str = loc_it->first;
+  const auto child_str = string_view{loc_it->first};
   const auto [key_it, child_it] = ranges::mismatch(key_pos, child_str);
   // Extract the common prefix and unique postfixes of key and child.
-  string_view common{key_pos.begin(), key_it};
-  string_view post_key{key_it, key_pos.end()};
-  string_view post_child{child_it, child_str.end()};
+  const auto common = string_view{key_pos.begin(), key_it};
+  const auto post_key = string_view{key_it, key_pos.end()};
+  const auto post_child = string_view{child_it, child_str.end()};
   // If key_pos prefix matches a child, approximate_match failed.
   assert(!post_child.empty());
 
@@ -154,13 +154,14 @@ iterator trie::insert(string_view key) {
     root->assert_invariants();
     return {root, junction_iter->second};
   }
+
   root->assert_invariants();
   return {root, junction};
 }
 
 void trie::erase(string_view key) {
   // Must remove exact key.
-  auto* const match = root->exact_match(key);
+  auto* match = root->exact_match(key);
   // If the key was not in the tree, just return.
   if (!match) return;
   // No matter what happens, setting is_end to false is correct.
@@ -174,16 +175,16 @@ void trie::erase(string_view key) {
     return;
   }
 
-  auto* const par = match->parent;
+  auto* par = match->parent;
   assert(par);
+  auto match_iter = par->find_child(match);
 
   if (match->children.empty()) {
-    auto match_iter = par->find_child(match);
     par->children.erase(match_iter);
 
     // Check for possible joining with grand parent.
     if (par->children.size() == 1 && par != root.get() && !par->is_end) {
-      auto* const grand_par = par->parent;
+      auto* grand_par = par->parent;
       assert(grand_par);
       auto par_iter = grand_par->find_child(par);
       assert(par_iter != grand_par->children.end());
@@ -199,7 +200,6 @@ void trie::erase(string_view key) {
   } else if (match->children.size() == 1) {
     // Extract child and parent string to form joined key.
     const auto only_child = match->children.begin();
-    const auto match_iter = par->find_child(match);
     const auto joined_key = match_iter->first + only_child->first;
 
     only_child->second->parent = par;
@@ -217,7 +217,7 @@ void trie::erase_prefix(string_view prefix) {
   if (prf_ptr == root.get()) {
     clear();
   } else {
-    auto* const par = prf_ptr->parent;
+    auto* par = prf_ptr->parent;
     assert(par);
     par->children.erase(par->find_child(prf_ptr));
   }
@@ -237,8 +237,8 @@ string trie::to_json(bool include_ends) const {
 }
 
 iterator trie::begin() const noexcept {
-  return root->is_end ? iterator(root, root)
-                      : iterator(root, root->first_key());
+  return root->is_end ? iterator{root, root}
+                      : iterator{root, root->first_key()};
 }
 
 iterator trie::end() const noexcept { return {root, nullptr}; }
@@ -265,8 +265,8 @@ iterator trie::end(string_view prefix) const noexcept {
     // If equality, then approximate_match failed.
     assert(str != prf_pos);
     if (str.front() > prf_pos.front()) {
-      return ptr->is_end ? iterator(root, ptr)
-                         : iterator(root, ptr->first_key());
+      return ptr->is_end ? iterator{root, ptr}
+                         : iterator{root, ptr->first_key()};
     }
   }
 
@@ -306,8 +306,8 @@ partial_ordering operator<=>(const trie& lhs, const trie& rhs) noexcept {
   const auto left_end = lhs.end();
   const auto right_end = rhs.end();
 
-  bool left_has_extra = false;
-  bool right_has_extra = false;
+  auto left_has_extra = false;
+  auto right_has_extra = false;
 
   while (left_it != left_end && right_it != right_end) {
     const auto element_compare = *left_it <=> *right_it;

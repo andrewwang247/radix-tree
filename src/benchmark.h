@@ -195,10 +195,10 @@ timeunit_t perf<Container>::find_impl(
   const auto t1 = perf_clock::now();
 
   for (auto&& [expected, actual] : std::views::zip(solutions, actual_ranges)) {
-    std::string_view exp_beg = expected.begin;
-    std::string_view exp_end = expected.end;
-    auto act_beg = *actual.begin();
-    auto act_end = *actual.end();
+    const auto exp_beg = std::string_view{expected.begin};
+    const auto exp_end = std::string_view{expected.end};
+    const auto act_beg = *actual.begin();
+    const auto act_end = *actual.end();
     if (exp_beg != act_beg || exp_end != act_end) {
       throw std::runtime_error(std::format(
           "Expected prefix range for {} to be ({}, {}) but was ({}, {})",
@@ -242,19 +242,20 @@ timeunit_t perf<Container>::insert(std::span<const std::string> word_list) {
 template <std::ranges::bidirectional_range Container>
 timeunit_t perf<Container>::contains(
     std::span<const std::string_view> word_list) const {
-  static constexpr std::array<const char*, 108U> non_inc{
-      "inte", "nonc", "pseu", "unre", "micr", "nons", "nonp", "coun", "hydr",
-      "prot", "nond", "reco", "unpr", "nonr", "unin", "inco", "noni", "undi",
-      "prea", "ther", "anth", "tetr", "endo", "extr", "neur", "unst", "tric",
-      "subc", "indi", "retr", "radi", "nonf", "nont", "unsu", "impe", "chro",
-      "unex", "psyc", "nonm", "unse", "irre", "amph", "unpe", "untr", "sulp",
-      "colo", "gran", "hemi", "macr", "squa", "unpa", "cata", "ultr", "prei",
-      "unsa", "deca", "impr", "mega", "nonv", "medi", "equi", "chlo", "unma",
-      "subt", "stri", "carb", "unsh", "dise", "acro", "spir", "unme", "unsp",
-      "chor", "brac", "stro", "misa", "hema", "unfo", "outb", "acet", "oste",
-      "unch", "afte", "acti", "subp", "heli", "phyt", "rese", "ente", "squi",
-      "unmo", "phen", "unen", "resi", "subd", "prer", "prol", "phyl", "unfa",
-      "cryp", "unim", "unso", "impa", "magn", "unha", "scra", "hemo", "brea"};
+  static constexpr auto non_inc = std::to_array<std::string_view>(
+      {"inte", "nonc", "pseu", "unre", "micr", "nons", "nonp", "coun", "hydr",
+       "prot", "nond", "reco", "unpr", "nonr", "unin", "inco", "noni", "undi",
+       "prea", "ther", "anth", "tetr", "endo", "extr", "neur", "unst", "tric",
+       "subc", "indi", "retr", "radi", "nonf", "nont", "unsu", "impe", "chro",
+       "unex", "psyc", "nonm", "unse", "irre", "amph", "unpe", "untr", "sulp",
+       "colo", "gran", "hemi", "macr", "squa", "unpa", "cata", "ultr", "prei",
+       "unsa", "deca", "impr", "mega", "nonv", "medi", "equi", "chlo", "unma",
+       "subt", "stri", "carb", "unsh", "dise", "acro", "spir", "unme", "unsp",
+       "chor", "brac", "stro", "misa", "hema", "unfo", "outb", "acet", "oste",
+       "unch", "afte", "acti", "subp", "heli", "phyt", "rese", "ente", "squi",
+       "unmo", "phen", "unen", "resi", "subd", "prer", "prol", "phyl", "unfa",
+       "cryp", "unim", "unso", "impa", "magn", "unha", "scra", "hemo", "brea"});
+
   const auto contains_key = [this](std::string_view key) {
     return words.contains(key);
   };

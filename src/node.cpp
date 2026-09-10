@@ -115,25 +115,25 @@ node* node::exact_match(string_view word) noexcept {
 
 const node* node::first_key() const noexcept {
   if (children.empty()) return nullptr;
-  const auto* rt = this;
+  const auto* rt = children.begin()->second.get();
   // Keep moving down the tree along the left side until is_end.
-  do {
+  while (!rt->is_end) {
     // If rt is not an end, its children should not be empty.
     assert(!rt->children.empty());
     rt = rt->children.begin()->second.get();
     assert(rt);
-  } while (!rt->is_end);
+  }
   return rt;
 }
 
 const node* node::last_key() const noexcept {
   if (children.empty()) return nullptr;
-  const auto* rt = this;
+  const auto* rt = children.rbegin()->second.get();
   // Keep moving down the tree along the right side until no children.
-  do {
+  while (!rt->children.empty()) {
     rt = rt->children.rbegin()->second.get();
     assert(rt);
-  } while (!rt->children.empty());
+  }
   assert(rt->is_end);
   return rt;
 }
@@ -218,7 +218,7 @@ string node::underlying_string() const {
 
   // Move up in trie until we get to root.
   for (const auto* ptr = this; ptr->parent; ptr = ptr->parent) {
-    auto* const par = ptr->parent;
+    const auto* par = ptr->parent;
     // We must be able to find ptr in par->children.
     auto iter = par->find_child(ptr);
     assert(iter != par->children.end());

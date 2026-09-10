@@ -41,9 +41,9 @@ int main() {
 }
 
 trie unit_test::get_trie() {
-  static default_random_engine prng{
-      random_device{}()};  // NOLINT(whitespace/braces)
-  auto copy{SORTED_WORDS};
+  static auto prng =
+      default_random_engine{random_device{}()};  // NOLINT(whitespace/braces)
+  auto copy = SORTED_WORDS;
   ranges::shuffle(copy, prng);
   return trie{copy};
 }
@@ -234,13 +234,13 @@ void unit_test::forward_iterate() {
   assert(ranges::equal(SORTED_WORDS, tr));
 
   // Only iterate over subportion.
-  const auto* const find_compute = ranges::find(SORTED_WORDS, "compute");
-  const auto* const find_corner = ranges::find(SORTED_WORDS, "corner");
+  const auto* find_compute = ranges::find(SORTED_WORDS, "compute");
+  const auto* find_corner = ranges::find(SORTED_WORDS, "corner");
   assert(ranges::equal(ranges::subrange{find_compute, std::next(find_corner)},
                        ranges::subrange{tr.begin("co"), tr.end("co")}));
 
-  const auto* const find_mahjong = ranges::find(SORTED_WORDS, "mahjong");
-  const auto* const find_matrix = ranges::find(SORTED_WORDS, "matrix");
+  const auto* find_mahjong = ranges::find(SORTED_WORDS, "mahjong");
+  const auto* find_matrix = ranges::find(SORTED_WORDS, "matrix");
   assert(ranges::equal(ranges::subrange{find_mahjong, std::next(find_matrix)},
                        ranges::subrange{tr.begin("ma"), tr.end("ma")}));
 
@@ -360,10 +360,16 @@ void unit_test::representation() {
   assert(com_prf.to_json(true) == COM_JSON);
 
   const auto mat_iter = tr.find("mat");
-  assert(mat_iter);
   assert(*mat_iter == "mat");
   constexpr auto MAT_JSON = R"({"er":{"ial":{},"nal":{}},"h":{},"rix":{}})";
   assert(mat_iter.to_json(false) == MAT_JSON);
+  constexpr auto MAT_JSON_ENDS = R"({"end":true,"children":{"er":)"
+                                 R"({"end":false,"children":{"ial":)"
+                                 R"({"end":true,"children":{}},"nal":)"
+                                 R"({"end":true,"children":{}}}},"h":)"
+                                 R"({"end":true,"children":{}},"rix":)"
+                                 R"({"end":true,"children":{}}}})";
+  assert(mat_iter.to_json(true) == MAT_JSON_ENDS);
 
   println(RESULT_TEMPLATE, "representation");
 }
