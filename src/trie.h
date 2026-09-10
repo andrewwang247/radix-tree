@@ -232,17 +232,28 @@ class trie {
 // --- SYMMETRIC BINARY OPERATIONS ---
 
 /**
+ * @brief Set union of two tries.
+ * @param lhs The left trie to union.
+ * @param rhs The right trie to union.
+ * @return A trie with the union of keys.
+ */
+trie operator+(trie lhs, const trie& rhs);
+
+/**
+ * @brief Set difference of two tries.
+ * @param lhs The minuend to subtract from.
+ * @param rhs The subtrahend to take away.
+ * @return A trie lhs keys that aren't in rhs.
+ */
+trie operator-(trie lhs, const trie& rhs);
+
+/**
  * @brief Three way comparison operator for subset partial ordering.
  * @param lhs The left trie.
  * @param rhs The right trie.
  * @return Subset partial ordering.
  */
 std::partial_ordering operator<=>(const trie& lhs, const trie& rhs) noexcept;
-
-// Arithmetic operators, uses += and -=.
-
-trie operator+(trie lhs, const trie& rhs);
-trie operator-(trie lhs, const trie& rhs);
 
 // TEMPLATED IMPLEMENTATIONS
 

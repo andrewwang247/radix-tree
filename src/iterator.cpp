@@ -32,7 +32,7 @@ iterator& iterator::operator++() noexcept {
 }
 
 iterator iterator::operator++(int) noexcept {
-  auto temp(*this);
+  auto temp = *this;
   ++(*this);
   return temp;
 }
@@ -53,7 +53,7 @@ iterator& iterator::operator--() noexcept {
 }
 
 iterator iterator::operator--(int) noexcept {
-  auto temp(*this);
+  auto temp = *this;
   --(*this);
   return temp;
 }
