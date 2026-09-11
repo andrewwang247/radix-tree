@@ -43,7 +43,11 @@ To remove keys from the tree, use `erase`. The `erase_prefix` erases all keys th
 
 ### Iteration
 
-The tree supports constant bidirectional iterators that traverse the stored keys in alphabetical order. The class comes with STL style `begin` and `end` functions that range over the entire tree. Use the `begin` and `end` overloads with `prefix` parameter to construct ranges over keys that match prefixes. Make sure to check that `begin(std::string prefix)` is non-null before using as a range. This can be efficiently achieved with `empty(std::string prefix)`.
+The tree supports constant bidirectional iterators that traverse the stored keys in alphabetical order.
+
+- The class comes with STL style `begin` and `end` functions that range over the entire tree. Use overloads with a `prefix` parameter to construct ranges over keys with given prefixes.
+- Make sure to check that `begin(prefix)` is non-null before using as a range. This can be efficiently achieved with `empty(prefix)`.
+- The `subrange(prefix)` function constructs the range spanning from `begin(prefix)` to `end(prefix)`. It's a convenient way to iterate over keys with a particular prefix.
 
 ### Operators
 

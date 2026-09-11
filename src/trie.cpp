@@ -12,6 +12,7 @@ Implementation for Trie.
 #include <exception>
 #include <initializer_list>
 #include <memory>
+#include <ranges>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -272,6 +273,10 @@ iterator trie::end(string_view prefix) const noexcept {
 
   // If we've gotten down to here, something has gone wrong.
   terminate();
+}
+
+ranges::subrange<iterator> trie::subrange(string_view prefix) const noexcept {
+  return {begin(prefix), end(prefix)};
 }
 
 trie& trie::operator+=(const trie& rhs) {
