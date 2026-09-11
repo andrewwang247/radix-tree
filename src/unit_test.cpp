@@ -20,6 +20,7 @@ using std::println;
 using std::random_device;
 
 namespace ranges = std::ranges;
+namespace views = std::views;
 
 int main() {
   static_assert(ranges::is_sorted(unit_test::SORTED_WORDS),
@@ -234,23 +235,22 @@ void unit_test::forward_iterate() {
   assert(ranges::equal(SORTED_WORDS, tr));
 
   // Only iterate over subportion.
-  const auto* find_compute = ranges::find(SORTED_WORDS, "compute");
-  const auto* find_corner = ranges::find(SORTED_WORDS, "corner");
-  assert(ranges::equal(ranges::subrange{find_compute, std::next(find_corner)},
-                       ranges::subrange{tr.begin("co"), tr.end("co")}));
+  const auto* compute = ranges::find(SORTED_WORDS, "compute");
+  const auto* corner = ranges::find(SORTED_WORDS, "corner");
+  assert(ranges::equal(ranges::subrange{compute, std::next(corner)},
+                       tr.subrange("co")));
 
-  const auto* find_mahjong = ranges::find(SORTED_WORDS, "mahjong");
-  const auto* find_matrix = ranges::find(SORTED_WORDS, "matrix");
-  assert(ranges::equal(ranges::subrange{find_mahjong, std::next(find_matrix)},
-                       ranges::subrange{tr.begin("ma"), tr.end("ma")}));
+  const auto* mahjong = ranges::find(SORTED_WORDS, "mahjong");
+  const auto* matrix = ranges::find(SORTED_WORDS, "matrix");
+  assert(ranges::equal(ranges::subrange{mahjong, std::next(matrix)},
+                       tr.subrange("ma")));
 
   // Singular word range.
-  const auto single_start = tr.begin("contaminate");
-  const auto single_finish = tr.end("contaminate");
-  assert(single_start != tr.end());
-  assert(*single_start == "contaminate");
-  assert(single_finish != tr.end());
-  assert(*single_finish == "corn");
+  const auto [ctm_begin, ctm_end] = tr.subrange("contaminate");
+  assert(ctm_begin != tr.end());
+  assert(*ctm_begin == "contaminate");
+  assert(ctm_end != tr.end());
+  assert(*ctm_end == "corn");
 
   // Non-existant range.
   assert(tr.begin("cops") == tr.end());
@@ -263,22 +263,20 @@ void unit_test::forward_iterate() {
 void unit_test::reverse_iterate() {
   const auto tr = get_trie();
 
-  constexpr auto backwards = ranges::reverse_view(SORTED_WORDS);
+  constexpr auto backwards = SORTED_WORDS | views::reverse;
   // Full range iteration
-  assert(ranges::equal(backwards, ranges::reverse_view(tr)));
+  assert(ranges::equal(backwards, tr | views::reverse));
 
   // Only iterate over subportion.
-  const auto find_corner = ranges::find(backwards, "corner");
-  const auto find_compute = ranges::find(backwards, "compute");
-  assert(ranges::equal(
-      ranges::subrange{find_corner, std::next(find_compute)},
-      ranges::reverse_view(ranges::subrange{tr.begin("co"), tr.end("co")})));
+  const auto corner = ranges::find(backwards, "corner");
+  const auto compute = ranges::find(backwards, "compute");
+  assert(ranges::equal(ranges::subrange{corner, std::next(compute)},
+                       tr.subrange("co") | views::reverse));
 
-  const auto find_matrix = ranges::find(backwards, "matrix");
-  const auto find_mahjong = ranges::find(backwards, "mahjong");
-  assert(ranges::equal(
-      ranges::subrange{find_matrix, std::next(find_mahjong)},
-      ranges::reverse_view(ranges::subrange{tr.begin("ma"), tr.end("ma")})));
+  const auto matrix = ranges::find(backwards, "matrix");
+  const auto mahjong = ranges::find(backwards, "mahjong");
+  assert(ranges::equal(ranges::subrange{matrix, std::next(mahjong)},
+                       tr.subrange("ma") | views::reverse));
 
   println(RESULT_TEMPLATE, "reverse iterate");
 }
@@ -298,7 +296,7 @@ void unit_test::copy_move() {
 
   copied.clear();
   moved = std::move(copied);
-  assert(ranges::empty(moved));
+  assert(moved.empty());
 
   println(RESULT_TEMPLATE, "copy and move");
 }

@@ -52,9 +52,8 @@ timeunit_t trie_perf::count(span<const perf_test::solution_t> solutions) const {
 }
 
 timeunit_t trie_perf::find(span<const perf_test::solution_t> solutions) const {
-  return find_impl(solutions, [this](string_view prf) {
-    return ranges::subrange{words.begin(prf), words.end(prf)};
-  });
+  return find_impl(solutions,
+                   [this](string_view prf) { return words.subrange(prf); });
 }
 
 timeunit_t trie_perf::erase(span<const perf_test::solution_t> solutions) {

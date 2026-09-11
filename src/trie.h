@@ -118,13 +118,6 @@ class trie {
    */
   iterator end() const noexcept;
 
-  // Prefix traversal by iterator. Returns begin and end iterators to the range
-  // of items which has prefix given by the parameter. Note that they constitute
-  // an alphabetically ordered range like regular traversal by iterator. If none
-  // of the keys have the given prefix, returns a null iterator. begin("") and
-  // end("") have the same behavior as begin() and end() since every key has
-  // empty string as prefix.
-
   /**
    * @brief Prefix ranged begin iterator.
    * @param prefix The prefix to obtain a begin iterator for.
@@ -138,6 +131,14 @@ class trie {
    * @return Iterator to one past the end of the range with given prefix.
    */
   iterator end(std::string_view prefix) const noexcept;
+
+  /**
+   * @brief Range from begin(prefix) to end(prefix);
+   * @param prefix The prefix to range over.
+   * @return Subrange over all keys with prefix.
+   */
+  std::ranges::subrange<iterator> subrange(
+      std::string_view prefix) const noexcept;
 
   // --- SEARCHING ---
 
