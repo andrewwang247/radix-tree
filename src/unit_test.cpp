@@ -38,7 +38,7 @@ int main() {
   unit_test::comparison();
   unit_test::arithmetic();
   unit_test::representation();
-  println("--- FINISHED UNIT TESTS ---");
+  println("--- COMPLETED UNIT TESTS ---");
 }
 
 trie unit_test::get_trie() {

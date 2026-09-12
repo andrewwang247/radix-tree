@@ -26,7 +26,7 @@ using std::string_view;
 namespace ranges = std::ranges;
 
 int main() {
-  static constexpr auto SAMPLE_SIZE = 2500UZ;
+  static constexpr auto SAMPLE_SIZE = 2'500UZ;
   static constexpr auto ANNOUNCE_TEMPLATE = "{:<18}";
 
   default_random_engine prng{random_device{}()};  // NOLINT(whitespace/braces)
@@ -67,7 +67,7 @@ int main() {
   perf_test::show_comparison(set_benchmark.erase(solutions),
                              trie_benchmark.erase(solutions));
 
-  println("--- FINISHED PERFORMANCE TESTS ---");
+  println("--- COMPLETED PERFORMANCE TESTS ---");
 
   println("--- EXECUTING FINAL VERIFICATION ---");
 
@@ -87,7 +87,7 @@ int main() {
     println("Reverse ranges do not match");
   }
 
-  println("--- FINISHED FINAL VERIFICATION ---");
+  println("--- COMPLETED FINAL VERIFICATION ---");
 }
 
 void perf_test::show_comparison(timeunit_t set_time, timeunit_t trie_time) {
