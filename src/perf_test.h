@@ -27,7 +27,7 @@ using timeunit_t = std::chrono::nanoseconds;
  */
 namespace perf_test {
 static constexpr auto WORDS_FILE = "./resources/words.txt";
-static constexpr auto WORDS_SIZE = 370105UZ;
+static constexpr auto WORDS_SIZE = 370'105UZ;
 
 static constexpr auto SOLUTIONS_FILE = "./resources/solutions.txt";
 static constexpr auto SOLUTIONS_SIZE = 114UZ;
@@ -120,11 +120,11 @@ std::vector<perf_test::solution_t> perf_test::read_solutions(PRNG auto&& prng) {
   }
 
   if (SOLUTIONS_SIZE != solutions.size()) {
-    throw std::runtime_error(std::format("Expected {} words but got {}",
+    throw std::runtime_error(std::format("Expected {} solutions but got {}",
                                          SOLUTIONS_SIZE, solutions.size()));
   }
   std::ranges::shuffle(solutions, prng);
-  std::println("Imported {} randomly shuffled words", solutions.size());
+  std::println("Imported {} randomly shuffled solutions", solutions.size());
   return solutions;
 }
 
