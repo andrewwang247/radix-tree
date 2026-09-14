@@ -23,6 +23,7 @@ iterator::iterator(const unique_ptr<node>& rt,
                    const unique_ptr<node>& p) noexcept
     : root(rt.get()), ptr(p.get()) {
   assert(rt);
+  assert(p);
 }
 
 iterator& iterator::operator++() noexcept {

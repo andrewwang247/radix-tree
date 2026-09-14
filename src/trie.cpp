@@ -98,7 +98,6 @@ iterator trie::insert(string_view key) {
   // as inserting reduced key at loc.
   // The problem space has been reduced.
   const auto [key_pos, loc] = root->approximate_match(key);
-  assert(loc);
 
   // INSERT KEY AT LOC
 
@@ -252,7 +251,6 @@ iterator trie::begin(string_view prefix) const noexcept {
 iterator trie::end(string_view prefix) const noexcept {
   // Perform an approximate match.
   auto [prf_pos, app_ptr] = root->approximate_match(prefix);
-  assert(app_ptr);
 
   // If prefix is empty, app_ptr is a prefix match and
   // none of its children work. If all children of app_ptr
@@ -263,6 +261,7 @@ iterator trie::end(string_view prefix) const noexcept {
 
   // Find the first child that is greater than prefix
   for (const auto& [str, ptr] : app_ptr->children) {
+    assert(ptr);
     // If equality, then approximate_match failed.
     assert(str != prf_pos);
     if (str.front() > prf_pos.front()) {

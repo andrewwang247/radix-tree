@@ -5,6 +5,7 @@ Interface for Node.
 */
 #pragma once
 #include <algorithm>
+#include <cassert>
 #include <cstddef>
 #include <map>
 #include <memory>
@@ -62,7 +63,7 @@ class node {
    * prefix of key matches the string rep at N starting from this.
    * @param key The key on which to make an approximate match.
    * @return Node N and string_view reflecting where the string representation
-   * at N is removed.
+   * at N is removed. Position pointer is never null.
    */
   positional approximate_match(std::string_view key) noexcept;
 
@@ -140,6 +141,7 @@ class node {
 
 inline auto node::find_child(const node* other) const noexcept {
   return std::ranges::find(children, other, [](const auto& p) static constexpr {
+    assert(p.second);
     return p.second.get();
   });
 }

@@ -37,6 +37,7 @@ unique_ptr<node> node::clone() const {
   // Null parent because we do not clone above this node.
   auto copy = make_unique<node>(is_end, nullptr);
   for (const auto& [str, ptr] : children) {
+    assert(ptr);
     auto child_clone = ptr->clone();
     // Manually set child's parent to the copy.
     child_clone->parent = copy.get();
@@ -51,6 +52,8 @@ bool node::deep_equals(const node* lhs, const node* rhs) noexcept {
   const auto map_eq = [](const auto& lp, const auto& rp) static {
     const auto& [l_str, l_ptr] = lp;
     const auto& [r_str, r_ptr] = rp;
+    assert(l_ptr);
+    assert(r_ptr);
     return l_str == r_str && deep_equals(l_ptr.get(), r_ptr.get());
   };
   return lhs->is_end == rhs->is_end &&  // cppcheck-suppress duplicateBreak
@@ -88,7 +91,6 @@ node::positional node::approximate_match(string_view key) noexcept {
 node::positional node::prefix_match(string_view prf) noexcept {
   // First compute the approximate root.
   const auto [prf_pos, app_ptr] = approximate_match(prf);
-  assert(app_ptr);
   // If the given prf is empty, it's a perfect match.
   if (prf_pos.empty()) return {.pos = prf_pos, .ptr = app_ptr};
 
@@ -107,7 +109,6 @@ node::positional node::prefix_match(string_view prf) noexcept {
 node* node::exact_match(string_view word) noexcept {
   // First compute the approximate root.
   const auto [word_pos, app_ptr] = approximate_match(word);
-  assert(app_ptr);
   // Match if and only if we've used entire word and app_ptr is_end.
   if (word_pos.empty() && app_ptr->is_end) return app_ptr;
   return nullptr;
@@ -246,6 +247,7 @@ string node::to_json(bool include_ends) const {
   const auto content =
       children | views::transform([include_ends](const auto& entry) {
         const auto& [str, ptr] = entry;
+        assert(ptr);
         return format(R"("{}":{})", str, ptr->to_json(include_ends));
       }) |
       views::join_with(',') | ranges::to<string>();
