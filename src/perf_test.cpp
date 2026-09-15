@@ -15,6 +15,7 @@ Performance testing implementation.
 
 #include "benchmark.h"
 
+using perf_test::show_comparison;
 using std::default_random_engine;
 using std::ifstream;
 using std::print;
@@ -25,10 +26,10 @@ using std::string_view;
 
 namespace ranges = std::ranges;
 
-int main() {
-  static constexpr auto SAMPLE_SIZE = 2'500UZ;
-  static constexpr auto ANNOUNCE_TEMPLATE = "{:<18}";
+static constexpr auto SAMPLE_SIZE = 2'500UZ;
+static constexpr auto ANNOUNCE_TEMPLATE = "{:<18}";
 
+int main() {
   default_random_engine prng{random_device{}()};  // NOLINT(whitespace/braces)
   const auto words = perf_test::read_words(prng);
   const auto solutions = perf_test::read_solutions(prng);
@@ -40,32 +41,31 @@ int main() {
   trie_perf trie_benchmark;
 
   print(ANNOUNCE_TEMPLATE, "Insert words:");
-  perf_test::show_comparison(set_benchmark.insert(words),
-                             trie_benchmark.insert(words));
+  show_comparison(set_benchmark.insert(words), trie_benchmark.insert(words));
 
   print(ANNOUNCE_TEMPLATE, "Count prefix:");
-  perf_test::show_comparison(set_benchmark.count(solutions),
-                             trie_benchmark.count(solutions));
+  show_comparison(set_benchmark.count(solutions),
+                  trie_benchmark.count(solutions));
 
   print(ANNOUNCE_TEMPLATE, "Find prefix:");
-  perf_test::show_comparison(set_benchmark.find(solutions),
-                             trie_benchmark.find(solutions));
+  show_comparison(set_benchmark.find(solutions),
+                  trie_benchmark.find(solutions));
 
   print(ANNOUNCE_TEMPLATE, "Contains words:");
-  perf_test::show_comparison(set_benchmark.contains(sublist),
-                             trie_benchmark.contains(sublist));
+  show_comparison(set_benchmark.contains(sublist),
+                  trie_benchmark.contains(sublist));
 
   print(ANNOUNCE_TEMPLATE, "Forward iterate:");
-  perf_test::show_comparison(set_benchmark.forward_iterate(),
-                             trie_benchmark.forward_iterate());
+  show_comparison(set_benchmark.forward_iterate(),
+                  trie_benchmark.forward_iterate());
 
   print(ANNOUNCE_TEMPLATE, "Reverse iterate:");
-  perf_test::show_comparison(set_benchmark.reverse_iterate(),
-                             trie_benchmark.reverse_iterate());
+  show_comparison(set_benchmark.reverse_iterate(),
+                  trie_benchmark.reverse_iterate());
 
   print(ANNOUNCE_TEMPLATE, "Erase prefix:");
-  perf_test::show_comparison(set_benchmark.erase(solutions),
-                             trie_benchmark.erase(solutions));
+  show_comparison(set_benchmark.erase(solutions),
+                  trie_benchmark.erase(solutions));
 
   println("--- COMPLETED PERFORMANCE TESTS ---");
 

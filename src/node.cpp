@@ -12,7 +12,6 @@ Implementation for Node.
 #include <cassert>
 #include <cstddef>
 #include <format>
-#include <iterator>
 #include <memory>
 #include <ranges>
 #include <string>

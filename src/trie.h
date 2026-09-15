@@ -4,7 +4,6 @@ Copyright 2026. Andrew Wang.
 Interface for Trie.
 */
 #pragma once
-#include <cassert>
 #include <compare>
 #include <cstddef>
 #include <initializer_list>
