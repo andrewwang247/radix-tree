@@ -20,6 +20,7 @@ Interface for performance testing.
 
 #include "trie.h"
 
+using perf_clock = std::chrono::steady_clock;
 using timeunit_t = std::chrono::nanoseconds;
 
 /**

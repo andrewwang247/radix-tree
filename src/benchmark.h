@@ -4,18 +4,13 @@ Copyright 2026. Andrew Wang.
 Benchmarking class interfaces.
 */
 #pragma once
-
 #include <algorithm>
 #include <array>
-#include <chrono>
-#include <concepts>
 #include <cstddef>
 #include <format>
 #include <functional>
 #include <iostream>
 #include <iterator>
-#include <numeric>
-#include <random>
 #include <ranges>
 #include <set>
 #include <span>
@@ -26,8 +21,6 @@ Benchmarking class interfaces.
 #include <vector>
 
 #include "perf_test.h"
-
-using perf_clock = std::chrono::steady_clock;
 
 /**
  * @brief Interface for performance testing.
