@@ -3,6 +3,7 @@
 !*/
 !*.*
 !Makefile
+!LICENSE
 
 # Executables and debug files
 *.exe
