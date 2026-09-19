@@ -111,7 +111,7 @@ are represented internally with the following prefix structure (omitting end mar
 
 ### Unit Tests
 
-In the debug build, all assertions are enabled and we frequently validate the structural invariants. We validate results against pre-computed counts and ranges for various prefixes stored in `resources/solutions.txt`. The `trie` class is tested for the following functionality:
+In the debug build, all assertions are enabled and we frequently validate the structural invariants. We validate results against pre-computed counts and ranges for various prefixes stored in `resources/solutions.csv`. The `trie` class is tested for the following functionality:
 
 - Default, `initializer_list`, and iterator range constructors.
 - Copy and move semantics for constructors and assignment.

@@ -47,7 +47,7 @@ namespace perf_test {
 static constexpr auto WORDS_FILE = "./resources/words.txt";
 static constexpr auto WORDS_SIZE = 370'105UZ;
 
-static constexpr auto SOLUTIONS_FILE = "./resources/solutions.txt";
+static constexpr auto SOLUTIONS_FILE = "./resources/solutions.csv";
 static constexpr auto SOLUTIONS_SIZE = 114UZ;
 
 template <typename T>
@@ -65,9 +65,8 @@ std::vector<std::string> read_words(PRNG auto&& prng);
  * @brief Solution to finding and counting a prefix.
  */
 struct solution_t {
-  std::string prefix;
+  std::string prefix, begin, end;
   std::size_t count = 0UZ;
-  std::string begin, end;
 };
 
 /**
@@ -119,19 +118,32 @@ std::vector<std::string> perf_test::read_words(PRNG auto&& prng) {
     throw perf_error("Expected {} words but got {}", WORDS_SIZE, words.size());
   }
   std::ranges::shuffle(words, prng);
-  std::println("Imported {} randomly shuffled words", words.size());
+  std::println("Imported {} randomly shuffled words", WORDS_SIZE);
   return words;
 }
 
 std::vector<perf_test::solution_t> perf_test::read_solutions(PRNG auto&& prng) {
+  std::ifstream fin{SOLUTIONS_FILE};
+  if (!fin) throw perf_error("Could not open {}", SOLUTIONS_FILE);
+
+  std::string line;
+  std::getline(fin, line);
+
+  static constexpr auto expected_header = "prefix,begin,end,count";
+  if (line != expected_header) {
+    throw perf_error("Expected header to define columns {} but was {}",
+                     expected_header, line);
+  }
+
   std::vector<solution_t> solutions;
   solutions.reserve(SOLUTIONS_SIZE);
 
-  std::ifstream fin{SOLUTIONS_FILE};
-  if (!fin) throw perf_error("Could not open {}", SOLUTIONS_FILE);
-  auto count = 0UZ;
-  for (std::string word, begin, end; fin >> word >> count >> begin >> end;) {
-    solutions.emplace_back(word, count, begin, end);
+  while (std::getline(fin, line)) {
+    const auto row = std::views::split(line, ',') |
+                     std::ranges::to<std::vector<std::string>>();
+    if (row.size() != 4)
+      throw perf_error("Expected rows of size 4 but was {}", row.size());
+    solutions.emplace_back(row[0], row[1], row[2], std::stoul(row[3]));
   }
 
   if (SOLUTIONS_SIZE != solutions.size()) {
@@ -139,7 +151,7 @@ std::vector<perf_test::solution_t> perf_test::read_solutions(PRNG auto&& prng) {
                      solutions.size());
   }
   std::ranges::shuffle(solutions, prng);
-  std::println("Imported {} randomly shuffled solutions", solutions.size());
+  std::println("Imported {} randomly shuffled solutions", SOLUTIONS_SIZE);
   return solutions;
 }
 
