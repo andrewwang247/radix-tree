@@ -12,7 +12,6 @@ Benchmarking class interfaces.
 #include <ranges>
 #include <set>
 #include <span>
-#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -167,9 +166,8 @@ timeunit_t perf<Container>::count_impl(
 
   for (auto&& [expected, actual] : std::views::zip(solutions, distances)) {
     if (std::cmp_not_equal(expected.count, actual)) {
-      throw std::runtime_error(
-          std::format("Expected {} words with prefix {} but counted {}",
-                      expected.count, expected.prefix, actual));
+      throw perf_error("Expected {} words with prefix {} but counted {}",
+                       expected.count, expected.prefix, actual);
     }
   }
   return t1 - t0;
@@ -191,9 +189,9 @@ timeunit_t perf<Container>::find_impl(
     const auto act_beg = *actual.begin();
     const auto act_end = *actual.end();
     if (exp_beg != act_beg || exp_end != act_end) {
-      throw std::runtime_error(std::format(
+      throw perf_error(
           "Expected prefix range for {} to be ({}, {}) but was ({}, {})",
-          expected.prefix, exp_beg, exp_end, act_beg, act_end));
+          expected.prefix, exp_beg, exp_end, act_beg, act_end);
     }
   }
   return t1 - t0;
@@ -213,8 +211,8 @@ timeunit_t perf<Container>::erase_impl(
 
   const auto expected = perf_test::WORDS_SIZE - total_erased;
   if (words.size() != expected) {
-    throw std::runtime_error(std::format(
-        "Expected {} words after erasing but was {}", expected, words.size()));
+    throw perf_error("Expected {} words after erasing but was {}", expected,
+                     words.size());
   }
   return t1 - t0;
 }
@@ -257,12 +255,10 @@ timeunit_t perf<Container>::contains(
   const auto t1 = perf_clock::now();
 
   if (inc_iter != word_list.end()) {
-    throw std::runtime_error(
-        std::format("Expected to find {} but did not", *inc_iter));
+    throw perf_error("Expected to find {} but did not", *inc_iter);
   }
   if (non_iter != non_inc.end()) {
-    throw std::runtime_error(
-        std::format("Expected {} to be missing but was not", *non_iter));
+    throw perf_error("Expected {} to be missing but was not", *non_iter);
   }
   return t1 - t0;
 }
@@ -276,9 +272,8 @@ timeunit_t perf<Container>::forward_iterate() const {
   const auto t1 = perf_clock::now();
 
   if (perf_test::WORDS_SIZE != counter) {
-    throw std::runtime_error(
-        std::format("Expected {} elements but iterated over {}",
-                    perf_test::WORDS_SIZE, counter));
+    throw perf_error("Expected {} elements but iterated over {}",
+                     perf_test::WORDS_SIZE, counter);
   }
   return t1 - t0;
 }
@@ -291,9 +286,8 @@ timeunit_t perf<Container>::reverse_iterate() const {
   const auto t1 = perf_clock::now();
 
   if (perf_test::WORDS_SIZE != counter) {
-    throw std::runtime_error(
-        std::format("Expected {} elements but iterated over {}",
-                    perf_test::WORDS_SIZE, counter));
+    throw perf_error("Expected {} elements but iterated over {}",
+                     perf_test::WORDS_SIZE, counter);
   }
   return t1 - t0;
 }

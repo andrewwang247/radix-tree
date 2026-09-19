@@ -13,15 +13,32 @@ Interface for performance testing.
 #include <print>
 #include <random>
 #include <ranges>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 #include "trie.h"
 
 using perf_clock = std::chrono::steady_clock;
 using timeunit_t = std::chrono::nanoseconds;
+
+/**
+ * @brief Error during performance testing.
+ */
+class perf_error : public std::runtime_error {
+ public:
+  /**
+   * @brief Formatted runtime_error constructor.
+   * @param fmt The format string.
+   * @param args Arguments to format string.
+   */
+  template <typename... Args>
+  explicit perf_error(std::format_string<Args...> fmt, Args&&... args)
+      : std::runtime_error(std::format(fmt, std::forward<Args>(args)...)) {}
+};
 
 /**
  * @brief Performance testing.
@@ -93,15 +110,13 @@ std::vector<std::string> perf_test::read_words(PRNG auto&& prng) {
   words.reserve(WORDS_SIZE);
 
   std::ifstream fin{WORDS_FILE};
-  if (!fin)
-    throw std::runtime_error(std::format("Could not open {}", WORDS_FILE));
+  if (!fin) throw perf_error("Could not open {}", WORDS_FILE);
   for (std::string word; fin >> word;) {
     words.emplace_back(word);
   }
 
   if (WORDS_SIZE != words.size()) {
-    throw std::runtime_error(
-        std::format("Expected {} words but got {}", WORDS_SIZE, words.size()));
+    throw perf_error("Expected {} words but got {}", WORDS_SIZE, words.size());
   }
   std::ranges::shuffle(words, prng);
   std::println("Imported {} randomly shuffled words", words.size());
@@ -113,16 +128,15 @@ std::vector<perf_test::solution_t> perf_test::read_solutions(PRNG auto&& prng) {
   solutions.reserve(SOLUTIONS_SIZE);
 
   std::ifstream fin{SOLUTIONS_FILE};
-  if (!fin)
-    throw std::runtime_error(std::format("Could not open {}", SOLUTIONS_FILE));
+  if (!fin) throw perf_error("Could not open {}", SOLUTIONS_FILE);
   auto count = 0UZ;
   for (std::string word, begin, end; fin >> word >> count >> begin >> end;) {
     solutions.emplace_back(word, count, begin, end);
   }
 
   if (SOLUTIONS_SIZE != solutions.size()) {
-    throw std::runtime_error(std::format("Expected {} solutions but got {}",
-                                         SOLUTIONS_SIZE, solutions.size()));
+    throw perf_error("Expected {} solutions but got {}", SOLUTIONS_SIZE,
+                     solutions.size());
   }
   std::ranges::shuffle(solutions, prng);
   std::println("Imported {} randomly shuffled solutions", solutions.size());
