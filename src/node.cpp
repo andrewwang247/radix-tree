@@ -6,9 +6,6 @@ Implementation for Node.
 #include "node.h"
 
 #include <algorithm>
-#ifdef DEBUG
-#include <bitset>
-#endif
 #include <cassert>
 #include <cstddef>
 #include <format>
@@ -18,6 +15,11 @@ Implementation for Node.
 #include <string_view>
 #include <utility>
 #include <vector>
+
+#ifdef DEBUG
+#include <bitset>
+#include <limits>
+#endif
 
 using std::format;
 using std::make_unique;
@@ -255,7 +257,8 @@ string node::to_json(bool include_ends) const {
 
 void node::assert_invariants() const noexcept {
 #ifdef DEBUG
-  constexpr auto max_possible_chars = 1 << 8;
+  constexpr auto max_possible_chars =
+      static_cast<size_t>(std::numeric_limits<unsigned char>::max()) + 1;
   std::bitset<max_possible_chars> seen;
   for (const auto& [str, ptr] : children) {
     assert(ptr);
