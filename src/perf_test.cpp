@@ -12,27 +12,32 @@ Performance testing implementation.
 #include <ranges>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include "benchmark.h"
 
 using perf_test::show_comparison;
 using std::default_random_engine;
+using std::getline;
 using std::ifstream;
 using std::print;
 using std::println;
 using std::random_device;
+using std::stoul;
 using std::string;
 using std::string_view;
+using std::vector;
 
 namespace ranges = std::ranges;
+namespace views = std::views;
 
 static constexpr auto SAMPLE_SIZE = 2'500UZ;
 static constexpr auto ANNOUNCE_TEMPLATE = "{:<18}";
 
 int main() {
   default_random_engine prng{random_device{}()};  // NOLINT(whitespace/braces)
-  const auto words = perf_test::read_words(prng);
-  const auto solutions = perf_test::read_solutions(prng);
+  const auto words = perf_test::permute(perf_test::read_words(), prng);
+  const auto solutions = perf_test::permute(perf_test::read_solutions(), prng);
   const auto sublist = perf_test::sample(words, SAMPLE_SIZE, prng);
 
   println("--- EXECUTING PERFORMANCE TESTS ---");
@@ -90,12 +95,59 @@ int main() {
   println("--- COMPLETED FINAL VERIFICATION ---");
 }
 
+vector<string> perf_test::read_words() {
+  ifstream fin{WORDS_FILE};
+  if (!fin) throw perf_error("Could not open {}", WORDS_FILE);
+
+  vector<string> words;
+  words.reserve(WORDS_SIZE);
+  for (string word; fin >> word;) {
+    words.emplace_back(word);
+  }
+
+  if (WORDS_SIZE != words.size()) {
+    throw perf_error("Expected {} words but got {}", WORDS_SIZE, words.size());
+  }
+  println("Imported {} words from {}", WORDS_SIZE, WORDS_FILE);
+  return words;
+}
+
+vector<perf_test::solution_t> perf_test::read_solutions() {
+  ifstream fin{SOLUTIONS_FILE};
+  if (!fin) throw perf_error("Could not open {}", SOLUTIONS_FILE);
+
+  string line;
+  getline(fin, line);
+
+  static constexpr auto expected_header = "prefix,begin,end,count";
+  if (line != expected_header) {
+    throw perf_error("Expected header to define columns {} but was {}",
+                     expected_header, line);
+  }
+
+  vector<solution_t> solutions;
+  solutions.reserve(SOLUTIONS_SIZE);
+  while (getline(fin, line)) {
+    const auto row = views::split(line, ',') | ranges::to<vector<string>>();
+    if (row.size() != 4)
+      throw perf_error("Expected rows of size 4 but was {}", row.size());
+    solutions.emplace_back(row[0], row[1], row[2], stoul(row[3]));
+  }
+
+  if (SOLUTIONS_SIZE != solutions.size()) {
+    throw perf_error("Expected {} solutions but got {}", SOLUTIONS_SIZE,
+                     solutions.size());
+  }
+  println("Imported {} solutions from {}", SOLUTIONS_SIZE, SOLUTIONS_FILE);
+  return solutions;
+}
+
 void perf_test::show_comparison(timeunit_t set_time, timeunit_t trie_time) {
   static constexpr auto COMPARE_TEMPLATE =
       "{:>4} was {:4.1f} x faster than {:>4}";
   const auto diff_ratio =
-      static_cast<double>(std::max(set_time, trie_time).count()) /
-      static_cast<double>(std::min(set_time, trie_time).count());
+      static_cast<double>(max(set_time, trie_time).count()) /
+      static_cast<double>(min(set_time, trie_time).count());
   if (set_time < trie_time) {
     println(COMPARE_TEMPLATE, "set", diff_ratio, "trie");
   } else {

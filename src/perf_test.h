@@ -4,15 +4,13 @@ Copyright 2026. Andrew Wang.
 Interface for performance testing.
 */
 #pragma once
-#include <algorithm>
 #include <chrono>
 #include <cstddef>
+#include <cstdint>
 #include <format>
-#include <fstream>
 #include <limits>
-#include <print>
 #include <random>
-#include <ranges>
+#include <span>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -54,14 +52,6 @@ template <typename T>
 concept PRNG = std::uniform_random_bit_generator<std::remove_cvref_t<T>>;
 
 /**
- * @brief Reads words from the WORDS_FILE into a vector of strings. Randomly
- * permutes before returning.
- * @param prng The random bit generator to use for shuffling words.
- * @return A vector of strings containing all words from the file.
- */
-std::vector<std::string> read_words(PRNG auto&& prng);
-
-/**
  * @brief Solution to finding and counting a prefix.
  */
 struct solution_t {
@@ -70,19 +60,32 @@ struct solution_t {
 };
 
 /**
- * @brief Reads solutions from the SOLUTIONS_FILE into a vector of. Randomly
- * permutes before returning.
- * @param prng The random bit generator to use for shuffling solution.
+ * @brief Reads words from the WORDS_FILE into a vector of strings.
+ * @return A vector of strings containing all words from the file.
+ */
+std::vector<std::string> read_words();
+
+/**
+ * @brief Reads solutions from the SOLUTIONS_FILE into a vector of.
  * @return A vector of solutions containing all entries from the file.
  */
-std::vector<solution_t> read_solutions(PRNG auto&& prng);
+std::vector<solution_t> read_solutions();
+
+/**
+ * @brief Randomly permute from an original list.
+ * @param original The original list to shuffle. Pass by move / elision.
+ * @param prng The random bit generator to use from permuting.
+ * @return The shuffled original list.
+ */
+template <typename T>
+std::vector<T> permute(std::vector<T> original, PRNG auto&& prng);
 
 /**
  * @brief Randomly sample without replacement from the word list.
  * @param word_list The original words to sample from.
  * @param sample_size Number of samples to retrieve.
  * @param prng The random bit generator to use for sampling.
- * @return A random choosing of sample_size words from the list.
+ * @return A subset of sample_size random string_views into the list.
  */
 std::vector<std::string_view> sample(std::span<const std::string> word_list,
                                      std::size_t sample_size, PRNG auto&& prng);
@@ -104,55 +107,10 @@ void show_comparison(timeunit_t set_time, timeunit_t trie_time);
 
 // CONSTEXPR AND TEMPLATED IMPLEMENTATIONS
 
-std::vector<std::string> perf_test::read_words(PRNG auto&& prng) {
-  std::vector<std::string> words;
-  words.reserve(WORDS_SIZE);
-
-  std::ifstream fin{WORDS_FILE};
-  if (!fin) throw perf_error("Could not open {}", WORDS_FILE);
-  for (std::string word; fin >> word;) {
-    words.emplace_back(word);
-  }
-
-  if (WORDS_SIZE != words.size()) {
-    throw perf_error("Expected {} words but got {}", WORDS_SIZE, words.size());
-  }
-  std::ranges::shuffle(words, prng);
-  std::println("Imported {} randomly shuffled words", WORDS_SIZE);
-  return words;
-}
-
-std::vector<perf_test::solution_t> perf_test::read_solutions(PRNG auto&& prng) {
-  std::ifstream fin{SOLUTIONS_FILE};
-  if (!fin) throw perf_error("Could not open {}", SOLUTIONS_FILE);
-
-  std::string line;
-  std::getline(fin, line);
-
-  static constexpr auto expected_header = "prefix,begin,end,count";
-  if (line != expected_header) {
-    throw perf_error("Expected header to define columns {} but was {}",
-                     expected_header, line);
-  }
-
-  std::vector<solution_t> solutions;
-  solutions.reserve(SOLUTIONS_SIZE);
-
-  while (std::getline(fin, line)) {
-    const auto row = std::views::split(line, ',') |
-                     std::ranges::to<std::vector<std::string>>();
-    if (row.size() != 4)
-      throw perf_error("Expected rows of size 4 but was {}", row.size());
-    solutions.emplace_back(row[0], row[1], row[2], std::stoul(row[3]));
-  }
-
-  if (SOLUTIONS_SIZE != solutions.size()) {
-    throw perf_error("Expected {} solutions but got {}", SOLUTIONS_SIZE,
-                     solutions.size());
-  }
-  std::ranges::shuffle(solutions, prng);
-  std::println("Imported {} randomly shuffled solutions", SOLUTIONS_SIZE);
-  return solutions;
+template <typename T>
+std::vector<T> perf_test::permute(std::vector<T> original, PRNG auto&& prng) {
+  std::ranges::shuffle(original, prng);
+  return original;
 }
 
 std::vector<std::string_view> perf_test::sample(
@@ -160,7 +118,7 @@ std::vector<std::string_view> perf_test::sample(
     PRNG auto&& prng) {
   std::vector<std::string_view> sub_list(sample_size);
   std::ranges::sample(word_list, sub_list.begin(),
-                      static_cast<int32_t>(sample_size), prng);
+                      static_cast<std::int32_t>(sample_size), prng);
   return sub_list;
 }
 

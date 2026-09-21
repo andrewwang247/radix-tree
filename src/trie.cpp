@@ -108,7 +108,7 @@ iterator trie::insert(string_view key) {
     return {root, loc};
   }
 
-  const auto first_char_match = [key_pos](string_view sv) constexpr {
+  const auto first_char_match = [key_pos](string_view sv) {
     assert(!sv.empty());
     return sv.front() == key_pos.front();
   };

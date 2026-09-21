@@ -140,7 +140,7 @@ class node {
 // AUTO RETURN IMPLEMENTATIONS
 
 inline auto node::find_child(const node* other) const noexcept {
-  return std::ranges::find(children, other, [](const auto& p) static constexpr {
+  return std::ranges::find(children, other, [](const auto& p) static {
     assert(p.second);
     return p.second.get();
   });
