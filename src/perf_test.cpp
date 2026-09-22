@@ -6,7 +6,9 @@ Performance testing implementation.
 #include "perf_test.h"
 
 #include <algorithm>
+#include <cstddef>
 #include <fstream>
+#include <iterator>
 #include <print>
 #include <random>
 #include <ranges>
@@ -23,7 +25,7 @@ using std::ifstream;
 using std::print;
 using std::println;
 using std::random_device;
-using std::stoul;
+using std::size_t;
 using std::string;
 using std::string_view;
 using std::vector;
@@ -128,10 +130,21 @@ vector<perf_test::solution_t> perf_test::read_solutions() {
   vector<solution_t> solutions;
   solutions.reserve(SOLUTIONS_SIZE);
   while (getline(fin, line)) {
-    const auto row = views::split(line, ',') | ranges::to<vector<string>>();
-    if (row.size() != 4)
-      throw perf_error("Expected rows of size 4 but was {}", row.size());
-    solutions.emplace_back(row[0], row[1], row[2], stoul(row[3]));
+    auto row = views::split(line, ',') | views::transform([](auto&& rng) {
+                 return string_view{rng.begin(), rng.end()};
+               });
+
+    const auto splits = ranges::distance(row);
+    if (splits != 4)
+      throw perf_error("Expected row {} of size 4 but was {}", line, splits);
+
+    auto it = row.begin();
+    const auto prefix = *it++;
+    const auto begin = *it++;
+    const auto end = *it++;
+    const auto count = from_str<size_t>(*it);
+
+    solutions.emplace_back(string{prefix}, string{begin}, string{end}, count);
   }
 
   if (SOLUTIONS_SIZE != solutions.size()) {

@@ -4,6 +4,7 @@ Copyright 2026. Andrew Wang.
 Interface for performance testing.
 */
 #pragma once
+#include <charconv>
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
@@ -14,6 +15,7 @@ Interface for performance testing.
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <system_error>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -98,6 +100,15 @@ std::vector<std::string_view> sample(std::span<const std::string> word_list,
 constexpr std::string lexicographic_increment(std::string word);
 
 /**
+ * @brief Parse and convert a string to a different type.
+ * @param str The string to convert from.
+ * @tparam T the type to convert to.
+ * @return The value parsed from str.
+ */
+template <typename T>
+T from_str(std::string_view str);
+
+/**
  * @brief Display performance comparison between set and Trie operations.
  * @param set_time The time taken by the set.
  * @param trie_time The time taken by the Trie.
@@ -120,6 +131,23 @@ std::vector<std::string_view> perf_test::sample(
   std::ranges::sample(word_list, sub_list.begin(),
                       static_cast<std::int32_t>(sample_size), prng);
   return sub_list;
+}
+
+template <typename T>
+T perf_test::from_str(std::string_view str) {
+  T result{};
+  const auto [ptr, ec] = std::from_chars(str.begin(), str.end(), result);
+  if (ec != std::errc{}) {
+    throw std::system_error(std::make_error_code(ec),
+                            std::format("Failed to convert {}", str));
+  }
+  if (ptr != str.end()) {
+    const auto up_to = std::string_view{str.begin(), ptr};
+    const auto remainder = std::string_view{ptr, str.end()};
+    throw perf_error("Could only convert up to {} with remainder {}", up_to,
+                     remainder);
+  }
+  return result;
 }
 
 constexpr std::string perf_test::lexicographic_increment(std::string word) {
