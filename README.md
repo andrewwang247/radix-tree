@@ -1,8 +1,6 @@
 # Radix Tree
 
-Container library for a sorted set of strings with prefix operations patterned after the C++ standard library. The API is backed by a space optimized [trie](https://en.wikipedia.org/wiki/Trie), often referred to as a [radix tree](https://en.wikipedia.org/wiki/Radix_tree). For example, the branch of the tree representing the prefix "P" might look like:
-
-![Peter Piper radix tree](sample.png)
+Container library for a sorted set of strings with prefix operations patterned after the C++ standard library. The API is backed by a space optimized [trie](https://en.wikipedia.org/wiki/Trie), often referred to as a [radix tree](https://en.wikipedia.org/wiki/Radix_tree).
 
 This makes the radix tree particularly well suited for prefix-heavy operations. Benchmarking shows that for these operations, the trie can be significantly faster than `std::set`, the standard sorted set container. Build and run with the `Makefile` targets:
 
