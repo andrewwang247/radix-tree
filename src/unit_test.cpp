@@ -7,6 +7,8 @@ Unit testing implementation.
 
 #include <algorithm>
 #include <cassert>
+#include <compare>
+#include <concepts>
 #include <iterator>
 #include <print>
 #include <random>
@@ -27,6 +29,7 @@ int main() {
                 "Unit tests assume provided words are sorted");
 
   println("--- EXECUTING UNIT TESTS ---");
+  unit_test::concepts();
   unit_test::empty();
   unit_test::single();
   unit_test::find();
@@ -47,6 +50,19 @@ trie unit_test::get_trie() {
   auto copy = SORTED_WORDS;
   ranges::shuffle(copy, prng);
   return trie{copy};
+}
+
+void unit_test::concepts() {
+  static_assert(std::regular<trie>);
+  static_assert(std::three_way_comparable<const trie>);
+  static_assert(std::totally_ordered<const trie>);
+
+  static_assert(ranges::bidirectional_range<const trie>);
+  static_assert(ranges::common_range<const trie>);
+  static_assert(ranges::sized_range<const trie>);
+  static_assert(ranges::viewable_range<trie>);
+
+  println(RESULT_TEMPLATE, "concepts");
 }
 
 void unit_test::empty() {

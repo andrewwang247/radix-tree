@@ -27,6 +27,7 @@ static constexpr auto SORTED_WORDS = std::to_array<std::string_view>(
  */
 trie get_trie();
 
+void concepts();
 void empty();
 void single();
 void find();
