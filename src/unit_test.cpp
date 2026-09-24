@@ -13,6 +13,7 @@ Unit testing implementation.
 #include <print>
 #include <random>
 #include <ranges>
+#include <type_traits>
 #include <utility>
 
 #include "trie.h"
@@ -56,6 +57,8 @@ void unit_test::concepts() {
   static_assert(std::regular<trie>);
   static_assert(std::three_way_comparable<const trie>);
   static_assert(std::totally_ordered<const trie>);
+  static_assert(std::is_nothrow_destructible_v<const trie>);
+  static_assert(std::is_nothrow_move_constructible_v<trie>);
 
   static_assert(ranges::bidirectional_range<const trie>);
   static_assert(ranges::common_range<const trie>);
