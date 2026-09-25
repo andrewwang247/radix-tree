@@ -62,7 +62,7 @@ void unit_test::concepts() {
 
   static_assert(ranges::bidirectional_range<const trie>);
   static_assert(ranges::common_range<const trie>);
-  static_assert(ranges::sized_range<const trie>);
+  static_assert(!ranges::sized_range<const trie>);  // not O(1)
   static_assert(ranges::viewable_range<trie>);
 
   println(RESULT_TEMPLATE, "concepts");

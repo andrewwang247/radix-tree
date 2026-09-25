@@ -32,6 +32,24 @@ class trie {
   trie();
 
   /**
+   * @brief Copy constructor.
+   * @param other The trie to copy into this.
+   */
+  trie(const trie& other);
+
+  /**
+   * @brief Assignment for both copy and move.
+   * @param other The trie to assign to this.
+   */
+  trie& operator=(trie other);
+
+  /**
+   * @brief Move constructor.
+   * @param other The trie to move into this.
+   */
+  trie(trie&& other) = default;
+
+  /**
    * @brief Initializer list constructor inserts strings in key_list into trie.
    * Duplicates are ignored.
    * @param key_list The items to initialize the trie with.
@@ -54,37 +72,6 @@ class trie {
    */
   explicit trie(std::ranges::input_range auto&& input_range);
 
-  /**
-   * @brief Copy constructor.
-   * @param other The trie to copy into this.
-   */
-  trie(const trie& other);
-
-  /**
-   * @brief Assignment for both copy and move.
-   * @param other The trie to assign to this.
-   */
-  trie& operator=(trie other);
-
-  /**
-   * @brief Move constructor.
-   * @param other The trie to move into this.
-   */
-  trie(trie&& other) = default;
-
-  /**
-   * @brief Default destructor.
-   */
-  ~trie() = default;
-
- private:
-  /**
-   * @brief Private move constructor from a cloned root node.
-   * @param cloned The cloned root to move into this.
-   */
-  explicit trie(std::unique_ptr<node> cloned) noexcept;
-
- public:
   // --- CONTAINER SIZE ---
 
   /**
@@ -151,16 +138,14 @@ class trie {
   /**
    * @brief Searches for key in trie.
    * @param key The key used to search the trie.
-   * @return An iterator to key if it exists. Otherwise, returns a null
-   * iterator.
+   * @return Iterator to key if it exists. Otherwise, null iterator.
    */
   iterator find(std::string_view key) const noexcept;
 
   /**
    * @brief Searches for prefix in trie.
    * @param prefix The prefix used to search the trie.
-   * @return An iterator to the first key that matches the prefix. Otherwise,
-   * null iterator.
+   * @return Iterator to first key matching prefix. Otherwise, null iterator.
    */
   iterator find_prefix(std::string_view prefix) const noexcept;
 
@@ -209,6 +194,7 @@ class trie {
    * @brief Inserts all of rhs's keys into this. Requires that this and rhs are
    * not the same trie.
    * @param rhs The trie to union with this.
+   * @return A reference to this.
    */
   trie& operator+=(const trie& rhs);
 
@@ -216,6 +202,7 @@ class trie {
    * @brief Removes all of rhs's keys from this. Requires that this and rhs are
    * not the same trie.
    * @param rhs The trie to set subtract from this.
+   * @return A reference to this.
    */
   trie& operator-=(const trie& rhs);
 
@@ -266,3 +253,6 @@ trie::trie(std::ranges::input_range auto&& input_range) : trie() {
   }
   root->assert_invariants();
 }
+
+template <>
+inline constexpr bool std::ranges::disable_sized_range<trie> = true;

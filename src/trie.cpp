@@ -28,7 +28,6 @@ using std::string;
 using std::string_view;
 using std::strong_ordering;
 using std::terminate;
-using std::unique_ptr;
 
 namespace ranges = std::ranges;
 
@@ -36,10 +35,9 @@ trie::trie() : root(make_unique<node>(false, nullptr)) {
   root->assert_invariants();
 }
 
-trie::trie(const initializer_list<string_view>& key_list)
-    : trie(key_list.begin(), key_list.end()) {}
-
-trie::trie(const trie& other) : trie(other.root->clone()) {}
+trie::trie(const trie& other) : root(other.root->clone()) {
+  root->assert_invariants();
+}
 
 trie& trie::operator=(trie other) {
   std::swap(root, other.root);
@@ -47,10 +45,8 @@ trie& trie::operator=(trie other) {
   return *this;
 }
 
-trie::trie(unique_ptr<node> cloned) noexcept {
-  std::swap(root, cloned);
-  root->assert_invariants();
-}
+trie::trie(const initializer_list<string_view>& key_list)
+    : trie(key_list.begin(), key_list.end()) {}
 
 bool trie::empty(string_view prefix) const noexcept {
   const auto [_, prf_rt] = root->prefix_match(prefix);

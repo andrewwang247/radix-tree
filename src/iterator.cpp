@@ -27,6 +27,7 @@ iterator::iterator(const unique_ptr<node>& rt,
 }
 
 iterator& iterator::operator++() noexcept {
+  assert(root);
   if (!ptr) return *this;
   ptr = ptr->children.empty() ? ptr->next_node() : ptr->first_key();
   return *this;
@@ -39,6 +40,7 @@ iterator iterator::operator++(int) noexcept {
 }
 
 iterator& iterator::operator--() noexcept {
+  assert(root);
   if (ptr) {
     // middle of trie
     ptr = ptr->prev_node();
@@ -60,19 +62,17 @@ iterator iterator::operator--(int) noexcept {
 }
 
 iterator::value_type iterator::operator*() const {
+  assert(ptr);
   return ptr->underlying_string();
 }
 
 iterator::arrow_proxy iterator::operator->() const {
+  assert(ptr);
   return arrow_proxy{ptr->underlying_string()};
 }
 
-iterator::operator bool() const noexcept { return ptr != nullptr; }
+iterator::operator bool() const noexcept { return root && ptr; }
 
 string iterator::to_json(bool include_ends) const {
   return ptr ? ptr->to_json(include_ends) : "{}";
-}
-
-bool operator==(const iterator& lhs, const iterator& rhs) noexcept {
-  return lhs.ptr == rhs.ptr;
 }

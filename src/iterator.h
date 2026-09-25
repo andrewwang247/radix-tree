@@ -23,8 +23,7 @@ class iterator {
   using reference = const std::string&;
 
  private:
-  const node* root = nullptr;
-  const node* ptr = nullptr;
+  const node *root{}, *ptr{};
 
   /**
    * @brief Proxy to make the arrow operator work.
@@ -35,7 +34,7 @@ class iterator {
   };
 
  public:
-  iterator() noexcept = default;
+  explicit iterator() = default;
 
   /**
    * @brief Root and pointer constructor.
@@ -107,5 +106,5 @@ class iterator {
    * @param rhs The right iterator.
    * @return Equality between lhs and rhs.
    */
-  friend bool operator==(const iterator& lhs, const iterator& rhs) noexcept;
+  friend bool operator==(const iterator& lhs, const iterator& rhs) = default;
 };

@@ -39,7 +39,7 @@ class node {
 
   /**
    * @brief Deep copy of contents rooted at this.
-   * @returns Owning pointer to the clone.
+   * @return Owning pointer to the clone.
    */
   std::unique_ptr<node> clone() const;
 
