@@ -1,7 +1,7 @@
 /*
-Copyright 2026. Andrew Wang.
+Trie iterator.
 
-Interface for Trie iterator.
+Copyright 2026. Andrew Wang.
 */
 #pragma once
 

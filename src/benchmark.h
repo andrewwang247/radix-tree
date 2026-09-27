@@ -1,7 +1,7 @@
 /*
-Copyright 2026. Andrew Wang.
+Benchmarking structures.
 
-Benchmarking class interfaces.
+Copyright 2026. Andrew Wang.
 */
 #pragma once
 #include <algorithm>

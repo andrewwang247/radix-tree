@@ -1,7 +1,7 @@
 /*
-Copyright 2026. Andrew Wang.
+Benchmarking structures.
 
-Benchmarking class implementations.
+Copyright 2026. Andrew Wang.
 */
 #include "benchmark.h"
 

@@ -1,7 +1,7 @@
 /*
-Copyright 2026. Andrew Wang.
+Performance testing.
 
-Performance testing implementation.
+Copyright 2026. Andrew Wang.
 */
 #include "perf_test.h"
 

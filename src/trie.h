@@ -1,7 +1,7 @@
 /*
-Copyright 2026. Andrew Wang.
+Compressed radix tree.
 
-Interface for Trie.
+Copyright 2026. Andrew Wang.
 */
 #pragma once
 #include <compare>

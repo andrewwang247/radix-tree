@@ -1,7 +1,7 @@
 /*
-Copyright 2026. Andrew Wang.
+Unit testing trie functionality.
 
-Unit testing implementation.
+Copyright 2026. Andrew Wang.
 */
 #include "unit_test.h"
 
@@ -24,25 +24,24 @@ using std::random_device;
 
 namespace ranges = std::ranges;
 namespace views = std::views;
-namespace ut = rt::unit_test;
 
 int main() {
-  static_assert(ranges::is_sorted(ut::SORTED_WORDS),
+  static_assert(ranges::is_sorted(rt::unit_test::SORTED_WORDS),
                 "Unit tests assume provided words are sorted");
 
   println("--- EXECUTING UNIT TESTS ---");
-  ut::concepts();
-  ut::empty();
-  ut::single();
-  ut::find();
-  ut::insert();
-  ut::erase();
-  ut::forward_iterate();
-  ut::reverse_iterate();
-  ut::copy_move();
-  ut::comparison();
-  ut::arithmetic();
-  ut::representation();
+  rt::unit_test::concepts();
+  rt::unit_test::empty();
+  rt::unit_test::single();
+  rt::unit_test::find();
+  rt::unit_test::insert();
+  rt::unit_test::erase();
+  rt::unit_test::forward_iterate();
+  rt::unit_test::reverse_iterate();
+  rt::unit_test::copy_move();
+  rt::unit_test::comparison();
+  rt::unit_test::arithmetic();
+  rt::unit_test::representation();
   println("--- COMPLETED UNIT TESTS ---");
 }
 

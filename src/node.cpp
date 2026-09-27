@@ -1,7 +1,7 @@
 /*
-Copyright 2026. Andrew Wang.
+Internal trie node.
 
-Implementation for Node.
+Copyright 2026. Andrew Wang.
 */
 #include "node.h"
 

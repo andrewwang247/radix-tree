@@ -1,7 +1,7 @@
 /*
-Copyright 2026. Andrew Wang.
+Unit testing trie functionality.
 
-Interface for unit testing.
+Copyright 2026. Andrew Wang.
 */
 #pragma once
 

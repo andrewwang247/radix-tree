@@ -1,7 +1,7 @@
 /*
-Copyright 2026. Andrew Wang.
+Compressed radix tree.
 
-Implementation for Trie.
+Copyright 2026. Andrew Wang.
 */
 #include "trie.h"
 

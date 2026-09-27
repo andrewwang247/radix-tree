@@ -1,7 +1,7 @@
 /*
-Copyright 2026. Andrew Wang.
+Internal trie node.
 
-Interface for Node.
+Copyright 2026. Andrew Wang.
 */
 #pragma once
 #include <algorithm>

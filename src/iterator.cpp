@@ -1,7 +1,7 @@
 /*
-Copyright 2026. Andrew Wang.
+Trie iterator.
 
-Implementation for Trie iterator.
+Copyright 2026. Andrew Wang.
 */
 #include "iterator.h"
 

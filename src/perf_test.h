@@ -1,7 +1,7 @@
 /*
-Copyright 2026. Andrew Wang.
+Performance testing.
 
-Interface for performance testing.
+Copyright 2026. Andrew Wang.
 */
 #pragma once
 #include <charconv>
