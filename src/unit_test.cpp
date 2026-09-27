@@ -24,26 +24,29 @@ using std::random_device;
 
 namespace ranges = std::ranges;
 namespace views = std::views;
+namespace ut = rt::unit_test;
 
 int main() {
-  static_assert(ranges::is_sorted(unit_test::SORTED_WORDS),
+  static_assert(ranges::is_sorted(ut::SORTED_WORDS),
                 "Unit tests assume provided words are sorted");
 
   println("--- EXECUTING UNIT TESTS ---");
-  unit_test::concepts();
-  unit_test::empty();
-  unit_test::single();
-  unit_test::find();
-  unit_test::insert();
-  unit_test::erase();
-  unit_test::forward_iterate();
-  unit_test::reverse_iterate();
-  unit_test::copy_move();
-  unit_test::comparison();
-  unit_test::arithmetic();
-  unit_test::representation();
+  ut::concepts();
+  ut::empty();
+  ut::single();
+  ut::find();
+  ut::insert();
+  ut::erase();
+  ut::forward_iterate();
+  ut::reverse_iterate();
+  ut::copy_move();
+  ut::comparison();
+  ut::arithmetic();
+  ut::representation();
   println("--- COMPLETED UNIT TESTS ---");
 }
+
+namespace rt {
 
 trie unit_test::get_trie() {
   static auto prng =
@@ -390,3 +393,5 @@ void unit_test::representation() {
 
   println(RESULT_TEMPLATE, "representation");
 }
+
+}  // namespace rt

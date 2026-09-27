@@ -32,6 +32,8 @@ using std::vector;
 namespace ranges = std::ranges;
 namespace views = std::views;
 
+namespace rt {
+
 node::node(bool end, node* par) noexcept : parent(par), is_end(end) {}
 
 unique_ptr<node> node::clone() const {
@@ -274,3 +276,5 @@ void node::assert_invariants() const noexcept {
   }
 #endif
 }
+
+}  // namespace rt

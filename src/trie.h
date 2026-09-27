@@ -16,6 +16,8 @@ Interface for Trie.
 #include "iterator.h"
 #include "node.h"
 
+namespace rt {
+
 /**
  * @brief A compact prefix tree with keys as std::string.
  *
@@ -254,5 +256,9 @@ trie::trie(std::ranges::input_range auto&& input_range) : trie() {
   root->assert_invariants();
 }
 
+}  // namespace rt
+
+// Disable sized range concept in  global namespace
+
 template <>
-inline constexpr bool std::ranges::disable_sized_range<trie> = true;
+inline constexpr bool std::ranges::disable_sized_range<rt::trie> = true;

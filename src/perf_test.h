@@ -22,8 +22,16 @@ Interface for performance testing.
 
 #include "trie.h"
 
+namespace rt::perf_test {
+
 using perf_clock = std::chrono::steady_clock;
 using timeunit_t = std::chrono::nanoseconds;
+
+static constexpr auto WORDS_FILE = "./resources/words.txt";
+static constexpr auto WORDS_SIZE = 370'105UZ;
+
+static constexpr auto SOLUTIONS_FILE = "./resources/solutions.csv";
+static constexpr auto SOLUTIONS_SIZE = 114UZ;
 
 /**
  * @brief Error during performance testing.
@@ -39,16 +47,6 @@ class perf_error : public std::runtime_error {
   explicit perf_error(std::format_string<Args...> fmt, Args&&... args)
       : std::runtime_error(std::format(fmt, std::forward<Args>(args)...)) {}
 };
-
-/**
- * @brief Performance testing.
- */
-namespace perf_test {
-static constexpr auto WORDS_FILE = "./resources/words.txt";
-static constexpr auto WORDS_SIZE = 370'105UZ;
-
-static constexpr auto SOLUTIONS_FILE = "./resources/solutions.csv";
-static constexpr auto SOLUTIONS_SIZE = 114UZ;
 
 template <typename T>
 concept PRNG = std::uniform_random_bit_generator<std::remove_cvref_t<T>>;
@@ -74,13 +72,23 @@ std::vector<std::string> read_words();
 std::vector<solution_t> read_solutions();
 
 /**
+ * @brief Display performance comparison between set and Trie operations.
+ * @param set_time The time taken by the set.
+ * @param trie_time The time taken by the Trie.
+ */
+void show_comparison(timeunit_t set_time, timeunit_t trie_time);
+
+/**
  * @brief Randomly permute from an original list.
  * @param original The original list to shuffle. Pass by move / elision.
  * @param prng The random bit generator to use from permuting.
  * @return The shuffled original list.
  */
 template <typename T>
-std::vector<T> permute(std::vector<T> original, PRNG auto&& prng);
+std::vector<T> permute(std::vector<T> original, PRNG auto&& prng) {
+  std::ranges::shuffle(original, prng);
+  return original;
+}
 
 /**
  * @brief Randomly sample without replacement from the word list.
@@ -90,14 +98,32 @@ std::vector<T> permute(std::vector<T> original, PRNG auto&& prng);
  * @return A subset of sample_size random string_views into the list.
  */
 std::vector<std::string_view> sample(std::span<const std::string> word_list,
-                                     std::size_t sample_size, PRNG auto&& prng);
+                                     std::size_t sample_size,
+                                     PRNG auto&& prng) {
+  std::vector<std::string_view> sub_list(sample_size);
+  std::ranges::sample(word_list, sub_list.begin(),
+                      static_cast<std::int32_t>(sample_size), prng);
+  return sub_list;
+}
 
 /**
  * @brief Increment a string to the next possible in lexicographic order.
  * @param word The current string to process.
  * @return The lexicographical earliest string greater than word.
  */
-constexpr std::string lexicographic_increment(std::string word);
+constexpr std::string lexicographic_increment(std::string word) {
+  const auto last_non_max =
+      word.find_last_not_of(std::numeric_limits<char>::max());
+  if (last_non_max != std::string::npos) {
+    // Increment last non max char and remove everything after.
+    ++word[last_non_max];
+    word.erase(last_non_max + 1);
+  } else {
+    // All characters are max char. Append min char.
+    word += std::numeric_limits<char>::min();
+  }
+  return word;
+}
 
 /**
  * @brief Parse and convert a string to a different type.
@@ -106,35 +132,7 @@ constexpr std::string lexicographic_increment(std::string word);
  * @return The value parsed from str.
  */
 template <typename T>
-T from_str(std::string_view str);
-
-/**
- * @brief Display performance comparison between set and Trie operations.
- * @param set_time The time taken by the set.
- * @param trie_time The time taken by the Trie.
- */
-void show_comparison(timeunit_t set_time, timeunit_t trie_time);
-}  // namespace perf_test
-
-// CONSTEXPR AND TEMPLATED IMPLEMENTATIONS
-
-template <typename T>
-std::vector<T> perf_test::permute(std::vector<T> original, PRNG auto&& prng) {
-  std::ranges::shuffle(original, prng);
-  return original;
-}
-
-std::vector<std::string_view> perf_test::sample(
-    std::span<const std::string> word_list, std::size_t sample_size,
-    PRNG auto&& prng) {
-  std::vector<std::string_view> sub_list(sample_size);
-  std::ranges::sample(word_list, sub_list.begin(),
-                      static_cast<std::int32_t>(sample_size), prng);
-  return sub_list;
-}
-
-template <typename T>
-T perf_test::from_str(std::string_view str) {
+T from_str(std::string_view str) {
   T result{};
   const auto [ptr, ec] = std::from_chars(str.begin(), str.end(), result);
   if (ec != std::errc{}) {
@@ -150,16 +148,4 @@ T perf_test::from_str(std::string_view str) {
   return result;
 }
 
-constexpr std::string perf_test::lexicographic_increment(std::string word) {
-  const auto last_non_max =
-      word.find_last_not_of(std::numeric_limits<char>::max());
-  if (last_non_max != std::string::npos) {
-    // Increment last non max char and remove everything after.
-    ++word[last_non_max];
-    word.erase(last_non_max + 1);
-  } else {
-    // All characters are max char. Append min char.
-    word += std::numeric_limits<char>::min();
-  }
-  return word;
-}
+}  // namespace rt::perf_test

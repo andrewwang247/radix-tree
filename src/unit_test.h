@@ -10,10 +10,8 @@ Interface for unit testing.
 
 #include "trie.h"
 
-/**
- * @brief Unit testing.
- */
-namespace unit_test {
+namespace rt::unit_test {
+
 static constexpr auto RESULT_TEMPLATE = "Test {:<20} passed";
 // NOLINTBEGIN(whitespace/indent_namespace)
 static constexpr auto SORTED_WORDS = std::to_array<std::string_view>(
@@ -39,4 +37,5 @@ void copy_move();
 void comparison();
 void arithmetic();
 void representation();
-}  // namespace unit_test
+
+}  // namespace rt::unit_test

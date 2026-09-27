@@ -14,6 +14,8 @@ Implementation for Trie iterator.
 using std::string;
 using std::unique_ptr;
 
+namespace rt {
+
 iterator::iterator(const unique_ptr<node>& rt, const node* p) noexcept
     : root(rt.get()), ptr(p) {
   assert(rt);
@@ -76,3 +78,5 @@ iterator::operator bool() const noexcept { return root && ptr; }
 string iterator::to_json(bool include_ends) const {
   return ptr ? ptr->to_json(include_ends) : "{}";
 }
+
+}  // namespace rt

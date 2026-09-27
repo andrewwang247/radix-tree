@@ -17,10 +17,9 @@ using std::span;
 using std::string;
 using std::string_view;
 
-using perf_test::lexicographic_increment;
-using perf_test::solution_t;
-
 namespace ranges = std::ranges;
+
+namespace rt::perf_test {
 
 ranges::range auto set_perf::prefix_range_for(string_view prefix) const {
   // Find the first item that's a prefix
@@ -63,3 +62,5 @@ timeunit_t trie_perf::erase(span<const solution_t> solutions) {
   return erase_impl(solutions,
                     [this](string_view prf) { words.erase_prefix(prf); });
 }
+
+}  // namespace rt::perf_test

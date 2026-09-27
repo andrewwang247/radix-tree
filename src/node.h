@@ -12,6 +12,8 @@ Interface for Node.
 #include <string>
 #include <string_view>
 
+namespace rt {
+
 /**
  * @brief Defines a singular node in the Trie data structure.
  */
@@ -145,3 +147,5 @@ inline auto node::find_child(const node* other) const noexcept {
     return p.second.get();
   });
 }
+
+}  // namespace rt

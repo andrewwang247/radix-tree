@@ -19,6 +19,8 @@ Benchmarking class interfaces.
 
 #include "perf_test.h"
 
+namespace rt::perf_test {
+
 /**
  * @brief Interface for performance testing.
  */
@@ -48,16 +50,14 @@ class perf {
    * @param solutions The prefixes to count.
    * @return The elapsed time.
    */
-  virtual timeunit_t count(
-      std::span<const perf_test::solution_t> solutions) const = 0;
+  virtual timeunit_t count(std::span<const solution_t> solutions) const = 0;
 
   /**
    * @brief Find begin and end range of given prefixes.
    * @param solutions The prefixes to find.
    * @return The elapsed time.
    */
-  virtual timeunit_t find(
-      std::span<const perf_test::solution_t> solutions) const = 0;
+  virtual timeunit_t find(std::span<const solution_t> solutions) const = 0;
 
   /**
    * @brief Check for containment of words.
@@ -83,8 +83,7 @@ class perf {
    * @param solutions The prefixes to erase.
    * @return The elapsed time.
    */
-  virtual timeunit_t erase(
-      std::span<const perf_test::solution_t> solutions) = 0;
+  virtual timeunit_t erase(std::span<const solution_t> solutions) = 0;
 
  protected:
   /**
@@ -93,7 +92,7 @@ class perf {
    * @param func The specific count function for this type.
    * @return The elapsed time.
    */
-  static timeunit_t count_impl(std::span<const perf_test::solution_t> solutions,
+  static timeunit_t count_impl(std::span<const solution_t> solutions,
                                std::invocable<std::string_view> auto func);
 
   /**
@@ -102,7 +101,7 @@ class perf {
    * @param func The specific find function for this type.
    * @return The elapsed time.
    */
-  static timeunit_t find_impl(std::span<const perf_test::solution_t> solutions,
+  static timeunit_t find_impl(std::span<const solution_t> solutions,
                               std::invocable<std::string_view> auto func);
 
   /**
@@ -111,7 +110,7 @@ class perf {
    * @param func The specific erase function for this type.
    * @return The elapsed time.
    */
-  timeunit_t erase_impl(std::span<const perf_test::solution_t> solutions,
+  timeunit_t erase_impl(std::span<const solution_t> solutions,
                         std::invocable<std::string_view> auto func) const;
 };
 
@@ -128,11 +127,9 @@ class set_perf final : public perf<std::set<std::string, std::less<>>> {
   std::ranges::range auto prefix_range_for(std::string_view prefix) const;
 
  public:
-  timeunit_t count(
-      std::span<const perf_test::solution_t> solutions) const override;
-  timeunit_t find(
-      std::span<const perf_test::solution_t> solutions) const override;
-  timeunit_t erase(std::span<const perf_test::solution_t> solutions) override;
+  timeunit_t count(std::span<const solution_t> solutions) const override;
+  timeunit_t find(std::span<const solution_t> solutions) const override;
+  timeunit_t erase(std::span<const solution_t> solutions) override;
 };
 
 /**
@@ -140,11 +137,9 @@ class set_perf final : public perf<std::set<std::string, std::less<>>> {
  */
 class trie_perf final : public perf<trie> {
  public:
-  timeunit_t count(
-      std::span<const perf_test::solution_t> solutions) const override;
-  timeunit_t find(
-      std::span<const perf_test::solution_t> solutions) const override;
-  timeunit_t erase(std::span<const perf_test::solution_t> solutions) override;
+  timeunit_t count(std::span<const solution_t> solutions) const override;
+  timeunit_t find(std::span<const solution_t> solutions) const override;
+  timeunit_t erase(std::span<const solution_t> solutions) override;
 };
 
 // NON VIRTUAL TEMPLATED IMPLEMENTATIONS
@@ -156,11 +151,11 @@ const Container& perf<Container>::peek() const noexcept {
 
 template <std::ranges::bidirectional_range Container>
 timeunit_t perf<Container>::count_impl(
-    std::span<const perf_test::solution_t> solutions,
+    std::span<const solution_t> solutions,
     std::invocable<std::string_view> auto func) {
   const auto t0 = perf_clock::now();
   const auto distances =
-      solutions | std::views::transform(&perf_test::solution_t::prefix) |
+      solutions | std::views::transform(&solution_t::prefix) |
       std::views::transform(func) | std::ranges::to<std::vector>();
   const auto t1 = perf_clock::now();
 
@@ -175,11 +170,11 @@ timeunit_t perf<Container>::count_impl(
 
 template <std::ranges::bidirectional_range Container>
 timeunit_t perf<Container>::find_impl(
-    std::span<const perf_test::solution_t> solutions,
+    std::span<const solution_t> solutions,
     std::invocable<std::string_view> auto func) {
   const auto t0 = perf_clock::now();
   const auto actual_ranges =
-      solutions | std::views::transform(&perf_test::solution_t::prefix) |
+      solutions | std::views::transform(&solution_t::prefix) |
       std::views::transform(func) | std::ranges::to<std::vector>();
   const auto t1 = perf_clock::now();
 
@@ -199,14 +194,13 @@ timeunit_t perf<Container>::find_impl(
 
 template <std::ranges::bidirectional_range Container>
 timeunit_t perf<Container>::erase_impl(
-    std::span<const perf_test::solution_t> solutions,
+    std::span<const solution_t> solutions,
     std::invocable<std::string_view> auto func) const {
   const auto total_erased = std::ranges::fold_left(
-      solutions | std::views::transform(&perf_test::solution_t::count), 0UZ,
-      std::plus{});
+      solutions | std::views::transform(&solution_t::count), 0UZ, std::plus{});
 
   const auto t0 = perf_clock::now();
-  std::ranges::for_each(solutions, func, &perf_test::solution_t::prefix);
+  std::ranges::for_each(solutions, func, &solution_t::prefix);
   const auto t1 = perf_clock::now();
 
   const auto expected = perf_test::WORDS_SIZE - total_erased;
@@ -291,3 +285,5 @@ timeunit_t perf<Container>::reverse_iterate() const {
   }
   return t1 - t0;
 }
+
+}  // namespace rt::perf_test

@@ -31,6 +31,8 @@ using std::terminate;
 
 namespace ranges = std::ranges;
 
+namespace rt {
+
 trie::trie() : root(make_unique<node>(false, nullptr)) {
   root->assert_invariants();
 }
@@ -333,3 +335,5 @@ partial_ordering operator<=>(const trie& lhs, const trie& rhs) noexcept {
   if (left_has_extra && !right_has_extra) return partial_ordering::greater;
   return partial_ordering::unordered;
 }
+
+}  // namespace rt

@@ -18,7 +18,6 @@ Performance testing implementation.
 
 #include "benchmark.h"
 
-using perf_test::show_comparison;
 using std::default_random_engine;
 using std::getline;
 using std::ifstream;
@@ -32,47 +31,49 @@ using std::vector;
 
 namespace ranges = std::ranges;
 namespace views = std::views;
+namespace pt = rt::perf_test;
 
 static constexpr auto SAMPLE_SIZE = 2'500UZ;
 static constexpr auto ANNOUNCE_TEMPLATE = "{:<18}";
 
 int main() {
   default_random_engine prng{random_device{}()};  // NOLINT(whitespace/braces)
-  const auto words = perf_test::permute(perf_test::read_words(), prng);
-  const auto solutions = perf_test::permute(perf_test::read_solutions(), prng);
-  const auto sublist = perf_test::sample(words, SAMPLE_SIZE, prng);
+  const auto words = pt::permute(pt::read_words(), prng);
+  const auto solutions = pt::permute(pt::read_solutions(), prng);
+  const auto sublist = pt::sample(words, SAMPLE_SIZE, prng);
 
   println("--- EXECUTING PERFORMANCE TESTS ---");
 
-  set_perf set_benchmark;
-  trie_perf trie_benchmark;
+  pt::set_perf set_benchmark;
+  pt::trie_perf trie_benchmark;
 
   print(ANNOUNCE_TEMPLATE, "Insert words:");
-  show_comparison(set_benchmark.insert(words), trie_benchmark.insert(words));
+  pt::show_comparison(set_benchmark.insert(words),
+                      trie_benchmark.insert(words));
 
   print(ANNOUNCE_TEMPLATE, "Count prefix:");
-  show_comparison(set_benchmark.count(solutions),
-                  trie_benchmark.count(solutions));
+  pt::show_comparison(set_benchmark.count(solutions),
+                      trie_benchmark.count(solutions));
 
   print(ANNOUNCE_TEMPLATE, "Find prefix:");
-  show_comparison(set_benchmark.find(solutions),
-                  trie_benchmark.find(solutions));
+  pt::show_comparison(set_benchmark.find(solutions),
+                      trie_benchmark.find(solutions));
 
   print(ANNOUNCE_TEMPLATE, "Contains words:");
-  show_comparison(set_benchmark.contains(sublist),
-                  trie_benchmark.contains(sublist));
+  pt::show_comparison(set_benchmark.contains(sublist),
+                      trie_benchmark.contains(sublist));
 
   print(ANNOUNCE_TEMPLATE, "Forward iterate:");
-  show_comparison(set_benchmark.forward_iterate(),
-                  trie_benchmark.forward_iterate());
+  pt::show_comparison(set_benchmark.forward_iterate(),
+                      trie_benchmark.forward_iterate());
 
   print(ANNOUNCE_TEMPLATE, "Reverse iterate:");
-  show_comparison(set_benchmark.reverse_iterate(),
-                  trie_benchmark.reverse_iterate());
+  pt::show_comparison(set_benchmark.reverse_iterate(),
+                      trie_benchmark.reverse_iterate());
 
   print(ANNOUNCE_TEMPLATE, "Erase prefix:");
-  show_comparison(set_benchmark.erase(solutions),
-                  trie_benchmark.erase(solutions));
+  pt::show_comparison(set_benchmark.erase(solutions),
+                      trie_benchmark.erase(solutions));
 
   println("--- COMPLETED PERFORMANCE TESTS ---");
 
@@ -96,6 +97,8 @@ int main() {
 
   println("--- COMPLETED FINAL VERIFICATION ---");
 }
+
+namespace rt {
 
 vector<string> perf_test::read_words() {
   ifstream fin{WORDS_FILE};
@@ -167,3 +170,5 @@ void perf_test::show_comparison(timeunit_t set_time, timeunit_t trie_time) {
     println(COMPARE_TEMPLATE, "trie", diff_ratio, "set");
   }
 }
+
+}  // namespace rt

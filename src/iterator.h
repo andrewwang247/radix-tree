@@ -11,6 +11,8 @@ Interface for Trie iterator.
 
 #include "node.h"
 
+namespace rt {
+
 /**
  * @brief Supports const bidirectional iteration over the trie.
  */
@@ -108,3 +110,5 @@ class iterator {
    */
   friend bool operator==(const iterator& lhs, const iterator& rhs) = default;
 };
+
+}  // namespace rt
