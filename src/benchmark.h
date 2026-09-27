@@ -6,11 +6,10 @@ Copyright 2026. Andrew Wang.
 #pragma once
 #include <algorithm>
 #include <array>
+#include <cstddef>
 #include <format>
-#include <functional>
 #include <iterator>
 #include <ranges>
-#include <set>
 #include <span>
 #include <string>
 #include <string_view>
@@ -114,34 +113,6 @@ class perf {
                         std::invocable<std::string_view> auto func) const;
 };
 
-/**
- * @brief Perf class template for std::set.
- */
-class set_perf final : public perf<std::set<std::string, std::less<>>> {
- private:
-  /**
-   * @brief Locate boundaries of a prefix range.
-   * @param prefix The prefix to locate.
-   * @return The range of words with prefix.
-   */
-  std::ranges::range auto prefix_range_for(std::string_view prefix) const;
-
- public:
-  timeunit_t count(std::span<const solution_t> solutions) const override;
-  timeunit_t find(std::span<const solution_t> solutions) const override;
-  timeunit_t erase(std::span<const solution_t> solutions) override;
-};
-
-/**
- * @brief Perf class template for trie.
- */
-class trie_perf final : public perf<trie> {
- public:
-  timeunit_t count(std::span<const solution_t> solutions) const override;
-  timeunit_t find(std::span<const solution_t> solutions) const override;
-  timeunit_t erase(std::span<const solution_t> solutions) override;
-};
-
 // NON VIRTUAL TEMPLATED IMPLEMENTATIONS
 
 template <std::ranges::bidirectional_range Container>
@@ -225,7 +196,7 @@ timeunit_t perf<Container>::insert(std::span<const std::string> word_list) {
 template <std::ranges::bidirectional_range Container>
 timeunit_t perf<Container>::contains(
     std::span<const std::string_view> word_list) const {
-  static constexpr auto non_inc = std::to_array<std::string_view>(
+  static constexpr auto NON_INC = std::to_array<std::string_view>(
       {"inte", "nonc", "pseu", "unre", "micr", "nons", "nonp", "coun", "hydr",
        "prot", "nond", "reco", "unpr", "nonr", "unin", "inco", "noni", "undi",
        "prea", "ther", "anth", "tetr", "endo", "extr", "neur", "unst", "tric",
@@ -245,13 +216,13 @@ timeunit_t perf<Container>::contains(
 
   const auto t0 = perf_clock::now();
   const auto inc_iter = std::ranges::find_if_not(word_list, contains_key);
-  const auto non_iter = std::ranges::find_if(non_inc, contains_key);
+  const auto non_iter = std::ranges::find_if(NON_INC, contains_key);
   const auto t1 = perf_clock::now();
 
   if (inc_iter != word_list.end()) {
     throw perf_error("Expected to find {} but did not", *inc_iter);
   }
-  if (non_iter != non_inc.end()) {
+  if (non_iter != NON_INC.end()) {
     throw perf_error("Expected {} to be missing but was not", *non_iter);
   }
   return t1 - t0;
@@ -265,9 +236,9 @@ timeunit_t perf<Container>::forward_iterate() const {
   const auto counter = std::distance(words.begin(), words.end());
   const auto t1 = perf_clock::now();
 
-  if (perf_test::WORDS_SIZE != counter) {
-    throw perf_error("Expected {} elements but iterated over {}",
-                     perf_test::WORDS_SIZE, counter);
+  if (counter != WORDS_SIZE) {
+    throw perf_error("Expected {} elements but iterated over {}", WORDS_SIZE,
+                     counter);
   }
   return t1 - t0;
 }
@@ -279,9 +250,9 @@ timeunit_t perf<Container>::reverse_iterate() const {
                                      std::make_reverse_iterator(words.begin()));
   const auto t1 = perf_clock::now();
 
-  if (perf_test::WORDS_SIZE != counter) {
-    throw perf_error("Expected {} elements but iterated over {}",
-                     perf_test::WORDS_SIZE, counter);
+  if (counter != WORDS_SIZE) {
+    throw perf_error("Expected {} elements but iterated over {}", WORDS_SIZE,
+                     counter);
   }
   return t1 - t0;
 }

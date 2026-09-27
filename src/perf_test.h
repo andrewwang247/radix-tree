@@ -25,13 +25,9 @@ Copyright 2026. Andrew Wang.
 namespace rt::perf_test {
 
 using perf_clock = std::chrono::steady_clock;
-using timeunit_t = std::chrono::nanoseconds;
+using timeunit_t = perf_clock::time_point::duration;
 
-static constexpr auto WORDS_FILE = "./resources/words.txt";
-static constexpr auto WORDS_SIZE = 370'105UZ;
-
-static constexpr auto SOLUTIONS_FILE = "./resources/solutions.csv";
-static constexpr auto SOLUTIONS_SIZE = 114UZ;
+static constexpr auto WORDS_SIZE = 370'105U;
 
 /**
  * @brief Error during performance testing.
@@ -56,20 +52,23 @@ concept PRNG = std::uniform_random_bit_generator<std::remove_cvref_t<T>>;
  */
 struct solution_t {
   std::string prefix, begin, end;
-  std::size_t count = 0UZ;
+  std::size_t count{};
 };
 
 /**
  * @brief Reads words from the WORDS_FILE into a vector of strings.
+ * @param name The file name to read from.
  * @return A vector of strings containing all words from the file.
  */
-std::vector<std::string> read_words();
+std::vector<std::string> read_words(const char* name);
 
 /**
  * @brief Reads solutions from the SOLUTIONS_FILE into a vector of.
+ * @param name The file name to read from.
+ * @param sz The expected number of entries.
  * @return A vector of solutions containing all entries from the file.
  */
-std::vector<solution_t> read_solutions();
+std::vector<solution_t> read_solutions(const char* name, std::size_t sz);
 
 /**
  * @brief Display performance comparison between set and Trie operations.

@@ -1,9 +1,9 @@
 /*
-Benchmarking structures.
+Benchmark set performance.
 
 Copyright 2026. Andrew Wang.
 */
-#include "benchmark.h"
+#include "set_perf.h"
 
 #include <iterator>
 #include <ranges>
@@ -46,21 +46,6 @@ timeunit_t set_perf::erase(span<const solution_t> solutions) {
     const auto [begin, end] = prefix_range_for(prf);
     words.erase(begin, end);
   });
-}
-
-timeunit_t trie_perf::count(span<const solution_t> solutions) const {
-  return count_impl(solutions,
-                    [this](string_view prf) { return words.size(prf); });
-}
-
-timeunit_t trie_perf::find(span<const solution_t> solutions) const {
-  return find_impl(solutions,
-                   [this](string_view prf) { return words.subrange(prf); });
-}
-
-timeunit_t trie_perf::erase(span<const solution_t> solutions) {
-  return erase_impl(solutions,
-                    [this](string_view prf) { words.erase_prefix(prf); });
 }
 
 }  // namespace rt::perf_test

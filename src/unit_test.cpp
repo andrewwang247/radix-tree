@@ -6,6 +6,7 @@ Copyright 2026. Andrew Wang.
 #include "unit_test.h"
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <compare>
 #include <concepts>
@@ -13,6 +14,7 @@ Copyright 2026. Andrew Wang.
 #include <print>
 #include <random>
 #include <ranges>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 
@@ -21,14 +23,13 @@ Copyright 2026. Andrew Wang.
 using std::default_random_engine;
 using std::println;
 using std::random_device;
+using std::string_view;
+using std::to_array;
 
 namespace ranges = std::ranges;
 namespace views = std::views;
 
 int main() {
-  static_assert(ranges::is_sorted(rt::unit_test::SORTED_WORDS),
-                "Unit tests assume provided words are sorted");
-
   println("--- EXECUTING UNIT TESTS ---");
   rt::unit_test::concepts();
   rt::unit_test::empty();
@@ -46,6 +47,21 @@ int main() {
 }
 
 namespace rt {
+
+namespace unit_test {
+
+static constexpr auto RESULT_TEMPLATE = "Test {:<20} passed";
+
+// NOLINTBEGIN
+static constexpr auto SORTED_WORDS = to_array<string_view>(
+    {"compute", "computer", "contain", "contaminate", "corn", "corner",
+     "mahjong", "mahogany", "mat", "material", "maternal", "math", "matrix"});
+// NOLINTEND
+
+static_assert(ranges::is_sorted(SORTED_WORDS),
+              "Unit tests assume provided words are sorted");
+
+}  // namespace unit_test
 
 trie unit_test::get_trie() {
   static auto prng =
