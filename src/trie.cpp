@@ -276,23 +276,24 @@ ranges::subrange<iterator> trie::subrange(string_view prefix) const noexcept {
   return {begin(prefix), end(prefix)};
 }
 
-trie& trie::operator+=(const trie& rhs) {
-  assert(this != &rhs);
-  for (const auto& key : rhs) {
+trie& trie::operator+=(const trie& other) {
+  if (this == &other) return *this;
+  for (const auto& key : other) {
     insert(key);
   }
-  root->assert_invariants();
   return *this;
 }
 
 trie operator+(trie lhs, const trie& rhs) { return lhs += rhs; }
 
-trie& trie::operator-=(const trie& rhs) {
-  assert(this != &rhs);
-  for (const auto& key : rhs) {
+trie& trie::operator-=(const trie& other) {
+  if (this == &other) {
+    clear();
+    return *this;
+  }
+  for (const auto& key : other) {
     erase(key);
   }
-  root->assert_invariants();
   return *this;
 }
 

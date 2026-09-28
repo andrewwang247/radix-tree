@@ -193,20 +193,18 @@ class trie {
   // --- ASYMMETRIC BINARY OPERATIONS ---
 
   /**
-   * @brief Inserts all of rhs's keys into this. Requires that this and rhs are
-   * not the same trie.
-   * @param rhs The trie to union with this.
+   * @brief Inserts all of other's keys into this.
+   * @param other The trie to union with this.
    * @return A reference to this.
    */
-  trie& operator+=(const trie& rhs);
+  trie& operator+=(const trie& other);
 
   /**
-   * @brief Removes all of rhs's keys from this. Requires that this and rhs are
-   * not the same trie.
-   * @param rhs The trie to set subtract from this.
+   * @brief Removes all of other's keys from this.
+   * @param other The trie to set subtract from this.
    * @return A reference to this.
    */
-  trie& operator-=(const trie& rhs);
+  trie& operator-=(const trie& other);
 
   /**
    * @brief Equality operator checks element-wise equality. Private access
@@ -258,7 +256,7 @@ trie::trie(std::ranges::input_range auto&& input_range) : trie() {
 
 }  // namespace rt
 
-// Disable sized range concept in  global namespace
+// Disable sized range concept in global namespace
 
 template <>
 inline constexpr bool std::ranges::disable_sized_range<rt::trie> = true;

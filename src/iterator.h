@@ -102,13 +102,7 @@ class iterator {
    */
   std::string to_json(bool include_ends = false) const;
 
-  /**
-   * @brief Check if two iterators are equal.
-   * @param lhs The left iterator.
-   * @param rhs The right iterator.
-   * @return Equality between lhs and rhs.
-   */
-  friend bool operator==(const iterator& lhs, const iterator& rhs) = default;
+  bool operator==(const iterator&) const = default;
 };
 
 }  // namespace rt
