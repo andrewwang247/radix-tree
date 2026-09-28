@@ -78,17 +78,16 @@ node::positional node::approximate_match(string_view key) noexcept {
   // If the key is empty, return this.
   if (key.empty()) return {.pos = key, .ptr = this};
 
-  for (const auto& [str, ptr] : children) {
-    assert(ptr);
-    // If one of the children is a prefix of key, recurse.
-    if (key.starts_with(str)) {
-      // Remove the child string off the front of key.
-      return ptr->approximate_match(key.substr(str.length()));
-    }
-  }
+  // Since none of the children share a common prefix, we check first char.
+  const auto it = children.lower_bound(key.substr(0, 1));
 
-  // If none of the children form a prefix for key, simply return this.
-  return {.pos = key, .ptr = this};
+  // If exists a child that is a prefix of key,
+  // strip child from key and recurse.
+  // Otherwise, simply return this.
+  const auto is_prefix = it != children.end() && key.starts_with(it->first);
+  return is_prefix
+             ? it->second->approximate_match(key.substr(it->first.length()))
+             : positional{.pos = key, .ptr = this};
 }
 
 node::positional node::prefix_match(string_view prf) noexcept {
@@ -97,24 +96,21 @@ node::positional node::prefix_match(string_view prf) noexcept {
   // If the given prf is empty, it's a perfect match.
   if (prf_pos.empty()) return {.pos = prf_pos, .ptr = app_ptr};
 
-  // If any of the node's children have prf as prefix, return that child.
-  for (const auto& [str, ptr] : app_ptr->children) {
-    assert(ptr);
-    if (str.starts_with(prf_pos)) {
-      return {.pos = string_view{}, .ptr = ptr.get()};
-    }
-  }
+  const auto it = app_ptr->children.lower_bound(prf_pos);
 
-  // No way to make prf a prefix. Return null.
-  return {.pos = prf_pos, .ptr = nullptr};
+  // If any of the node's children have prf as prefix, return that child.
+  // Otherwise, no way to make prf a prefix. Return null.
+  const auto is_prefix =
+      it != app_ptr->children.end() && it->first.starts_with(prf_pos);
+  return is_prefix ? positional{.pos = "", .ptr = it->second.get()}
+                   : positional{.pos = prf_pos, .ptr = nullptr};
 }
 
 node* node::exact_match(string_view word) noexcept {
   // First compute the approximate root.
   const auto [word_pos, app_ptr] = approximate_match(word);
   // Match if and only if we've used entire word and app_ptr is_end.
-  if (word_pos.empty() && app_ptr->is_end) return app_ptr;
-  return nullptr;
+  return word_pos.empty() && app_ptr->is_end ? app_ptr : nullptr;
 }
 
 const node* node::first_key() const noexcept {

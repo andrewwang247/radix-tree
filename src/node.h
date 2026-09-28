@@ -7,6 +7,7 @@ Copyright 2026. Andrew Wang.
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
+#include <functional>
 #include <map>
 #include <memory>
 #include <string>
@@ -28,7 +29,7 @@ class node {
   };
 
  public:
-  std::map<std::string, std::unique_ptr<node>> children;
+  std::map<std::string, std::unique_ptr<node>, std::less<>> children;
   node* parent;
   bool is_end;
 

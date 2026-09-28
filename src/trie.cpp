@@ -9,7 +9,6 @@ Copyright 2026. Andrew Wang.
 #include <cassert>
 #include <compare>
 #include <cstddef>
-#include <exception>
 #include <initializer_list>
 #include <memory>
 #include <ranges>
@@ -27,7 +26,6 @@ using std::size_t;
 using std::string;
 using std::string_view;
 using std::strong_ordering;
-using std::terminate;
 
 namespace ranges = std::ranges;
 
@@ -106,16 +104,12 @@ iterator trie::insert(string_view key) {
     return {root, loc};
   }
 
-  const auto first_char_match = [key_pos](string_view sv) {
-    assert(!sv.empty());
-    return sv.front() == key_pos.front();
-  };
   // Check children of loc for shared prefixes.
-  auto loc_it = ranges::find_if(loc->children, first_char_match,
-                                &decltype(loc->children)::value_type::first);
+  const auto loc_it = loc->children.lower_bound(key_pos.substr(0, 1));
 
   // If there are no shared prefixes, then simply create a node under loc.
-  if (loc_it == loc->children.end()) {
+  if (loc_it == loc->children.end() ||
+      !loc_it->first.starts_with(key_pos.front())) {
     const auto [key_iter, _] =
         loc->children.emplace(key_pos, make_unique<node>(true, loc));
     root->assert_invariants();
@@ -258,18 +252,11 @@ iterator trie::end(string_view prefix) const noexcept {
     return {root, app_ptr->next_node()};
 
   // Find the first child that is greater than prefix
-  for (const auto& [str, ptr] : app_ptr->children) {
-    assert(ptr);
-    // If equality, then approximate_match failed.
-    assert(str != prf_pos);
-    if (str.front() > prf_pos.front()) {
-      return ptr->is_end ? iterator{root, ptr}
-                         : iterator{root, ptr->first_key()};
-    }
-  }
+  const auto it = app_ptr->children.upper_bound(prf_pos);
+  assert(it != app_ptr->children.end());
 
-  // If we've gotten down to here, something has gone wrong.
-  terminate();
+  const auto& ptr = it->second;
+  return ptr->is_end ? iterator{root, ptr} : iterator{root, ptr->first_key()};
 }
 
 ranges::subrange<iterator> trie::subrange(string_view prefix) const noexcept {
