@@ -186,9 +186,7 @@ template <std::ranges::bidirectional_range Container>
 timeunit_t perf<Container>::insert(std::span<const std::string> word_list) {
   // Time insertion with range constructor.
   const auto t0 = perf_clock::now();
-  for (const auto& word : word_list) {
-    words.insert(word);
-  }
+  words.insert_range(word_list);
   const auto t1 = perf_clock::now();
   return t1 - t0;
 }

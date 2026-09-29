@@ -6,20 +6,17 @@ Copyright 2026. Andrew Wang.
 #include "node.h"
 
 #include <algorithm>
+#include <bitset>
 #include <cassert>
 #include <cstddef>
 #include <format>
+#include <limits>
 #include <memory>
 #include <ranges>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
-
-#ifdef DEBUG
-#include <bitset>
-#include <limits>
-#endif
 
 using std::format;
 using std::make_unique;
@@ -254,7 +251,6 @@ string node::to_json(bool include_ends) const {
 }
 
 void node::assert_invariants() const noexcept {
-#ifdef DEBUG
   constexpr auto max_possible_chars =
       static_cast<size_t>(std::numeric_limits<unsigned char>::max()) + 1;
   std::bitset<max_possible_chars> seen;
@@ -270,7 +266,6 @@ void node::assert_invariants() const noexcept {
     // Recursively check child nodes.
     ptr->assert_invariants();
   }
-#endif
 }
 
 }  // namespace rt

@@ -31,22 +31,18 @@ namespace ranges = std::ranges;
 
 namespace rt {
 
-trie::trie() : root(make_unique<node>(false, nullptr)) {
-  root->assert_invariants();
-}
+trie::trie() : root{make_unique<node>(false, nullptr)} {}
 
-trie::trie(const trie& other) : root(other.root->clone()) {
-  root->assert_invariants();
-}
+trie::trie(const trie& other) : root{other.root->clone()} {}
 
 trie& trie::operator=(trie other) {
   std::swap(root, other.root);
-  root->assert_invariants();
   return *this;
 }
 
-trie::trie(const initializer_list<string_view>& key_list)
-    : trie(key_list.begin(), key_list.end()) {}
+trie::trie(const initializer_list<string_view>& key_list) : trie{} {
+  insert_range(key_list);
+}
 
 bool trie::empty(string_view prefix) const noexcept {
   const auto [_, prf_rt] = root->prefix_match(prefix);
@@ -100,7 +96,6 @@ iterator trie::insert(string_view key) {
   // If the key is now empty, simply set is_end to true.
   if (key_pos.empty()) {
     loc->is_end = true;
-    root->assert_invariants();
     return {root, loc};
   }
 
@@ -112,7 +107,6 @@ iterator trie::insert(string_view key) {
       !loc_it->first.starts_with(key_pos.front())) {
     const auto [key_iter, _] =
         loc->children.emplace(key_pos, make_unique<node>(true, loc));
-    root->assert_invariants();
     return {root, key_iter->second};
   }
 
@@ -146,11 +140,9 @@ iterator trie::insert(string_view key) {
     // Add an additional node for the split.
     const auto [junction_iter, _2] = junction->children.emplace(
         post_key, make_unique<node>(true, junction.get()));
-    root->assert_invariants();
     return {root, junction_iter->second};
   }
 
-  root->assert_invariants();
   return {root, junction};
 }
 
@@ -166,7 +158,6 @@ void trie::erase(string_view key) {
   if (match == root.get()) {
     // If key was non-empty, exact_match failed.
     assert(key.empty());
-    root->assert_invariants();
     return;
   }
 
@@ -212,7 +203,6 @@ void trie::erase(string_view key) {
     par->children.erase(match_str);
   }
 
-  root->assert_invariants();
   // If match has multiple children, nothing can be joined.
 }
 
@@ -226,7 +216,6 @@ void trie::erase_prefix(string_view prefix) {
     assert(par);
     par->children.erase(par->find_child(prf_ptr));
   }
-  root->assert_invariants();
 }
 
 void trie::clear() noexcept {
@@ -234,12 +223,13 @@ void trie::clear() noexcept {
   root->children.clear();
   root->is_end = false;
   assert(!root->parent);
-  root->assert_invariants();
 }
 
 string trie::to_json(bool include_ends) const {
   return root->to_json(include_ends);
 }
+
+void trie::assert_invariants() const noexcept { root->assert_invariants(); }
 
 iterator trie::begin() const noexcept {
   return root->is_end ? iterator{root, root}
@@ -278,9 +268,7 @@ ranges::subrange<iterator> trie::subrange(string_view prefix) const noexcept {
 
 trie& trie::operator+=(const trie& other) {
   if (this == &other) return *this;
-  for (const auto& key : other) {
-    insert(key);
-  }
+  insert_range(other);
   return *this;
 }
 
@@ -291,9 +279,7 @@ trie& trie::operator-=(const trie& other) {
     clear();
     return *this;
   }
-  for (const auto& key : other) {
-    erase(key);
-  }
+  erase_range(other);
   return *this;
 }
 

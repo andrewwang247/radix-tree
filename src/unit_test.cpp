@@ -68,7 +68,9 @@ trie unit_test::get_trie() {
       default_random_engine{random_device{}()};  // NOLINT(whitespace/braces)
   auto copy = SORTED_WORDS;
   ranges::shuffle(copy, prng);
-  return trie{copy};
+  trie tr{copy};
+  tr.assert_invariants();
+  return tr;
 }
 
 void unit_test::concepts() {
@@ -88,6 +90,8 @@ void unit_test::concepts() {
 
 void unit_test::empty() {
   trie tr;
+  tr.assert_invariants();
+
   assert(tr.empty());
   assert(tr.empty("hello"));
   assert(tr.size() == 0);
@@ -100,6 +104,8 @@ void unit_test::empty() {
   assert(tr.find_prefix("") == tr.end());
 
   tr.insert("");
+  tr.assert_invariants();
+
   assert(!tr.empty());
   assert(tr.empty("hello"));
   assert(tr.size() == 1);
@@ -119,6 +125,8 @@ void unit_test::empty() {
 void unit_test::single() {
   trie tr;
   tr.insert("single");
+  tr.assert_invariants();
+
   assert(!tr.empty());
   assert(tr.empty("hello"));
   assert(!tr.empty("sin"));
@@ -185,6 +193,8 @@ void unit_test::insert() {
 
   assert(!tr.contains("math"));
   auto iter = tr.insert("math");
+  tr.assert_invariants();
+
   assert(tr.contains("math"));
   assert(iter != tr.end());
   assert(*iter == "math");
@@ -193,6 +203,8 @@ void unit_test::insert() {
 
   assert(!tr.contains("malleable"));
   iter = tr.insert("malleable");
+  tr.assert_invariants();
+
   assert(tr.contains("malleable"));
   assert(iter != tr.end());
   assert(*iter == "malleable");
@@ -200,9 +212,14 @@ void unit_test::insert() {
   assert(!tr.empty("ma"));
 
   assert(!tr.contains("regression"));
+  tr.assert_invariants();
   tr.insert("regression");  // ensure idempotence
+  tr.assert_invariants();
+
   assert(tr.contains("regression"));
   iter = tr.insert("regression");
+  tr.assert_invariants();
+
   assert(iter != tr.end());
   assert(*iter == "regression");
   assert(tr.size("m") == 2);
@@ -217,12 +234,17 @@ void unit_test::erase() {
 
   // Erase something that does not exist.
   tr.erase_prefix("random");
+  tr.assert_invariants();
   tr.erase("cplusplus");
+  tr.assert_invariants();
   assert(tr.size() == 13);
 
   // Erase a leaf node.
   tr.erase("maternal");  // ensure idempotence
+  tr.assert_invariants();
   tr.erase("maternal");
+  tr.assert_invariants();
+
   assert(!tr.contains("maternal"));
   assert(tr.size() == 12);
   assert(!tr.empty());
@@ -232,7 +254,10 @@ void unit_test::erase() {
 
   // Erase non-degenerate internal node.
   tr.erase("mat");  // ensure idempotence
+  tr.assert_invariants();
   tr.erase("mat");
+  tr.assert_invariants();
+
   assert(!tr.contains("mat"));
   auto iter = tr.find_prefix("mat");
   assert(iter != tr.end());
@@ -242,7 +267,10 @@ void unit_test::erase() {
 
   // Erase degenerate internal node.
   tr.erase("corn");  // ensure idempotence
+  tr.assert_invariants();
   tr.erase("corn");
+  tr.assert_invariants();
+
   assert(tr.contains("corner"));
   iter = tr.find("corner");
   assert(iter != tr.end());
@@ -250,7 +278,10 @@ void unit_test::erase() {
   assert(tr.size("co") == 5);
 
   tr.erase_prefix("con");  // ensure idempotence
+  tr.assert_invariants();
   tr.erase_prefix("con");
+  tr.assert_invariants();
+
   assert(!tr.contains("contain"));
   assert(!tr.contains("contaminate"));
   assert(tr.find("contain") == tr.end());
@@ -259,6 +290,7 @@ void unit_test::erase() {
 
   // Try clearing.
   tr.clear();
+  tr.assert_invariants();
   assert(tr.empty());
   assert(tr.size() == 0);
 
@@ -322,17 +354,21 @@ void unit_test::copy_move() {
   auto original = get_trie();
 
   trie copied(original);
+  copied.assert_invariants();
   assert(ranges::equal(original, copied));
 
   copied.clear();
   copied = original;
+  copied.assert_invariants();
   assert(ranges::equal(original, copied));
 
   trie moved{std::move(original)};
+  moved.assert_invariants();
   assert(ranges::equal(SORTED_WORDS, moved));
 
   copied.clear();
   moved = std::move(copied);
+  moved.assert_invariants();
   assert(moved.empty());
 
   println(RESULT_TEMPLATE, "copy and move");
@@ -359,11 +395,18 @@ void unit_test::arithmetic() {
   const trie tr{"mahogany", "mahjong",     "compute", "computer", "matrix",
                 "math",     "contaminate", "corn",    "corner",   "material",
                 "mat",      "maternal",    "contain"};
+  tr.assert_invariants();
+
   const trie t1{"compute", "contain",  "corn",  "mahjong",
                 "mat",     "maternal", "matrix"};
+  t1.assert_invariants();
+
   const trie t2{"computer", "contaminate", "corner",
                 "mahogany", "material",    "math"};
+  t2.assert_invariants();
+
   const trie ex{"some", "extra", "stuff"};
+  ex.assert_invariants();
 
   assert(t1 + t2 == tr);
   assert(tr - t2 == t1);

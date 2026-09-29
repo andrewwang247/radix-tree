@@ -33,11 +33,11 @@ The `find` function returns an iterator to the key if it's contained in the tree
 
 ### Insertion
 
-The `insert` function adds a single key into the tree and returns an iterator to a node matching the key. The function is idempotent.
+The `insert` function adds a single key into the tree and returns an iterator to a node matching the key. The function is idempotent. Use `insert_range` for bulk insertions.
 
 ### Deletion
 
-To remove keys from the tree, use `erase`. The `erase_prefix` erases all keys that match the prefix. To reset the entire tree, simply call `clear`. Both `erase` variants and `clear` are idempotent.
+To remove keys from the tree, use `erase`. The `erase_prefix` erases all keys that match the prefix. To reset the entire tree, simply call `clear`. Both `erase` variants and `clear` are idempotent. Use `erase_range` for bulk erasures.
 
 ### Iteration
 

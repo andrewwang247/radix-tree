@@ -5,9 +5,9 @@ Copyright 2026. Andrew Wang.
 */
 #pragma once
 #include <compare>
+#include <concepts>
 #include <cstddef>
 #include <initializer_list>
-#include <iterator>
 #include <memory>
 #include <ranges>
 #include <string>
@@ -17,6 +17,13 @@ Copyright 2026. Andrew Wang.
 #include "node.h"
 
 namespace rt {
+
+// NOLINTBEGIN
+template <typename T>
+concept sv_range =
+    std::ranges::input_range<T> &&
+    std::convertible_to<std::ranges::range_reference_t<T>, std::string_view>;
+// NOLINTEND
 
 /**
  * @brief A compact prefix tree with keys as std::string.
@@ -59,20 +66,11 @@ class trie {
   explicit trie(const std::initializer_list<std::string_view>& key_list);
 
   /**
-   * @brief Range constructor inserts strings contained in [first, last) into
-   * trie. Duplicates are ignored.
-   * @param first The starting iterator of the range.
-   * @param last The ending iterator (one past end) of the range.
-   */
-  template <std::input_iterator Iter>
-  trie(Iter first, Iter last);
-
-  /**
    * @brief Range constructor inserts strings contained in range into
    * trie. Duplicates are ignored.
-   * @param input_range The string range to insert.
+   * @param rng The input string range to insert.
    */
-  explicit trie(std::ranges::input_range auto&& input_range);
+  explicit trie(sv_range auto&& rng);
 
   // --- CONTAINER SIZE ---
 
@@ -161,6 +159,12 @@ class trie {
    */
   iterator insert(std::string_view key);
 
+  /**
+   * @brief Inserts a range of keys into trie.
+   * @param rng The range of keys to insert.
+   */
+  void insert_range(sv_range auto&& rng);
+
   // --- DELETION ---
 
   /**
@@ -177,6 +181,12 @@ class trie {
   void erase_prefix(std::string_view prefix);
 
   /**
+   * @brief Erase a range of keys from trie.
+   * @param rng The range of keys to erase.
+   */
+  void erase_range(sv_range auto&& rng);
+
+  /**
    * @brief Erases all keys from trie. Idempotent on empty tries.
    */
   void clear() noexcept;
@@ -189,6 +199,14 @@ class trie {
    * @return A JSON object representing the trie's structure.
    */
   std::string to_json(bool include_ends = false) const;
+
+  // --- VALIDATION AND DEBUGGING ---
+
+  /**
+   * @brief Assert that trie satisfies invariants.
+   * @pre DEBUG is defined.
+   */
+  void assert_invariants() const noexcept;
 
   // --- ASYMMETRIC BINARY OPERATIONS ---
 
@@ -244,14 +262,18 @@ std::partial_ordering operator<=>(const trie& lhs, const trie& rhs) noexcept;
 
 // TEMPLATED IMPLEMENTATIONS
 
-template <std::input_iterator Iter>
-trie::trie(Iter first, Iter last) : trie(std::ranges::subrange{first, last}) {}
+trie::trie(sv_range auto&& rng) : trie{} { insert_range(rng); }
 
-trie::trie(std::ranges::input_range auto&& input_range) : trie() {
-  for (auto&& word : input_range) {
-    insert(word);
+void trie::insert_range(sv_range auto&& rng) {
+  for (auto&& key : rng) {
+    insert(key);
   }
-  root->assert_invariants();
+}
+
+void trie::erase_range(sv_range auto&& rng) {
+  for (auto&& key : rng) {
+    erase(key);
+  }
 }
 
 }  // namespace rt
