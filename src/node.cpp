@@ -39,7 +39,7 @@ node::node(bool end, node* par) noexcept : parent(par), is_end(end) {}
 unique_ptr<node> node::clone() const {
   // Null parent because we do not clone above this node.
   auto copy = make_unique<node>(is_end, nullptr);
-  for (const auto& [str, ptr] : children) {
+  for (auto&& [str, ptr] : children) {
     assert(ptr);
     auto child_clone = ptr->clone();
     // Manually set child's parent to the copy.
@@ -67,7 +67,7 @@ size_t node::key_count() const noexcept {
   // If is_end, count it as a word.
   auto counter = is_end ? 1UZ : 0UZ;
   // Recursively check for words in children
-  for (const auto& [_, ptr] : children) {
+  for (auto&& [_, ptr] : children) {
     assert(ptr);
     counter += ptr->key_count();
   }
@@ -244,8 +244,8 @@ string node::to_json(bool include_ends) const {
     header += format(R"("end":{},"children":{{)", is_end ? "true" : "false");
   }
   const auto content =
-      children | views::transform([include_ends](const auto& entry) {
-        const auto& [str, ptr] = entry;
+      children | views::transform([include_ends](auto&& entry) {
+        auto&& [str, ptr] = entry;
         assert(ptr);
         return format(R"("{}":{})", str, ptr->to_json(include_ends));
       }) |
@@ -258,7 +258,7 @@ void node::assert_invariants() const noexcept {
   constexpr auto max_possible_chars =
       static_cast<size_t>(std::numeric_limits<unsigned char>::max()) + 1;
   std::bitset<max_possible_chars> seen;
-  for (const auto& [str, ptr] : children) {
+  for (auto&& [str, ptr] : children) {
     assert(ptr);
     assert(ptr->parent == this);
     assert(!str.empty());

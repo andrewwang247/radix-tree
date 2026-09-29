@@ -7,8 +7,8 @@ Copyright 2026. Andrew Wang.
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
+#include <flat_map>
 #include <functional>
-#include <map>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -29,7 +29,7 @@ class node {
   };
 
  public:
-  std::map<std::string, std::unique_ptr<node>, std::less<>> children;
+  std::flat_map<std::string, std::unique_ptr<node>, std::less<>> children;
   node* parent;
   bool is_end;
 

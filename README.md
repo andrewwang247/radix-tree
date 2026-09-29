@@ -140,6 +140,6 @@ This section discusses implementation details. It's not needed to write client c
 3. The empty string is never in a children map. Suppose *N* contains the empty string in its children map. This would be equivalent to *N* being `is_end`.
 4. All leaf nodes have true `is_end`. If a leaf node *N* was not the end of a key, must have non-empty `children` map, which it can't have because it's a leaf.
 5. If node *N* has false `is_end`, it must have at least 2 children node. Otherwise, it would be compressed with its only child.
-6. As another corollary of (1), a children map can have at most `|char|` items. Therefore, we can treat searching `std::map` as constant.
+6. As another corollary of (1), a children map can have at most `|char|` items. Therefore, we can treat searching for children as constant.
 7. `approximate_match`, `prefix_match`, and `exact_match` can be composed due to the recursive structure of the trie.
 8. `root` is never null. The empty trie consists of a root node with false `is_end`, an empty `children` map, and `nullptr` as parent.
