@@ -49,26 +49,21 @@ unique_ptr<node> node::clone() const {
 bool node::deep_equals(const node* lhs, const node* rhs) noexcept {
   assert(lhs);
   assert(rhs);
-  const auto map_eq = [](const auto& lp, const auto& rp) static {
-    const auto& [l_str, l_ptr] = lp;
-    const auto& [r_str, r_ptr] = rp;
-    assert(l_ptr);
-    assert(r_ptr);
-    return l_str == r_str && deep_equals(l_ptr.get(), r_ptr.get());
+  const auto get_raw = [](const auto& unq_ptr) static {
+    assert(unq_ptr);
+    return unq_ptr.get();
   };
   return lhs->is_end == rhs->is_end &&  // cppcheck-suppress duplicateBreak
-         ranges::equal(lhs->children, rhs->children, map_eq);
+         ranges::equal(lhs->children.keys(), rhs->children.keys()) &&
+         ranges::equal(lhs->children.values(), rhs->children.values(),
+                       deep_equals, get_raw, get_raw);
 }
 
 size_t node::key_count() const noexcept {
-  // If is_end, count it as a word.
-  auto counter = is_end ? 1UZ : 0UZ;
-  // Recursively check for words in children
-  for (auto&& [_, ptr] : children) {
-    assert(ptr);
-    counter += ptr->key_count();
-  }
-  return counter;
+  return ranges::fold_left(children.values(), is_end ? 1UZ : 0UZ,
+                           [](auto counter, const auto& ptr) static {
+                             return counter + ptr->key_count();
+                           });
 }
 
 node::positional node::approximate_match(string_view key) noexcept {

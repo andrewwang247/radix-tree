@@ -55,7 +55,7 @@ bool trie::empty(string_view prefix) const noexcept {
 
 size_t trie::size(string_view prefix) const noexcept {
   const auto [_, prf_rt] = root->prefix_match(prefix);
-  return prf_rt ? prf_rt->key_count() : 0U;
+  return prf_rt ? prf_rt->key_count() : 0UZ;
 }
 
 iterator trie::begin() const noexcept {
@@ -102,7 +102,7 @@ iterator trie::find_prefix_end(string_view prefix) const noexcept {
   // none of its children work. If all children of app_ptr
   // are less than prefix, nothing under app_ptr works.
   if (prf_pos.empty() || app_ptr->children.empty() ||
-      app_ptr->children.rbegin()->first < prf_pos)
+      app_ptr->children.keys().back() < prf_pos)
     return {root, app_ptr->next_node()};
 
   // Find the first child that is outside of prefix range.
@@ -214,7 +214,7 @@ void trie::erase(string_view key) {
       const auto par_str = par_iter->first;
 
       // Join keys on par_iter and the only child of par.
-      const auto mod_key = par_str + par->children.begin()->first;
+      const auto mod_key = par_str + par->children.keys().front();
       auto& child = par->children.begin()->second;
       child->parent = grand_par;
 
@@ -227,12 +227,12 @@ void trie::erase(string_view key) {
     const auto match_str = match_iter->first;
 
     // Extract child and parent string to form joined key.
-    const auto only_child = match->children.begin();
-    const auto joined_key = match_str + only_child->first;
-    only_child->second->parent = par;
+    const auto joined_key = match_str + match->children.keys().front();
+    auto& only_child = match->children.begin()->second;
+    only_child->parent = par;
 
     // Invalidates match, match_iter, and only_child.
-    par->children.emplace(joined_key, std::move(only_child->second));
+    par->children.emplace(joined_key, std::move(only_child));
     par->children.erase(match_str);
   }
 
