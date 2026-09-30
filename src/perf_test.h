@@ -24,8 +24,6 @@ namespace rt::perf_test {
 using perf_clock = std::chrono::steady_clock;
 using timeunit_t = perf_clock::time_point::duration;
 
-static constexpr auto WORDS_SIZE = 370'105U;
-
 /**
  * @brief Error during performance testing.
  */
@@ -52,9 +50,10 @@ struct solution_t {
 /**
  * @brief Reads words from the WORDS_FILE into a vector of strings.
  * @param name The file name to read from.
+ * @param sz The expected number of entries.
  * @return A vector of strings containing all words from the file.
  */
-std::vector<std::string> read_words(const char* name);
+std::vector<std::string> read_words(const char* name, std::size_t sz);
 
 /**
  * @brief Reads solutions from the SOLUTIONS_FILE into a vector of.

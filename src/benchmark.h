@@ -19,6 +19,9 @@ Copyright 2026. Andrew Wang.
 
 namespace rt::perf_test {
 
+template <typename F>
+concept sv_func = std::invocable<F, std::string_view>;
+
 /**
  * @brief Interface for performance testing.
  */
@@ -66,15 +69,17 @@ class perf {
 
   /**
    * @brief Iterate forward over all words.
+   * @param sz The expected number of entries.
    * @return The elapsed time.
    */
-  timeunit_t forward_iterate() const;
+  timeunit_t forward_iterate(std::size_t sz) const;
 
   /**
    * @brief Iterate backwards over all words.
+   * @param sz The expected number of entries.
    * @return The elapsed time.
    */
-  timeunit_t reverse_iterate() const;
+  timeunit_t reverse_iterate(std::size_t sz) const;
 
   /**
    * @brief Erase all words with given prefixes.
@@ -91,7 +96,7 @@ class perf {
    * @return The elapsed time.
    */
   static timeunit_t count_impl(std::span<const solution_t> solutions,
-                               std::invocable<std::string_view> auto func);
+                               sv_func auto&& func);
 
   /**
    * @brief Helper implementation function for find benchmark.
@@ -100,7 +105,7 @@ class perf {
    * @return The elapsed time.
    */
   static timeunit_t find_impl(std::span<const solution_t> solutions,
-                              std::invocable<std::string_view> auto func);
+                              sv_func auto&& func);
 
   /**
    * @brief Helper implementation function for contains benchmark.
@@ -109,7 +114,7 @@ class perf {
    * @return The elapsed time.
    */
   static timeunit_t contains_impl(std::span<const solution_t> solutions,
-                                  std::invocable<std::string_view> auto func);
+                                  sv_func auto&& func);
 
   /**
    * @brief Helper implementation function for erase benchmark.
@@ -118,7 +123,7 @@ class perf {
    * @return The elapsed time.
    */
   timeunit_t erase_impl(std::span<const solution_t> solutions,
-                        std::invocable<std::string_view> auto func) const;
+                        sv_func auto&& func) const;
 };
 
 // NON VIRTUAL TEMPLATED IMPLEMENTATIONS
@@ -129,9 +134,8 @@ const Container& perf<Container>::peek() const noexcept {
 }
 
 template <std::ranges::bidirectional_range Container>
-timeunit_t perf<Container>::count_impl(
-    std::span<const solution_t> solutions,
-    std::invocable<std::string_view> auto func) {
+timeunit_t perf<Container>::count_impl(std::span<const solution_t> solutions,
+                                       sv_func auto&& func) {
   const auto t0 = perf_clock::now();
   const auto distances =
       solutions | std::views::transform(&solution_t::prefix) |
@@ -148,9 +152,8 @@ timeunit_t perf<Container>::count_impl(
 }
 
 template <std::ranges::bidirectional_range Container>
-timeunit_t perf<Container>::find_impl(
-    std::span<const solution_t> solutions,
-    std::invocable<std::string_view> auto func) {
+timeunit_t perf<Container>::find_impl(std::span<const solution_t> solutions,
+                                      sv_func auto&& func) {
   const auto t0 = perf_clock::now();
   const auto actual_ranges =
       solutions | std::views::transform(&solution_t::prefix) |
@@ -171,9 +174,8 @@ timeunit_t perf<Container>::find_impl(
 }
 
 template <std::ranges::bidirectional_range Container>
-timeunit_t perf<Container>::contains_impl(
-    std::span<const solution_t> solutions,
-    std::invocable<std::string_view> auto func) {
+timeunit_t perf<Container>::contains_impl(std::span<const solution_t> solutions,
+                                          sv_func auto&& func) {
   const auto t0 = perf_clock::now();
   const auto iter =
       std::ranges::find_if_not(solutions, func, &solution_t::prefix);
@@ -186,9 +188,9 @@ timeunit_t perf<Container>::contains_impl(
 }
 
 template <std::ranges::bidirectional_range Container>
-timeunit_t perf<Container>::erase_impl(
-    std::span<const solution_t> solutions,
-    std::invocable<std::string_view> auto func) const {
+timeunit_t perf<Container>::erase_impl(std::span<const solution_t> solutions,
+                                       sv_func auto&& func) const {
+  const auto original_size = words.size();
   const auto total_erased = std::ranges::fold_left(
       solutions | std::views::transform(&solution_t::count), 0UZ, std::plus{});
 
@@ -196,7 +198,7 @@ timeunit_t perf<Container>::erase_impl(
   std::ranges::for_each(solutions, func, &solution_t::prefix);
   const auto t1 = perf_clock::now();
 
-  const auto expected = perf_test::WORDS_SIZE - total_erased;
+  const auto expected = original_size - total_erased;
   if (words.size() != expected) {
     throw perf_error("Expected {} words after erasing but was {}", expected,
                      words.size());
@@ -214,30 +216,28 @@ timeunit_t perf<Container>::insert(std::span<const std::string> word_list) {
 }
 
 template <std::ranges::bidirectional_range Container>
-timeunit_t perf<Container>::forward_iterate() const {
+timeunit_t perf<Container>::forward_iterate(std::size_t sz) const {
   const auto t0 = perf_clock::now();
   // Avoid ranges::distance to prevent size check optimization.
   // We actually want to iterate over the entire container.
   const auto counter = std::distance(words.begin(), words.end());
   const auto t1 = perf_clock::now();
 
-  if (counter != WORDS_SIZE) {
-    throw perf_error("Expected {} elements but iterated over {}", WORDS_SIZE,
-                     counter);
+  if (std::cmp_not_equal(counter, sz)) {
+    throw perf_error("Expected {} elements but iterated over {}", sz, counter);
   }
   return t1 - t0;
 }
 
 template <std::ranges::bidirectional_range Container>
-timeunit_t perf<Container>::reverse_iterate() const {
+timeunit_t perf<Container>::reverse_iterate(std::size_t sz) const {
   const auto t0 = perf_clock::now();
   const auto counter = std::distance(std::make_reverse_iterator(words.end()),
                                      std::make_reverse_iterator(words.begin()));
   const auto t1 = perf_clock::now();
 
-  if (counter != WORDS_SIZE) {
-    throw perf_error("Expected {} elements but iterated over {}", WORDS_SIZE,
-                     counter);
+  if (std::cmp_not_equal(counter, sz)) {
+    throw perf_error("Expected {} elements but iterated over {}", sz, counter);
   }
   return t1 - t0;
 }

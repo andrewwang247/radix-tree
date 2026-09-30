@@ -36,9 +36,10 @@ namespace views = std::views;
 int main() {
   using rt::perf_test::show_comparison;
 
+  static constexpr auto NUM_WORDS = 370'105U;
   default_random_engine prng{random_device{}()};  // NOLINT(whitespace/braces)
 
-  auto words = rt::perf_test::read_words("./resources/words.txt");
+  auto words = rt::perf_test::read_words("./resources/words.txt", NUM_WORDS);
   auto solutions =
       rt::perf_test::read_solutions("./resources/solutions.csv", 114U);
 
@@ -67,12 +68,12 @@ int main() {
                   trie_benchmark.contains(solutions));
 
   print(ANNOUNCE_TEMPLATE, "Forward iterate:");
-  show_comparison(set_benchmark.forward_iterate(),
-                  trie_benchmark.forward_iterate());
+  show_comparison(set_benchmark.forward_iterate(NUM_WORDS),
+                  trie_benchmark.forward_iterate(NUM_WORDS));
 
   print(ANNOUNCE_TEMPLATE, "Reverse iterate:");
-  show_comparison(set_benchmark.reverse_iterate(),
-                  trie_benchmark.reverse_iterate());
+  show_comparison(set_benchmark.reverse_iterate(NUM_WORDS),
+                  trie_benchmark.reverse_iterate(NUM_WORDS));
 
   print(ANNOUNCE_TEMPLATE, "Erase prefix:");
   show_comparison(set_benchmark.erase(solutions),
@@ -103,20 +104,20 @@ int main() {
 
 namespace rt {
 
-vector<string> perf_test::read_words(const char* name) {
+vector<string> perf_test::read_words(const char* name, size_t sz) {
   ifstream fin{name};
   if (!fin) throw perf_error("Could not open {}", name);
 
   vector<string> words;
-  words.reserve(WORDS_SIZE);
+  words.reserve(sz);
   for (string word; fin >> word;) {
     words.emplace_back(word);
   }
 
-  if (WORDS_SIZE != words.size()) {
-    throw perf_error("Expected {} words but got {}", WORDS_SIZE, words.size());
+  if (words.size() != sz) {
+    throw perf_error("Expected {} words but got {}", sz, words.size());
   }
-  println("Imported {} words from {}", WORDS_SIZE, name);
+  println("Imported {} words from {}", sz, name);
   return words;
 }
 
