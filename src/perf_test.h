@@ -7,16 +7,13 @@ Copyright 2026. Andrew Wang.
 #include <charconv>
 #include <chrono>
 #include <cstddef>
-#include <cstdint>
 #include <format>
 #include <limits>
-#include <random>
 #include <span>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 #include <system_error>
-#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -43,9 +40,6 @@ class perf_error : public std::runtime_error {
   explicit perf_error(std::format_string<Args...> fmt, Args&&... args)
       : std::runtime_error(std::format(fmt, std::forward<Args>(args)...)) {}
 };
-
-template <typename T>
-concept PRNG = std::uniform_random_bit_generator<std::remove_cvref_t<T>>;
 
 /**
  * @brief Solution to finding and counting a prefix.
@@ -76,34 +70,6 @@ std::vector<solution_t> read_solutions(const char* name, std::size_t sz);
  * @param trie_time The time taken by the Trie.
  */
 void show_comparison(timeunit_t set_time, timeunit_t trie_time);
-
-/**
- * @brief Randomly permute from an original list.
- * @param original The original list to shuffle. Pass by move / elision.
- * @param prng The random bit generator to use from permuting.
- * @return The shuffled original list.
- */
-template <typename T>
-std::vector<T> permute(std::vector<T> original, PRNG auto&& prng) {
-  std::ranges::shuffle(original, prng);
-  return original;
-}
-
-/**
- * @brief Randomly sample without replacement from the word list.
- * @param word_list The original words to sample from.
- * @param sample_size Number of samples to retrieve.
- * @param prng The random bit generator to use for sampling.
- * @return A subset of sample_size random string_views into the list.
- */
-std::vector<std::string_view> sample(std::span<const std::string> word_list,
-                                     std::size_t sample_size,
-                                     PRNG auto&& prng) {
-  std::vector<std::string_view> sub_list(sample_size);
-  std::ranges::sample(word_list, sub_list.begin(),
-                      static_cast<std::int32_t>(sample_size), prng);
-  return sub_list;
-}
 
 /**
  * @brief Parse and convert a string to a different type.

@@ -34,16 +34,16 @@ namespace ranges = std::ranges;
 namespace views = std::views;
 
 int main() {
-  using rt::perf_test::permute;
   using rt::perf_test::show_comparison;
 
   default_random_engine prng{random_device{}()};  // NOLINT(whitespace/braces)
 
-  const auto words =
-      permute(rt::perf_test::read_words("./resources/words.txt"), prng);
-  const auto solutions = permute(
-      rt::perf_test::read_solutions("./resources/solutions.csv", 114U), prng);
-  const auto sublist = rt::perf_test::sample(words, 2'500U, prng);
+  auto words = rt::perf_test::read_words("./resources/words.txt");
+  auto solutions =
+      rt::perf_test::read_solutions("./resources/solutions.csv", 114U);
+
+  ranges::shuffle(words, prng);
+  ranges::shuffle(solutions, prng);
 
   println("--- EXECUTING PERFORMANCE TESTS ---");
 
@@ -62,9 +62,9 @@ int main() {
   show_comparison(set_benchmark.find(solutions),
                   trie_benchmark.find(solutions));
 
-  print(ANNOUNCE_TEMPLATE, "Contains words:");
-  show_comparison(set_benchmark.contains(sublist),
-                  trie_benchmark.contains(sublist));
+  print(ANNOUNCE_TEMPLATE, "Contains prefix:");
+  show_comparison(set_benchmark.contains(solutions),
+                  trie_benchmark.contains(solutions));
 
   print(ANNOUNCE_TEMPLATE, "Forward iterate:");
   show_comparison(set_benchmark.forward_iterate(),

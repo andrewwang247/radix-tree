@@ -26,6 +26,12 @@ timeunit_t trie_perf::find(span<const solution_t> solutions) const {
                    [this](string_view prf) { return words.find_prefix(prf); });
 }
 
+timeunit_t trie_perf::contains(span<const solution_t> solutions) const {
+  return contains_impl(solutions, [this](string_view prf) {
+    return words.contains_prefix(prf);
+  });
+}
+
 timeunit_t trie_perf::erase(span<const solution_t> solutions) {
   return erase_impl(solutions,
                     [this](string_view prf) { words.erase_prefix(prf); });

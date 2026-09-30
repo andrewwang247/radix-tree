@@ -5,7 +5,6 @@ Copyright 2026. Andrew Wang.
 */
 #pragma once
 #include <algorithm>
-#include <array>
 #include <cstddef>
 #include <format>
 #include <iterator>
@@ -52,18 +51,18 @@ class perf {
   virtual timeunit_t count(std::span<const solution_t> solutions) const = 0;
 
   /**
-   * @brief Find begin and end range of given prefixes.
+   * @brief Find key range of given prefixes.
    * @param solutions The prefixes to find.
    * @return The elapsed time.
    */
   virtual timeunit_t find(std::span<const solution_t> solutions) const = 0;
 
   /**
-   * @brief Check for containment of words.
-   * @param word_list The words to check.
+   * @brief Check for containment of prefixes.
+   * @param solutions The prefixes to check.
    * @return The elapsed time.
    */
-  timeunit_t contains(std::span<const std::string_view> word_list) const;
+  virtual timeunit_t contains(std::span<const solution_t> solutions) const = 0;
 
   /**
    * @brief Iterate forward over all words.
@@ -102,6 +101,15 @@ class perf {
    */
   static timeunit_t find_impl(std::span<const solution_t> solutions,
                               std::invocable<std::string_view> auto func);
+
+  /**
+   * @brief Helper implementation function for contains benchmark.
+   * @param solutions The prefixes to check.
+   * @param func The specific contains function for this type.
+   * @return The elapsed time.
+   */
+  static timeunit_t contains_impl(std::span<const solution_t> solutions,
+                                  std::invocable<std::string_view> auto func);
 
   /**
    * @brief Helper implementation function for erase benchmark.
@@ -150,15 +158,29 @@ timeunit_t perf<Container>::find_impl(
   const auto t1 = perf_clock::now();
 
   for (auto&& [expected, actual] : std::views::zip(solutions, actual_ranges)) {
-    const auto exp_beg = std::string_view{expected.begin};
-    const auto exp_end = std::string_view{expected.end};
+    const auto& [prf, exp_beg, exp_end, _] = expected;
     const auto act_beg = *actual.begin();
     const auto act_end = *actual.end();
     if (exp_beg != act_beg || exp_end != act_end) {
       throw perf_error(
-          "Expected prefix range for {} to be ({}, {}) but was ({}, {})",
-          expected.prefix, exp_beg, exp_end, act_beg, act_end);
+          "Expected prefix range for {} to be ({}, {}) but was ({}, {})", prf,
+          exp_beg, exp_end, act_beg, act_end);
     }
+  }
+  return t1 - t0;
+}
+
+template <std::ranges::bidirectional_range Container>
+timeunit_t perf<Container>::contains_impl(
+    std::span<const solution_t> solutions,
+    std::invocable<std::string_view> auto func) {
+  const auto t0 = perf_clock::now();
+  const auto iter =
+      std::ranges::find_if_not(solutions, func, &solution_t::prefix);
+  const auto t1 = perf_clock::now();
+
+  if (iter != solutions.end()) {
+    throw perf_error("Expected to find prefix {} but did not", iter->prefix);
   }
   return t1 - t0;
 }
@@ -188,41 +210,6 @@ timeunit_t perf<Container>::insert(std::span<const std::string> word_list) {
   const auto t0 = perf_clock::now();
   words.insert_range(word_list);
   const auto t1 = perf_clock::now();
-  return t1 - t0;
-}
-
-template <std::ranges::bidirectional_range Container>
-timeunit_t perf<Container>::contains(
-    std::span<const std::string_view> word_list) const {
-  static constexpr auto NON_INC = std::to_array<std::string_view>(
-      {"inte", "nonc", "pseu", "unre", "micr", "nons", "nonp", "coun", "hydr",
-       "prot", "nond", "reco", "unpr", "nonr", "unin", "inco", "noni", "undi",
-       "prea", "ther", "anth", "tetr", "endo", "extr", "neur", "unst", "tric",
-       "subc", "indi", "retr", "radi", "nonf", "nont", "unsu", "impe", "chro",
-       "unex", "psyc", "nonm", "unse", "irre", "amph", "unpe", "untr", "sulp",
-       "colo", "gran", "hemi", "macr", "squa", "unpa", "cata", "ultr", "prei",
-       "unsa", "deca", "impr", "mega", "nonv", "medi", "equi", "chlo", "unma",
-       "subt", "stri", "carb", "unsh", "dise", "acro", "spir", "unme", "unsp",
-       "chor", "brac", "stro", "misa", "hema", "unfo", "outb", "acet", "oste",
-       "unch", "afte", "acti", "subp", "heli", "phyt", "rese", "ente", "squi",
-       "unmo", "phen", "unen", "resi", "subd", "prer", "prol", "phyl", "unfa",
-       "cryp", "unim", "unso", "impa", "magn", "unha", "scra", "hemo", "brea"});
-
-  const auto contains_key = [this](std::string_view key) {
-    return words.contains(key);
-  };
-
-  const auto t0 = perf_clock::now();
-  const auto inc_iter = std::ranges::find_if_not(word_list, contains_key);
-  const auto non_iter = std::ranges::find_if(NON_INC, contains_key);
-  const auto t1 = perf_clock::now();
-
-  if (inc_iter != word_list.end()) {
-    throw perf_error("Expected to find {} but did not", *inc_iter);
-  }
-  if (non_iter != NON_INC.end()) {
-    throw perf_error("Expected {} to be missing but was not", *non_iter);
-  }
   return t1 - t0;
 }
 

@@ -20,7 +20,7 @@ namespace ranges = std::ranges;
 
 namespace rt::perf_test {
 
-ranges::range auto set_perf::prefix_range_for(string_view prefix) const {
+ranges::input_range auto set_perf::prefix_range_for(string_view prefix) const {
   // Find the first item that's a prefix
   const auto begin = words.lower_bound(prefix);
   // Find where it stops being a prefix.
@@ -38,6 +38,13 @@ timeunit_t set_perf::count(span<const solution_t> solutions) const {
 timeunit_t set_perf::find(span<const solution_t> solutions) const {
   return find_impl(solutions,
                    [this](string_view prf) { return prefix_range_for(prf); });
+}
+
+timeunit_t set_perf::contains(span<const solution_t> solutions) const {
+  return contains_impl(solutions, [this](string_view prf) {
+    const auto lb = words.lower_bound(prf);
+    return lb != words.end() && lb->starts_with(prf);
+  });
 }
 
 timeunit_t set_perf::erase(span<const solution_t> solutions) {

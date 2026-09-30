@@ -18,6 +18,7 @@ class trie_perf final : public perf<trie> {
  public:
   timeunit_t count(std::span<const solution_t> solutions) const override;
   timeunit_t find(std::span<const solution_t> solutions) const override;
+  timeunit_t contains(std::span<const solution_t> solutions) const override;
   timeunit_t erase(std::span<const solution_t> solutions) override;
 };
 
