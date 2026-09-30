@@ -48,43 +48,44 @@ int main() {
 
   println("--- EXECUTING PERFORMANCE TESTS ---");
 
-  rt::perf_test::set_perf set_benchmark;
-  rt::perf_test::trie_perf trie_benchmark;
+  rt::perf_test::set_perf set_bench;
+  rt::perf_test::trie_perf trie_bench;
   static constexpr auto ANNOUNCE_TEMPLATE = "{:<18}";
 
   print(ANNOUNCE_TEMPLATE, "Insert words:");
-  show_comparison(set_benchmark.insert(words), trie_benchmark.insert(words));
+  show_comparison(set_bench.insert_words(words),
+                  trie_bench.insert_words(words));
 
   print(ANNOUNCE_TEMPLATE, "Count prefix:");
-  show_comparison(set_benchmark.count(solutions),
-                  trie_benchmark.count(solutions));
+  show_comparison(set_bench.count_prefix(solutions),
+                  trie_bench.count_prefix(solutions));
 
   print(ANNOUNCE_TEMPLATE, "Find prefix:");
-  show_comparison(set_benchmark.find(solutions),
-                  trie_benchmark.find(solutions));
+  show_comparison(set_bench.find_prefix(solutions),
+                  trie_bench.find_prefix(solutions));
 
   print(ANNOUNCE_TEMPLATE, "Contains prefix:");
-  show_comparison(set_benchmark.contains(solutions),
-                  trie_benchmark.contains(solutions));
+  show_comparison(set_bench.contains_prefix(solutions),
+                  trie_bench.contains_prefix(solutions));
 
   print(ANNOUNCE_TEMPLATE, "Forward iterate:");
-  show_comparison(set_benchmark.forward_iterate(NUM_WORDS),
-                  trie_benchmark.forward_iterate(NUM_WORDS));
+  show_comparison(set_bench.forward_iterate(NUM_WORDS),
+                  trie_bench.forward_iterate(NUM_WORDS));
 
   print(ANNOUNCE_TEMPLATE, "Reverse iterate:");
-  show_comparison(set_benchmark.reverse_iterate(NUM_WORDS),
-                  trie_benchmark.reverse_iterate(NUM_WORDS));
+  show_comparison(set_bench.reverse_iterate(NUM_WORDS),
+                  trie_bench.reverse_iterate(NUM_WORDS));
 
   print(ANNOUNCE_TEMPLATE, "Erase prefix:");
-  show_comparison(set_benchmark.erase(solutions),
-                  trie_benchmark.erase(solutions));
+  show_comparison(set_bench.erase_prefix(solutions),
+                  trie_bench.erase_prefix(solutions));
 
   println("--- COMPLETED PERFORMANCE TESTS ---");
 
   println("--- EXECUTING FINAL VERIFICATION ---");
 
-  const auto& word_set = set_benchmark.peek();
-  const auto& word_trie = trie_benchmark.peek();
+  const auto& word_set = set_bench.peek();
+  const auto& word_trie = trie_bench.peek();
 
   if (ranges::equal(word_set, word_trie)) {
     println("Forward ranges match");

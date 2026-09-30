@@ -44,28 +44,31 @@ class perf {
    * @param word_list The full list of words.
    * @return Filled container and elapsed time.
    */
-  timeunit_t insert(std::span<const std::string> word_list);
+  timeunit_t insert_words(std::span<const std::string> word_list);
 
   /**
    * @brief Count number of words with given prefixes.
    * @param solutions The prefixes to count.
    * @return The elapsed time.
    */
-  virtual timeunit_t count(std::span<const solution_t> solutions) const = 0;
+  virtual timeunit_t count_prefix(
+      std::span<const solution_t> solutions) const = 0;
 
   /**
    * @brief Find key range of given prefixes.
    * @param solutions The prefixes to find.
    * @return The elapsed time.
    */
-  virtual timeunit_t find(std::span<const solution_t> solutions) const = 0;
+  virtual timeunit_t find_prefix(
+      std::span<const solution_t> solutions) const = 0;
 
   /**
    * @brief Check for containment of prefixes.
    * @param solutions The prefixes to check.
    * @return The elapsed time.
    */
-  virtual timeunit_t contains(std::span<const solution_t> solutions) const = 0;
+  virtual timeunit_t contains_prefix(
+      std::span<const solution_t> solutions) const = 0;
 
   /**
    * @brief Iterate forward over all words.
@@ -86,7 +89,7 @@ class perf {
    * @param solutions The prefixes to erase.
    * @return The elapsed time.
    */
-  virtual timeunit_t erase(std::span<const solution_t> solutions) = 0;
+  virtual timeunit_t erase_prefix(std::span<const solution_t> solutions) = 0;
 
  protected:
   /**
@@ -207,7 +210,8 @@ timeunit_t perf<Container>::erase_impl(std::span<const solution_t> solutions,
 }
 
 template <std::ranges::bidirectional_range Container>
-timeunit_t perf<Container>::insert(std::span<const std::string> word_list) {
+timeunit_t perf<Container>::insert_words(
+    std::span<const std::string> word_list) {
   // Time insertion with range constructor.
   const auto t0 = perf_clock::now();
   words.insert_range(word_list);

@@ -29,10 +29,11 @@ class set_perf final : public perf<std::set<std::string, std::less<>>> {
   std::ranges::input_range auto prefix_range_for(std::string_view prefix) const;
 
  public:
-  timeunit_t count(std::span<const solution_t> solutions) const override;
-  timeunit_t find(std::span<const solution_t> solutions) const override;
-  timeunit_t contains(std::span<const solution_t> solutions) const override;
-  timeunit_t erase(std::span<const solution_t> solutions) override;
+  timeunit_t count_prefix(std::span<const solution_t> solutions) const override;
+  timeunit_t find_prefix(std::span<const solution_t> solutions) const override;
+  timeunit_t contains_prefix(
+      std::span<const solution_t> solutions) const override;
+  timeunit_t erase_prefix(std::span<const solution_t> solutions) override;
 };
 
 }  // namespace rt::perf_test

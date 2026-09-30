@@ -29,25 +29,25 @@ ranges::input_range auto set_perf::prefix_range_for(string_view prefix) const {
   return ranges::subrange{begin, end};
 }
 
-timeunit_t set_perf::count(span<const solution_t> solutions) const {
+timeunit_t set_perf::count_prefix(span<const solution_t> solutions) const {
   return count_impl(solutions, [this](string_view prf) {
     return ranges::distance(prefix_range_for(prf));
   });
 }
 
-timeunit_t set_perf::find(span<const solution_t> solutions) const {
+timeunit_t set_perf::find_prefix(span<const solution_t> solutions) const {
   return find_impl(solutions,
                    [this](string_view prf) { return prefix_range_for(prf); });
 }
 
-timeunit_t set_perf::contains(span<const solution_t> solutions) const {
+timeunit_t set_perf::contains_prefix(span<const solution_t> solutions) const {
   return contains_impl(solutions, [this](string_view prf) {
     const auto lb = words.lower_bound(prf);
     return lb != words.end() && lb->starts_with(prf);
   });
 }
 
-timeunit_t set_perf::erase(span<const solution_t> solutions) {
+timeunit_t set_perf::erase_prefix(span<const solution_t> solutions) {
   return erase_impl(solutions, [this](string_view prf) {
     const auto [begin, end] = prefix_range_for(prf);
     words.erase(begin, end);

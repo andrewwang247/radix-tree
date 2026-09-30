@@ -21,6 +21,7 @@ Copyright 2026. Andrew Wang.
 #include "trie.h"
 
 using std::default_random_engine;
+using std::partial_ordering;
 using std::println;
 using std::random_device;
 using std::string_view;
@@ -205,7 +206,7 @@ void unit_test::find_prefix() {
   constexpr auto prefix_and_key = "corn";
   assert(tr.contains_prefix(prefix_and_key));
   assert(tr.size(prefix_and_key) == 2);
-  assert_elements(tr.find_prefix(prefix_and_key), {"corn", "corner"});
+  assert_elements(tr.find_prefix(prefix_and_key), {prefix_and_key, "corner"});
 
   constexpr auto just_prefix = "mate";
   assert(tr.contains_prefix(just_prefix));
@@ -215,7 +216,7 @@ void unit_test::find_prefix() {
   constexpr auto just_key = "contaminate";
   assert(tr.contains_prefix(just_key));
   assert(tr.size(just_key) == 1);
-  assert_elements(tr.find_prefix(just_key), {"contaminate"});
+  assert_elements(tr.find_prefix(just_key), {just_key});
 
   constexpr auto end_not_prefix = "testing";
   assert(!tr.contains_prefix(end_not_prefix));
@@ -240,8 +241,8 @@ void unit_test::insert() {
   assert(tr.contains("math"));
   assert(iter != tr.end());
   assert(*iter == "math");
-  assert(tr.size("math") == 1);
   assert(!tr.empty("mat"));
+  assert(tr.size("mat") == 1);
 
   assert(!tr.contains("malleable"));
   iter = tr.insert("malleable");
@@ -250,8 +251,9 @@ void unit_test::insert() {
   assert(tr.contains("malleable"));
   assert(iter != tr.end());
   assert(*iter == "malleable");
-  assert(tr.size() == 2);
   assert(!tr.empty("ma"));
+  assert(tr.size("ma") == 2);
+  assert(tr.empty("mapping"));
 
   assert(!tr.contains("regression"));
   tr.insert("regression");
@@ -264,9 +266,9 @@ void unit_test::insert() {
 
   assert(iter != tr.end());
   assert(*iter == "regression");
-  assert(tr.size("m") == 2);
   assert(tr.size() == 3);
   assert(!tr.empty("reg"));
+  assert(tr.empty("regex"));
 
   println(RESULT_TEMPLATE, "insert");
 }
@@ -332,6 +334,9 @@ void unit_test::erase_prefix() {
   assert(!tr.contains("contaminate"));
   assert(tr.find("contain") == tr.end());
   assert(tr.find("contaminate") == tr.end());
+
+  assert(tr.empty("con"));
+  assert(tr.size("con") == 0);
   assert(tr.find_prefix("con").empty());
 
   // Ensure idempotence
@@ -426,12 +431,34 @@ void unit_test::comparison() {
   // Test equality
   assert(t1 == t2);
   assert(!(t1 != t2));
-  // Test inequality
+  assert(!(t1 < t2));
+  assert(!(t2 > t1));
+  assert(t1 <= t2);
+  assert(t2 >= t1);
+  assert(partial_ordering::equivalent == (t1 <=> t2));
+  assert(partial_ordering::equivalent == (t2 <=> t1));
+
+  // Test inequal with subset relation
   t1.erase("material");
+  assert(!(t1 == t2));
+  assert(t1 != t2);
   assert(t1 < t2);
   assert(t2 > t1);
   assert(t1 <= t2);
   assert(t2 >= t1);
+  assert(partial_ordering::less == (t1 <=> t2));
+  assert(partial_ordering::greater == (t2 <=> t1));
+
+  // Test inequal with symmetric difference
+  t1.insert("conk");
+  assert(!(t1 == t2));
+  assert(t1 != t2);
+  assert(!(t1 < t2));
+  assert(!(t2 > t1));
+  assert(!(t1 <= t2));
+  assert(!(t2 >= t1));
+  assert(partial_ordering::unordered == (t1 <=> t2));
+  assert(partial_ordering::unordered == (t2 <=> t1));
 
   println(RESULT_TEMPLATE, "comparison");
 }

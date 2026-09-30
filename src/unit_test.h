@@ -52,6 +52,7 @@ void representation();
 
 void unit_test::assert_elements(
     sv_range auto&& rng, std::initializer_list<std::string_view> elements) {
+  // Don't have to re-type std::initializer_list<std::string_view> in tests.
   assert(std::ranges::equal(rng, elements));
 }
 
