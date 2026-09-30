@@ -134,10 +134,16 @@ class trie {
   /**
    * @brief Get range of keys with a given prefix.
    * @param prefix The prefix to range over.
-   * @return Subrange over all keys with prefix.
+   * @return Range over all keys with prefix.
    */
-  std::ranges::subrange<iterator> find_prefix(
-      std::string_view prefix) const noexcept;
+  std::ranges::bidirectional_range auto find_prefix(
+      std::string_view prefix) const noexcept {
+    const auto begin_rng = find_prefix_begin(prefix);
+    const auto sentinel = end();
+    return begin_rng == sentinel
+               ? std::ranges::subrange{sentinel, sentinel}
+               : std::ranges::subrange{begin_rng, find_prefix_end(prefix)};
+  }
 
  private:
   // Note that the find_prefix begin and end iterators are not necessarily well

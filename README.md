@@ -33,19 +33,15 @@ The `find` function returns an iterator to the key if it's contained in the tree
 
 ### Insertion
 
-The `insert` function adds a single key into the tree and returns an iterator to a node matching the key. The function is idempotent. Use `insert_range` for bulk insertions.
+The `insert` function adds a single key into the tree and returns an iterator to a node matching the key. Use `insert_range` for bulk insertions.
 
 ### Deletion
 
-To remove keys from the tree, use `erase`. The `erase_prefix` erases all keys that match the prefix. To reset the entire tree, simply call `clear`. Both `erase` variants and `clear` are idempotent. Use `erase_range` for bulk erasures.
+To remove keys from the tree, use `erase`. The `erase_prefix` function erases all keys that match a prefix. Use `erase_range` for bulk erasures or `clear` to reset the entire tree.
 
 ### Iteration
 
-The tree supports constant bidirectional iterators that traverse the stored keys in alphabetical order.
-
-- The class comes with STL style `begin` and `end` functions that range over the entire tree. Use overloads with a `prefix` parameter to construct ranges over keys with given prefixes.
-- Make sure to check that `begin(prefix)` is non-null before using as a range. This can be efficiently achieved with `empty(prefix)`.
-- The `subrange(prefix)` function constructs the range spanning from `begin(prefix)` to `end(prefix)`. It's a convenient way to iterate over keys with a particular prefix.
+The tree supports constant bidirectional iteration that traverse the stored keys in lexicographical order. The class comes with `begin` and `end` iterators that range over the entire tree. To iterate over a prefix range, call `find_prefix` to obtain a bidirectional subrange.
 
 ### Operators
 
@@ -111,14 +107,13 @@ are represented internally with the following prefix structure (omitting end mar
 
 In the debug build, all assertions are enabled and we frequently validate the structural invariants. We validate results against pre-computed counts and ranges for various prefixes stored in `resources/solutions.csv`. The `trie` class is tested for the following functionality:
 
-- Default, `initializer_list`, and iterator range constructors.
+- Default, `initializer_list`, and range constructors.
 - Copy and move semantics for constructors and assignment.
 - `empty` and `size` both with and without a prefix parameter.
-- `find` and `find_prefix` to search for keys and ranges.
-- `insert`, `empty`, and `empty_prefix` to modify the `trie`.
-- Bidirectional iterator functionality as a return type from other functions.
-- Traversal from `begin` to `end` both with and without a prefix parameter.
-- All arithmetic and comparison operators for 1 or more `trie`.
+- `find`, `contains`, and their variants to search for keys and prefixes.
+- `insert`, `erase`, and their variants to modify the `trie`.
+- Bidirectional range functionality for both full and prefix ranges.
+- Arithmetic and comparison operators for 1 or more `trie`.
 - `to_json` representation both with and without end markers.
 
 ### Performance Tests
@@ -128,6 +123,7 @@ In the release build, assertions are disabled and we benchmark the performance o
 - Mass insertion of randomly assorted keys.
 - Determining the size of various prefix subsets.
 - Finding the range of keys with a given prefix.
+- Checking whether any key has a given prefix.
 - Mass deletion of all keys with a given prefix.
 - Iterating over the entire container.
 

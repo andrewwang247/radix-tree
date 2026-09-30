@@ -81,15 +81,6 @@ bool trie::contains_prefix(string_view prefix) const noexcept {
   return root->prefix_match(prefix).ptr;
 }
 
-ranges::subrange<iterator> trie::find_prefix(
-    string_view prefix) const noexcept {
-  const auto left = find_prefix_begin(prefix);
-  if (left == end()) {
-    return {};
-  }
-  return {left, find_prefix_end(prefix)};
-}
-
 iterator trie::find_prefix_begin(string_view prefix) const noexcept {
   // We need only find a word that key is a prefix of.
   const auto [prf_pos, prf_rt] = root->prefix_match(prefix);
