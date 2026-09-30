@@ -106,25 +106,6 @@ std::vector<std::string_view> sample(std::span<const std::string> word_list,
 }
 
 /**
- * @brief Increment a string to the next possible in lexicographic order.
- * @param word The current string to process.
- * @return The lexicographical earliest string greater than word.
- */
-constexpr std::string lexicographic_increment(std::string word) {
-  const auto last_non_max =
-      word.find_last_not_of(std::numeric_limits<char>::max());
-  if (last_non_max != std::string::npos) {
-    // Increment last non max char and remove everything after.
-    ++word[last_non_max];
-    word.erase(last_non_max + 1);
-  } else {
-    // All characters are max char. Append min char.
-    word += std::numeric_limits<char>::min();
-  }
-  return word;
-}
-
-/**
  * @brief Parse and convert a string to a different type.
  * @param str The string to convert from.
  * @tparam T the type to convert to.

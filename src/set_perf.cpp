@@ -8,13 +8,12 @@ Copyright 2026. Andrew Wang.
 #include <iterator>
 #include <ranges>
 #include <span>
-#include <string>
 #include <string_view>
 
+#include "lexi.h"
 #include "perf_test.h"
 
 using std::span;
-using std::string;
 using std::string_view;
 
 namespace ranges = std::ranges;
@@ -25,7 +24,7 @@ ranges::range auto set_perf::prefix_range_for(string_view prefix) const {
   // Find the first item that's a prefix
   const auto begin = words.lower_bound(prefix);
   // Find where it stops being a prefix.
-  const auto right_bound = lexicographic_increment(string{prefix});
+  const auto right_bound = lexicographic::increment(prefix);
   const auto end = words.lower_bound(right_bound);
   return ranges::subrange{begin, end};
 }

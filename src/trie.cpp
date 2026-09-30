@@ -17,6 +17,7 @@ Copyright 2026. Andrew Wang.
 #include <utility>
 
 #include "iterator.h"
+#include "lexi.h"
 #include "node.h"
 
 using std::initializer_list;
@@ -57,6 +58,13 @@ size_t trie::size(string_view prefix) const noexcept {
   return prf_rt ? prf_rt->key_count() : 0U;
 }
 
+iterator trie::begin() const noexcept {
+  return root->is_end ? iterator{root, root}
+                      : iterator{root, root->first_key()};
+}
+
+iterator trie::end() const noexcept { return {root, nullptr}; }
+
 bool trie::contains(string_view key) const noexcept {
   if (key.empty()) {
     return root->is_end;
@@ -72,7 +80,16 @@ iterator trie::find(string_view key) const noexcept {
   return {root, root->exact_match(key)};
 }
 
-iterator trie::find_prefix(string_view prefix) const noexcept {
+ranges::subrange<iterator> trie::find_prefix(
+    string_view prefix) const noexcept {
+  const auto left = find_prefix_begin(prefix);
+  if (left == end()) {
+    return {};
+  }
+  return {left, find_prefix_end(prefix)};
+}
+
+iterator trie::find_prefix_begin(string_view prefix) const noexcept {
   // We need only find a word that key is a prefix of.
   const auto [prf_pos, prf_rt] = root->prefix_match(prefix);
   // If key is not a prefix of anything, there is no match.
@@ -83,6 +100,30 @@ iterator trie::find_prefix(string_view prefix) const noexcept {
   return prf_pos.empty() && prf_rt->is_end
              ? iterator{root, prf_rt}
              : iterator{root, prf_rt->first_key()};
+}
+
+iterator trie::find_prefix_end(string_view prefix) const noexcept {
+  // Perform an approximate match.
+  auto [prf_pos, app_ptr] = root->approximate_match(prefix);
+
+  // If prefix is empty, app_ptr is a prefix match and
+  // none of its children work. If all children of app_ptr
+  // are less than prefix, nothing under app_ptr works.
+  if (prf_pos.empty() || app_ptr->children.empty() ||
+      app_ptr->children.rbegin()->first < prf_pos)
+    return {root, app_ptr->next_node()};
+
+  // Find the first child that is outside of prefix range.
+  const auto next_pos = lexicographic::increment(prf_pos);
+  const auto it = app_ptr->children.lower_bound(next_pos);
+
+  // If none found, return end iterator.
+  if (it == app_ptr->children.end()) {
+    return {root, nullptr};
+  }
+
+  const auto& ptr = it->second;
+  return ptr->is_end ? iterator{root, ptr} : iterator{root, ptr->first_key()};
 }
 
 iterator trie::insert(string_view key) {
@@ -230,41 +271,6 @@ string trie::to_json(bool include_ends) const {
 }
 
 void trie::assert_invariants() const noexcept { root->assert_invariants(); }
-
-iterator trie::begin() const noexcept {
-  return root->is_end ? iterator{root, root}
-                      : iterator{root, root->first_key()};
-}
-
-iterator trie::end() const noexcept { return {root, nullptr}; }
-
-iterator trie::begin(string_view prefix) const noexcept {
-  // Find the first key that matches the given prefix.
-  return find_prefix(prefix);
-}
-
-iterator trie::end(string_view prefix) const noexcept {
-  // Perform an approximate match.
-  auto [prf_pos, app_ptr] = root->approximate_match(prefix);
-
-  // If prefix is empty, app_ptr is a prefix match and
-  // none of its children work. If all children of app_ptr
-  // are less than prefix, nothing under app_ptr works.
-  if (prf_pos.empty() || app_ptr->children.empty() ||
-      app_ptr->children.rbegin()->first < prf_pos)
-    return {root, app_ptr->next_node()};
-
-  // Find the first child that is greater than prefix
-  const auto it = app_ptr->children.upper_bound(prf_pos);
-  assert(it != app_ptr->children.end());
-
-  const auto& ptr = it->second;
-  return ptr->is_end ? iterator{root, ptr} : iterator{root, ptr->first_key()};
-}
-
-ranges::subrange<iterator> trie::subrange(string_view prefix) const noexcept {
-  return {begin(prefix), end(prefix)};
-}
 
 trie& trie::operator+=(const trie& other) {
   if (this == &other) return *this;

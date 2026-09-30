@@ -140,7 +140,7 @@ const node* node::next_node() const noexcept {
   const auto* ptr = this;
   auto* par = parent;
   // Note that par->children cannot be empty since its a parent.
-  assert(!par->children.empty());
+  assert(!par || !par->children.empty());
   while (par && par->children.rbegin()->second.get() == ptr) {
     // Move up.
     ptr = par;

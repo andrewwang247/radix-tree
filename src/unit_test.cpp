@@ -33,10 +33,13 @@ int main() {
   println("--- EXECUTING UNIT TESTS ---");
   rt::unit_test::concepts();
   rt::unit_test::empty();
-  rt::unit_test::single();
-  rt::unit_test::find();
+  rt::unit_test::single_empty();
+  rt::unit_test::single_word();
+  rt::unit_test::find_key();
+  rt::unit_test::find_prefix();
   rt::unit_test::insert();
-  rt::unit_test::erase();
+  rt::unit_test::erase_key();
+  rt::unit_test::erase_prefix();
   rt::unit_test::forward_iterate();
   rt::unit_test::reverse_iterate();
   rt::unit_test::copy_move();
@@ -89,103 +92,135 @@ void unit_test::concepts() {
 }
 
 void unit_test::empty() {
-  trie tr;
+  const trie tr;
   tr.assert_invariants();
 
   assert(tr.empty());
   assert(tr.empty("hello"));
   assert(tr.size() == 0);
   assert(tr.size("world") == 0);
-
   assert(!tr.begin());
   assert(!tr.end());
-  assert(tr.begin() == tr.end());
+
   assert(!tr.contains(""));
-  assert(tr.find_prefix("") == tr.end());
-
-  tr.insert("");
-  tr.assert_invariants();
-
-  assert(!tr.empty());
-  assert(tr.empty("hello"));
-  assert(tr.size() == 1);
-  assert(tr.size("world") == 0);
-
-  assert(tr.begin());
-  assert(!tr.end());
-  assert(tr.begin()->empty());
-  assert(!tr.contains("test"));
-  assert(tr.find_prefix("test") == tr.end());
-  assert(tr.find("")->empty());
-  assert(tr.find_prefix("")->empty());
+  assert(tr.find("") == tr.end());
+  assert(tr.find_prefix("").empty());
 
   println(RESULT_TEMPLATE, "empty");
 }
 
-void unit_test::single() {
+void unit_test::single_empty() {
   trie tr;
-  tr.insert("single");
+  constexpr auto key = "";
+  tr.insert(key);
   tr.assert_invariants();
 
   assert(!tr.empty());
   assert(tr.empty("hello"));
-  assert(!tr.empty("sin"));
+  assert(tr.size() == 1);
+  assert(tr.size("world") == 0);
+  assert(tr.begin());
+  assert(!tr.end());
+  assert(tr.begin()->empty());
+
+  constexpr auto not_prefix = "test";
+  assert(!tr.contains(not_prefix));
+  assert(tr.find(not_prefix) == tr.end());
+  assert(tr.find_prefix(not_prefix).empty());
+
+  assert(tr.contains(key));
+  assert(*tr.find(key) == key);
+  assert_elements(tr.find_prefix(key), {key});
+
+  println(RESULT_TEMPLATE, "single empty");
+}
+
+void unit_test::single_word() {
+  trie tr;
+  constexpr auto key = "single";
+  tr.insert(key);
+  tr.assert_invariants();
+
   assert(tr.size() == 1);
   assert(tr.size("world") == 0);
   assert(tr.size("si") == 1);
-
-  assert(tr.begin());
+  assert(*tr.begin() == key);
   assert(!tr.end());
-  assert(*tr.begin() == "single");
-  assert(!tr.contains("test"));
-  assert(tr.find("test") == tr.end());
-  assert(tr.find_prefix("test") == tr.end());
+
+  constexpr auto not_prefix = "test";
+  assert(!tr.contains(not_prefix));
+  assert(tr.find(not_prefix) == tr.end());
+  assert(tr.find_prefix(not_prefix).empty());
+
   assert(!tr.contains(""));
   assert(tr.find("") == tr.end());
-  assert(*tr.find_prefix("") == "single");
-  assert(!tr.contains("sin"));
-  assert(tr.find("sin") == tr.end());
-  assert(*tr.find_prefix("sin") == "single");
-  assert(tr.contains("single"));
-  assert(*tr.find("single") == "single");
-  assert(*tr.find_prefix("single") == "single");
+  assert_elements(tr.find_prefix(""), {key});
 
-  println(RESULT_TEMPLATE, "singleton");
+  constexpr auto just_prefix = "sin";
+  assert(!tr.contains(just_prefix));
+  assert(tr.find(just_prefix) == tr.end());
+  assert_elements(tr.find_prefix(just_prefix), {key});
+
+  assert(tr.contains(key));
+  assert(*tr.find(key) == key);
+  assert_elements(tr.find_prefix(key), {key});
+
+  println(RESULT_TEMPLATE, "single word");
 }
 
-void unit_test::find() {
+void unit_test::find_key() {
   const auto tr = get_trie();
 
   assert(!tr.empty());
   assert(tr.size() == 13);
+
+  // Both prefix and key
+  constexpr auto prefix_and_key = "corn";
+  assert(tr.contains(prefix_and_key));
+  assert(*tr.find(prefix_and_key) == prefix_and_key);
+
+  constexpr auto just_prefix = "mate";
+  assert(!tr.contains(just_prefix));
+  assert(tr.find(just_prefix) == tr.end());
+
+  constexpr auto just_key = "contaminate";
+  assert(tr.contains(just_key));
+  assert(*tr.find(just_key) == just_key);
+
+  constexpr auto end_not_prefix = "testing";
+  assert(!tr.contains(end_not_prefix));
+  assert(tr.find(end_not_prefix) == tr.end());
+
+  constexpr auto mid_not_prefix = "conk";
+  assert(!tr.contains(mid_not_prefix));
+  assert(tr.find(mid_not_prefix) == tr.end());
+
+  println(RESULT_TEMPLATE, "find key");
+}
+
+void unit_test::find_prefix() {
+  const auto tr = get_trie();
+
   assert(tr.size("ma") == 7);
-  assert(!tr.contains("co"));
-  assert(tr.contains("mat"));
+  assert(tr.size("conk") == 0);
 
-  assert(tr.contains("corn"));
-  const auto exact_iter = tr.find("corn");
-  assert(exact_iter != tr.end());
-  assert(*exact_iter == "corn");
+  // Both prefix and key
+  constexpr auto prefix_and_key = "corn";
+  assert_elements(tr.find_prefix(prefix_and_key), {"corn", "corner"});
 
-  assert(!tr.contains("mate"));
-  const auto prf_iter = tr.find_prefix("mate");
-  assert(prf_iter != tr.end());
-  assert(*prf_iter == "material");
+  constexpr auto just_prefix = "mate";
+  assert_elements(tr.find_prefix(just_prefix), {"material", "maternal"});
 
-  assert(tr.contains("contaminate"));
-  const auto exact_prf_iter = tr.find_prefix("contaminate");
-  assert(exact_prf_iter != tr.end());
-  assert(*exact_prf_iter == "contaminate");
+  constexpr auto just_key = "contaminate";
+  assert_elements(tr.find_prefix(just_key), {"contaminate"});
 
-  assert(!tr.contains("testing"));
-  const auto missing_exact_iter = tr.find("testing");
-  assert(missing_exact_iter == tr.end());
+  constexpr auto end_not_prefix = "testing";
+  assert(tr.find_prefix(end_not_prefix).empty());
 
-  assert(!tr.contains("conk"));
-  const auto missing_prf_iter = tr.find("conk");
-  assert(missing_prf_iter == tr.end());
+  constexpr auto mid_not_prefix = "conk";
+  assert(tr.find_prefix(mid_not_prefix).empty());
 
-  println(RESULT_TEMPLATE, "find");
+  println(RESULT_TEMPLATE, "find prefix");
 }
 
 void unit_test::insert() {
@@ -212,11 +247,11 @@ void unit_test::insert() {
   assert(!tr.empty("ma"));
 
   assert(!tr.contains("regression"));
+  tr.insert("regression");
   tr.assert_invariants();
-  tr.insert("regression");  // ensure idempotence
-  tr.assert_invariants();
-
   assert(tr.contains("regression"));
+
+  // Ensure idempotence
   iter = tr.insert("regression");
   tr.assert_invariants();
 
@@ -229,19 +264,15 @@ void unit_test::insert() {
   println(RESULT_TEMPLATE, "insert");
 }
 
-void unit_test::erase() {
+void unit_test::erase_key() {
   auto tr = get_trie();
 
   // Erase something that does not exist.
-  tr.erase_prefix("random");
-  tr.assert_invariants();
   tr.erase("cplusplus");
   tr.assert_invariants();
   assert(tr.size() == 13);
 
   // Erase a leaf node.
-  tr.erase("maternal");  // ensure idempotence
-  tr.assert_invariants();
   tr.erase("maternal");
   tr.assert_invariants();
 
@@ -252,33 +283,41 @@ void unit_test::erase() {
   assert(tr.size("mat") == 4);
   assert(tr.empty("matern"));
 
-  // Erase non-degenerate internal node.
-  tr.erase("mat");  // ensure idempotence
+  // Ensure idempotence.
+  tr.erase("maternal");
   tr.assert_invariants();
+
+  // Erase non-degenerate internal node.
   tr.erase("mat");
   tr.assert_invariants();
 
   assert(!tr.contains("mat"));
-  auto iter = tr.find_prefix("mat");
-  assert(iter != tr.end());
-  assert(*iter == "material");
-  assert(tr.size("ma") == 5);
+  assert_elements(tr.find_prefix("mat"), {"material", "math", "matrix"});
+  assert(tr.size("mat") == 3);
   assert(!tr.empty("mat"));
+  assert(tr.size("ma") == 5);
 
   // Erase degenerate internal node.
-  tr.erase("corn");  // ensure idempotence
-  tr.assert_invariants();
   tr.erase("corn");
   tr.assert_invariants();
 
   assert(tr.contains("corner"));
-  iter = tr.find("corner");
+  const auto iter = tr.find("corner");
   assert(iter != tr.end());
   assert(*iter == "corner");
   assert(tr.size("co") == 5);
 
-  tr.erase_prefix("con");  // ensure idempotence
+  println(RESULT_TEMPLATE, "erase key");
+}
+
+void unit_test::erase_prefix() {
+  auto tr = get_trie();
+
+  // Erase something that does not exist.
+  tr.erase_prefix("random");
   tr.assert_invariants();
+  assert(tr.size() == 13);
+
   tr.erase_prefix("con");
   tr.assert_invariants();
 
@@ -286,7 +325,11 @@ void unit_test::erase() {
   assert(!tr.contains("contaminate"));
   assert(tr.find("contain") == tr.end());
   assert(tr.find("contaminate") == tr.end());
-  assert(tr.find_prefix("con") == tr.end());
+  assert(tr.find_prefix("con").empty());
+
+  // Ensure idempotence
+  tr.erase_prefix("con");
+  tr.assert_invariants();
 
   // Try clearing.
   tr.clear();
@@ -294,7 +337,7 @@ void unit_test::erase() {
   assert(tr.empty());
   assert(tr.size() == 0);
 
-  println(RESULT_TEMPLATE, "erase");
+  println(RESULT_TEMPLATE, "erase prefix");
 }
 
 void unit_test::forward_iterate() {
@@ -307,23 +350,18 @@ void unit_test::forward_iterate() {
   const auto* compute = ranges::find(SORTED_WORDS, "compute");
   const auto* corner = ranges::find(SORTED_WORDS, "corner");
   assert(ranges::equal(ranges::subrange{compute, std::next(corner)},
-                       tr.subrange("co")));
+                       tr.find_prefix("co")));
 
   const auto* mahjong = ranges::find(SORTED_WORDS, "mahjong");
   const auto* matrix = ranges::find(SORTED_WORDS, "matrix");
   assert(ranges::equal(ranges::subrange{mahjong, std::next(matrix)},
-                       tr.subrange("ma")));
+                       tr.find_prefix("ma")));
 
   // Singular word range.
-  const auto [ctm_begin, ctm_end] = tr.subrange("contaminate");
-  assert(ctm_begin != tr.end());
-  assert(*ctm_begin == "contaminate");
-  assert(ctm_end != tr.end());
-  assert(*ctm_end == "corn");
+  assert_elements(tr.find_prefix("contaminate"), {"contaminate"});
 
   // Non-existant range.
-  assert(tr.begin("cops") == tr.end());
-  assert(*tr.end("cops") == "corn");
+  assert(tr.find_prefix("cops").empty());
   assert(!tr.end());
 
   println(RESULT_TEMPLATE, "forward iterate");
@@ -340,12 +378,12 @@ void unit_test::reverse_iterate() {
   const auto corner = ranges::find(backwards, "corner");
   const auto compute = ranges::find(backwards, "compute");
   assert(ranges::equal(ranges::subrange{corner, std::next(compute)},
-                       tr.subrange("co") | views::reverse));
+                       tr.find_prefix("co") | views::reverse));
 
   const auto matrix = ranges::find(backwards, "matrix");
   const auto mahjong = ranges::find(backwards, "mahjong");
   assert(ranges::equal(ranges::subrange{matrix, std::next(mahjong)},
-                       tr.subrange("ma") | views::reverse));
+                       tr.find_prefix("ma") | views::reverse));
 
   println(RESULT_TEMPLATE, "reverse iterate");
 }
@@ -430,12 +468,12 @@ void unit_test::representation() {
                            R"({},"nal":{}},"h":{},"rix":{}}}})";
   assert(tr.to_json() == TR_JSON);
 
-  const auto com_prf = tr.find_prefix("com");
-  assert(*com_prf == "compute");
+  const auto com_rng = tr.find_prefix("com");
+  assert_elements(com_rng, {"compute", "computer"});
   constexpr auto COM_JSON = R"({"end":true,"children":)"
                             R"({"r":{"end":true,"children":)"
                             "{}}}}";
-  assert(com_prf.to_json(true) == COM_JSON);
+  assert(com_rng.begin().to_json(true) == COM_JSON);
 
   const auto mat_iter = tr.find("mat");
   assert(*mat_iter == "mat");

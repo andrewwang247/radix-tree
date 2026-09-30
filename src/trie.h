@@ -18,11 +18,13 @@ Copyright 2026. Andrew Wang.
 
 namespace rt {
 
+template <typename T>
+concept sv_like = std::convertible_to<T, std::string_view>;
+
 // NOLINTBEGIN
 template <typename T>
 concept sv_range =
-    std::ranges::input_range<T> &&
-    std::convertible_to<std::ranges::range_reference_t<T>, std::string_view>;
+    std::ranges::input_range<T> && sv_like<std::ranges::range_reference_t<T>>;
 // NOLINTEND
 
 /**
@@ -104,29 +106,7 @@ class trie {
    */
   iterator end() const noexcept;
 
-  /**
-   * @brief Prefix ranged begin iterator.
-   * @param prefix The prefix to obtain a begin iterator for.
-   * @return Iterator to the start of the range with given prefix.
-   */
-  iterator begin(std::string_view prefix) const noexcept;
-
-  /**
-   * @brief Prefix ranged end iterator.
-   * @param prefix The prefix to obtain an end iterator fpr.
-   * @return Iterator to one past the end of the range with given prefix.
-   */
-  iterator end(std::string_view prefix) const noexcept;
-
-  /**
-   * @brief Range from begin(prefix) to end(prefix);
-   * @param prefix The prefix to range over.
-   * @return Subrange over all keys with prefix.
-   */
-  std::ranges::subrange<iterator> subrange(
-      std::string_view prefix) const noexcept;
-
-  // --- SEARCHING ---
+  // --- KEY SEARCHING ---
 
   /**
    * @brief Checks for key in trie.
@@ -142,13 +122,43 @@ class trie {
    */
   iterator find(std::string_view key) const noexcept;
 
-  /**
-   * @brief Searches for prefix in trie.
-   * @param prefix The prefix used to search the trie.
-   * @return Iterator to first key matching prefix. Otherwise, null iterator.
-   */
-  iterator find_prefix(std::string_view prefix) const noexcept;
+  // --- PREFIX SEARCHING ---
 
+  /**
+   * @brief Get range of keys with a given prefix.
+   * @param prefix The prefix to range over.
+   * @return Subrange over all keys with prefix.
+   */
+  std::ranges::subrange<iterator> find_prefix(
+      std::string_view prefix) const noexcept;
+
+ private:
+  // Note that the find_prefix begin and end iterators are not necessarily well
+  // behaved as a range. For example, if a word shares a common prefix with some
+  // keys but is not itself a prefix. Begin does not find any range for which
+  // word is a prefix and returns a sentinel. End points to the start of the
+  // prefix range after word. This creates a begin > end scenario that we do not
+  // wish to expose as part of the public API.
+
+  /**
+   * @brief Prefix ranged begin iterator.
+   * @param prefix The prefix to obtain a begin iterator for.
+   * @warning Do NOT iterate over find_prefix begin and end. Use subrange
+   * function.
+   * @return Iterator to the start of the range with given prefix.
+   */
+  iterator find_prefix_begin(std::string_view prefix) const noexcept;
+
+  /**
+   * @brief Prefix ranged end iterator.
+   * @param prefix The prefix to obtain an end iterator for.
+   * @warning Do NOT iterate over find_prefix begin and end. Use subrange
+   * function.
+   * @return Iterator to one past the end of the range with given prefix.
+   */
+  iterator find_prefix_end(std::string_view prefix) const noexcept;
+
+ public:
   // --- INSERTION ---
 
   /**
