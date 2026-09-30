@@ -125,6 +125,13 @@ class trie {
   // --- PREFIX SEARCHING ---
 
   /**
+   * @brief Checks for any key containing prefix in trie.
+   * @param prefix The prefix to check in trie.
+   * @return Whether any key with prefix is contained in trie.
+   */
+  bool contains_prefix(std::string_view prefix) const noexcept;
+
+  /**
    * @brief Get range of keys with a given prefix.
    * @param prefix The prefix to range over.
    * @return Subrange over all keys with prefix.

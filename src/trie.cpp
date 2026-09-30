@@ -66,9 +66,6 @@ iterator trie::begin() const noexcept {
 iterator trie::end() const noexcept { return {root, nullptr}; }
 
 bool trie::contains(string_view key) const noexcept {
-  if (key.empty()) {
-    return root->is_end;
-  }
   return root->exact_match(key);
 }
 
@@ -78,6 +75,10 @@ iterator trie::find(string_view key) const noexcept {
     return root->is_end ? iterator{root, root} : iterator{root, nullptr};
   }
   return {root, root->exact_match(key)};
+}
+
+bool trie::contains_prefix(string_view prefix) const noexcept {
+  return root->prefix_match(prefix).ptr;
 }
 
 ranges::subrange<iterator> trie::find_prefix(

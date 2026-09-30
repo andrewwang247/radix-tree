@@ -29,7 +29,7 @@ Since an empty string is a prefix for *all* strings, default behavior yields the
 
 ### Searching
 
-The `find` function returns an iterator to the key if it's contained in the tree. The `find_prefix` function returns the range of keys that matches a prefix. These functions do *not* modify the container. If you're only interested in verifying containment, use `contains`.
+The `find` function returns an iterator to the key if it's contained in the tree. The `find_prefix` function returns the range of keys that matches a prefix. These functions do *not* modify the container. If you're only interested in verifying containment, use `contains` or `contains_prefix`.
 
 ### Insertion
 

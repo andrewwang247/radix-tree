@@ -201,23 +201,30 @@ void unit_test::find_key() {
 void unit_test::find_prefix() {
   const auto tr = get_trie();
 
-  assert(tr.size("ma") == 7);
-  assert(tr.size("conk") == 0);
-
   // Both prefix and key
   constexpr auto prefix_and_key = "corn";
+  assert(tr.contains_prefix(prefix_and_key));
+  assert(tr.size(prefix_and_key) == 2);
   assert_elements(tr.find_prefix(prefix_and_key), {"corn", "corner"});
 
   constexpr auto just_prefix = "mate";
+  assert(tr.contains_prefix(just_prefix));
+  assert(tr.size(just_prefix) == 2);
   assert_elements(tr.find_prefix(just_prefix), {"material", "maternal"});
 
   constexpr auto just_key = "contaminate";
+  assert(tr.contains_prefix(just_key));
+  assert(tr.size(just_key) == 1);
   assert_elements(tr.find_prefix(just_key), {"contaminate"});
 
   constexpr auto end_not_prefix = "testing";
+  assert(!tr.contains_prefix(end_not_prefix));
+  assert(tr.size(end_not_prefix) == 0);
   assert(tr.find_prefix(end_not_prefix).empty());
 
   constexpr auto mid_not_prefix = "conk";
+  assert(!tr.contains_prefix(mid_not_prefix));
+  assert(tr.size(mid_not_prefix) == 0);
   assert(tr.find_prefix(mid_not_prefix).empty());
 
   println(RESULT_TEMPLATE, "find prefix");
