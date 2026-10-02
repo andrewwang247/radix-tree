@@ -71,18 +71,11 @@ class perf {
       std::span<const solution_t> solutions) const = 0;
 
   /**
-   * @brief Iterate forward over all words.
+   * @brief Bidirectional iterate over all words.
    * @param sz The expected number of entries.
    * @return The elapsed time.
    */
-  timeunit_t forward_iterate(std::size_t sz) const;
-
-  /**
-   * @brief Iterate backwards over all words.
-   * @param sz The expected number of entries.
-   * @return The elapsed time.
-   */
-  timeunit_t reverse_iterate(std::size_t sz) const;
+  timeunit_t bi_dir_iterate(std::size_t sz) const;
 
   /**
    * @brief Erase all words with given prefixes.
@@ -220,28 +213,19 @@ timeunit_t perf<Container>::insert_words(
 }
 
 template <std::ranges::bidirectional_range Container>
-timeunit_t perf<Container>::forward_iterate(std::size_t sz) const {
+timeunit_t perf<Container>::bi_dir_iterate(std::size_t sz) const {
   const auto t0 = perf_clock::now();
   // Avoid ranges::distance to prevent size check optimization.
   // We actually want to iterate over the entire container.
-  const auto counter = std::distance(words.begin(), words.end());
-  const auto t1 = perf_clock::now();
-
-  if (std::cmp_not_equal(counter, sz)) {
-    throw perf_error("Expected {} elements but iterated over {}", sz, counter);
-  }
-  return t1 - t0;
-}
-
-template <std::ranges::bidirectional_range Container>
-timeunit_t perf<Container>::reverse_iterate(std::size_t sz) const {
-  const auto t0 = perf_clock::now();
-  const auto counter = std::distance(std::make_reverse_iterator(words.end()),
+  const auto forward = std::distance(words.begin(), words.end());
+  const auto reverse = std::distance(std::make_reverse_iterator(words.end()),
                                      std::make_reverse_iterator(words.begin()));
   const auto t1 = perf_clock::now();
 
-  if (std::cmp_not_equal(counter, sz)) {
-    throw perf_error("Expected {} elements but iterated over {}", sz, counter);
+  if (std::cmp_not_equal(forward, sz) || std::cmp_not_equal(reverse, sz)) {
+    throw perf_error(
+        "Expected {} elements but iterated over {} forwards and {} in reverse",
+        sz, forward, reverse);
   }
   return t1 - t0;
 }

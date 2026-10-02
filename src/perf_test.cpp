@@ -68,13 +68,9 @@ int main() {
   show_comparison(set_bench.contains_prefix(solutions),
                   trie_bench.contains_prefix(solutions));
 
-  print(ANNOUNCE_TEMPLATE, "Forward iterate:");
-  show_comparison(set_bench.forward_iterate(NUM_WORDS),
-                  trie_bench.forward_iterate(NUM_WORDS));
-
-  print(ANNOUNCE_TEMPLATE, "Reverse iterate:");
-  show_comparison(set_bench.reverse_iterate(NUM_WORDS),
-                  trie_bench.reverse_iterate(NUM_WORDS));
+  print(ANNOUNCE_TEMPLATE, "Bi-dir iterate:");
+  show_comparison(set_bench.bi_dir_iterate(NUM_WORDS),
+                  trie_bench.bi_dir_iterate(NUM_WORDS));
 
   print(ANNOUNCE_TEMPLATE, "Erase prefix:");
   show_comparison(set_bench.erase_prefix(solutions),
@@ -87,18 +83,9 @@ int main() {
   const auto& word_set = set_bench.peek();
   const auto& word_trie = trie_bench.peek();
 
-  if (ranges::equal(word_set, word_trie)) {
-    println("Forward ranges match");
-  } else {
-    println("Forward ranges do not match");
-  }
-
-  if (ranges::equal(ranges::reverse_view(word_set),
-                    ranges::reverse_view(word_trie))) {
-    println("Reverse ranges match");
-  } else {
-    println("Reverse ranges do not match");
-  }
+  println("Forward ranges match: {}", ranges::equal(word_set, word_trie));
+  println("Reverse ranges match: {}",
+          ranges::equal(word_set | views::reverse, word_trie | views::reverse));
 
   println("--- COMPLETED FINAL VERIFICATION ---");
 }
