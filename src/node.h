@@ -124,7 +124,8 @@ class node {
    * @return An iterator to the position which matches other. This is the end
    * iterator if other is not found.
    */
-  auto find_child(const node* other) const noexcept;
+  decltype(children)::const_iterator find_child(
+      const node* other) const noexcept;
 
   /**
    * @brief Convert the tree structure to a JSON object.
@@ -138,15 +139,19 @@ class node {
    * structural invariants.
    */
   void assert_invariants() const noexcept;
+
+ private:
+  /**
+   * @brief Helper function to get first child node.
+   * @return The first value of the child map.
+   */
+  const node* first_child_node() const noexcept;
+
+  /**
+   * @brief Helper function to get last child node.
+   * @return The last value of the child map.
+   */
+  const node* last_child_node() const noexcept;
 };
-
-// AUTO RETURN IMPLEMENTATIONS
-
-inline auto node::find_child(const node* other) const noexcept {
-  return std::ranges::find(children, other, [](const auto& p) static {
-    assert(p.second);
-    return p.second.get();
-  });
-}
 
 }  // namespace rt

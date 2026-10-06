@@ -137,13 +137,7 @@ class trie {
    * @return Range over all keys with prefix.
    */
   std::ranges::bidirectional_range auto find_prefix(
-      std::string_view prefix) const noexcept {
-    const auto begin_rng = find_prefix_begin(prefix);
-    const auto sentinel = end();
-    return begin_rng == sentinel
-               ? std::ranges::subrange{sentinel, sentinel}
-               : std::ranges::subrange{begin_rng, find_prefix_end(prefix)};
-  }
+      std::string_view prefix) const noexcept;
 
  private:
   // Note that the find_prefix begin and end iterators are not necessarily well
@@ -283,7 +277,7 @@ trie operator-(trie lhs, const trie& rhs);
  */
 std::partial_ordering operator<=>(const trie& lhs, const trie& rhs) noexcept;
 
-// TEMPLATED IMPLEMENTATIONS
+// TEMPLATED AND AUTO RETURN IMPLEMENTATIONS
 
 trie::trie(sv_range auto&& rng) : trie{} { insert_range(rng); }
 
@@ -297,6 +291,15 @@ void trie::erase_range(sv_range auto&& rng) {
   for (auto&& key : rng) {
     erase(key);
   }
+}
+
+inline std::ranges::bidirectional_range auto trie::find_prefix(
+    std::string_view prefix) const noexcept {
+  const auto begin_rng = find_prefix_begin(prefix);
+  const auto sentinel = end();
+  return begin_rng == sentinel
+             ? std::ranges::subrange{sentinel, sentinel}
+             : std::ranges::subrange{begin_rng, find_prefix_end(prefix)};
 }
 
 }  // namespace rt

@@ -194,8 +194,8 @@ timeunit_t perf<Container>::erase_impl(std::span<const solution_t> solutions,
   std::ranges::for_each(solutions, func, &solution_t::prefix);
   const auto t1 = perf_clock::now();
 
-  const auto expected = original_size - total_erased;
-  if (words.size() != expected) {
+  if (const auto expected = original_size - total_erased;
+      words.size() != expected) {
     throw perf_error("Expected {} words after erasing but was {}", expected,
                      words.size());
   }

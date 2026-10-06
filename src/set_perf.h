@@ -26,7 +26,8 @@ class set_perf final : public perf<std::set<std::string, std::less<>>> {
    * @param prefix The prefix to locate.
    * @return The range of words with prefix.
    */
-  std::ranges::input_range auto prefix_range_for(std::string_view prefix) const;
+  std::ranges::bidirectional_range auto prefix_range_for(
+      std::string_view prefix) const;
 
  public:
   timeunit_t count_prefix(std::span<const solution_t> solutions) const override;

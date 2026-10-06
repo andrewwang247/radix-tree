@@ -8,6 +8,7 @@ Copyright 2026. Andrew Wang.
 #include <span>
 
 #include "benchmark.h"
+#include "trie.h"
 
 namespace rt::perf_test {
 

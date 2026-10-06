@@ -117,8 +117,8 @@ vector<perf_test::solution_t> perf_test::read_solutions(const char* name,
   string line;
   getline(fin, line);
 
-  static constexpr auto EXPECTED_HEADER = "prefix,begin,end,count";
-  if (line != EXPECTED_HEADER) {
+  if (constexpr auto EXPECTED_HEADER = "prefix,begin,end,count";
+      line != EXPECTED_HEADER) {
     throw perf_error("Expected header to define columns {} but was {}",
                      EXPECTED_HEADER, line);
   }
@@ -130,9 +130,9 @@ vector<perf_test::solution_t> perf_test::read_solutions(const char* name,
                  return string_view{rng.begin(), rng.end()};
                });
 
-    const auto splits = ranges::distance(row);
-    if (splits != 4)
+    if (const auto splits = ranges::distance(row); splits != 4) {
       throw perf_error("Expected row {} of size 4 but was {}", line, splits);
+    }
 
     auto it = row.begin();
     const auto prefix = *it++;

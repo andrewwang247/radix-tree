@@ -105,26 +105,39 @@ node* node::exact_match(string_view word) noexcept {
   return word_pos.empty() && app_ptr->is_end ? app_ptr : nullptr;
 }
 
+const node* node::first_child_node() const noexcept {
+  assert(!children.empty());
+  const auto* value = children.begin()->second.get();
+  assert(value);
+  return value;
+}
+
+const node* node::last_child_node() const noexcept {
+  assert(!children.empty());
+  const auto* value = children.rbegin()->second.get();
+  assert(value);
+  return value;
+}
+
+// --- END CHILD HELPER FUNCTIONS ---
+
 const node* node::first_key() const noexcept {
   if (children.empty()) return nullptr;
-  const auto* rt = children.begin()->second.get();
+  const auto* rt = first_child_node();
   // Keep moving down the tree along the left side until is_end.
   while (!rt->is_end) {
     // If rt is not an end, its children should not be empty.
-    assert(!rt->children.empty());
-    rt = rt->children.begin()->second.get();
-    assert(rt);
+    rt = rt->first_child_node();
   }
   return rt;
 }
 
 const node* node::last_key() const noexcept {
   if (children.empty()) return nullptr;
-  const auto* rt = children.rbegin()->second.get();
+  const auto* rt = last_child_node();
   // Keep moving down the tree along the right side until no children.
   while (!rt->children.empty()) {
-    rt = rt->children.rbegin()->second.get();
-    assert(rt);
+    rt = rt->last_child_node();
   }
   assert(rt->is_end);
   return rt;
@@ -136,7 +149,7 @@ const node* node::next_node() const noexcept {
   auto* par = parent;
   // Note that par->children cannot be empty since its a parent.
   assert(!par || !par->children.empty());
-  while (par && par->children.rbegin()->second.get() == ptr) {
+  while (par && par->last_child_node() == ptr) {
     // Move up.
     ptr = par;
     par = par->parent;
@@ -170,7 +183,7 @@ const node* node::prev_node() const noexcept {
   auto* par = parent;
   // Note that par->children cannot be empty since its a parent.
   assert(!par->children.empty());
-  while (par && !par->is_end && par->children.begin()->second.get() == ptr) {
+  while (par && !par->is_end && par->first_child_node() == ptr) {
     // Move up.
     ptr = par;
     par = par->parent;
@@ -184,7 +197,7 @@ const node* node::prev_node() const noexcept {
   // 2. par is an end node and forms a word.
   // Case (1) takes precedence.
   // Any of par's children are more immediately prev.
-  if (par->children.begin()->second.get() != ptr) {
+  if (par->first_child_node() != ptr) {
     auto child_iter = par->find_child(ptr);
     assert(child_iter != par->children.end());
     --child_iter;
@@ -228,6 +241,14 @@ string node::underlying_string() const {
     out += part;
   }
   return out;
+}
+
+decltype(node::children)::const_iterator node::find_child(
+    const node* other) const noexcept {
+  return ranges::find(children, other, [](const auto& p) static {
+    assert(p.second);
+    return p.second.get();
+  });
 }
 
 string node::to_json(bool include_ends) const {

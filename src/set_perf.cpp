@@ -20,7 +20,8 @@ namespace ranges = std::ranges;
 
 namespace rt::perf_test {
 
-ranges::input_range auto set_perf::prefix_range_for(string_view prefix) const {
+ranges::bidirectional_range auto set_perf::prefix_range_for(
+    string_view prefix) const {
   // Find the first item that's a prefix
   const auto begin = words.lower_bound(prefix);
   // Find where it stops being a prefix.

@@ -19,7 +19,9 @@ Copyright 2026. Andrew Wang.
 
 #include "trie.h"
 
-namespace rt::perf_test {
+namespace rt {
+
+namespace perf_test {
 
 using perf_clock = std::chrono::steady_clock;
 using timeunit_t = perf_clock::time_point::duration;
@@ -38,6 +40,15 @@ class perf_error : public std::runtime_error {
   explicit perf_error(std::format_string<Args...> fmt, Args&&... args)
       : std::runtime_error(std::format(fmt, std::forward<Args>(args)...)) {}
 };
+
+/**
+ * @brief Parse and convert a string to a different type.
+ * @param str The string to convert from.
+ * @tparam T the type to convert to.
+ * @return The value parsed from str.
+ */
+template <typename T>
+T from_str(std::string_view str);
 
 /**
  * @brief Solution to finding and counting a prefix.
@@ -70,14 +81,12 @@ std::vector<solution_t> read_solutions(const char* name, std::size_t sz);
  */
 void show_comparison(timeunit_t set_time, timeunit_t trie_time);
 
-/**
- * @brief Parse and convert a string to a different type.
- * @param str The string to convert from.
- * @tparam T the type to convert to.
- * @return The value parsed from str.
- */
+}  // namespace perf_test
+
+// TEMPLATED IMPLEMENTATIONS
+
 template <typename T>
-T from_str(std::string_view str) {
+T perf_test::from_str(std::string_view str) {
   T result{};
   const auto [ptr, ec] = std::from_chars(str.begin(), str.end(), result);
   if (ec != std::errc{}) {
@@ -93,4 +102,4 @@ T from_str(std::string_view str) {
   return result;
 }
 
-}  // namespace rt::perf_test
+}  // namespace rt
