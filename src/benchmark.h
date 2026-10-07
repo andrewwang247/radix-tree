@@ -122,7 +122,7 @@ class perf {
                         sv_func auto&& func) const;
 };
 
-// NON VIRTUAL TEMPLATED IMPLEMENTATIONS
+// TEMPLATED IMPLEMENTATIONS
 
 template <std::ranges::bidirectional_range Container>
 const Container& perf<Container>::peek() const noexcept {

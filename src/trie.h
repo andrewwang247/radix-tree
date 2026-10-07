@@ -136,7 +136,7 @@ class trie {
    * @param prefix The prefix to range over.
    * @return Range over all keys with prefix.
    */
-  std::ranges::bidirectional_range auto find_prefix(
+  inline std::ranges::bidirectional_range auto find_prefix(
       std::string_view prefix) const noexcept;
 
  private:
@@ -293,7 +293,7 @@ void trie::erase_range(sv_range auto&& rng) {
   }
 }
 
-inline std::ranges::bidirectional_range auto trie::find_prefix(
+std::ranges::bidirectional_range auto trie::find_prefix(
     std::string_view prefix) const noexcept {
   const auto begin_rng = find_prefix_begin(prefix);
   const auto sentinel = end();

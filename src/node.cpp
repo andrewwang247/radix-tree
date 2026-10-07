@@ -49,21 +49,20 @@ unique_ptr<node> node::clone() const {
 bool node::deep_equals(const node* lhs, const node* rhs) noexcept {
   assert(lhs);
   assert(rhs);
-  const auto get_raw = [](const auto& unq_ptr) static {
+  const auto get_raw = [](const auto& unq_ptr) {
     assert(unq_ptr);
     return unq_ptr.get();
   };
-  return lhs->is_end == rhs->is_end &&  // cppcheck-suppress duplicateBreak
+  return lhs->is_end == rhs->is_end &&
          ranges::equal(lhs->children.keys(), rhs->children.keys()) &&
          ranges::equal(lhs->children.values(), rhs->children.values(),
                        deep_equals, get_raw, get_raw);
 }
 
 size_t node::key_count() const noexcept {
-  return ranges::fold_left(children.values(), is_end ? 1UZ : 0UZ,
-                           [](auto counter, const auto& ptr) static {
-                             return counter + ptr->key_count();
-                           });
+  return ranges::fold_left(
+      children.values(), is_end ? 1UZ : 0UZ,
+      [](auto counter, const auto& ptr) { return counter + ptr->key_count(); });
 }
 
 node::positional node::approximate_match(string_view key) noexcept {
@@ -241,14 +240,6 @@ string node::underlying_string() const {
     out += part;
   }
   return out;
-}
-
-decltype(node::children)::const_iterator node::find_child(
-    const node* other) const noexcept {
-  return ranges::find(children, other, [](const auto& p) static {
-    assert(p.second);
-    return p.second.get();
-  });
 }
 
 string node::to_json(bool include_ends) const {

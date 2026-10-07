@@ -11,8 +11,7 @@ printf "Running clang-format...\n"
 clang-format -i -style=file $sources
 
 printf "Running cppcheck...\n"
-cppcheck --language=c++ --std=c++23 \
-    --inline-suppr --quiet \
+cppcheck --language=c++ --std=c++23 --quiet \
     --check-level=exhaustive \
     --enable=all \
     --inconclusive \
