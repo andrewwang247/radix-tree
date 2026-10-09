@@ -36,7 +36,7 @@ trie::trie() : root{make_unique<node>(false, nullptr)} {}
 
 trie::trie(const trie& other) : root{other.root->clone()} {}
 
-trie& trie::operator=(trie other) {
+trie& trie::operator=(trie other) noexcept {
   std::swap(root, other.root);
   return *this;
 }

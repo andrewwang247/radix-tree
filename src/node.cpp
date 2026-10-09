@@ -10,6 +10,7 @@ Copyright 2026. Andrew Wang.
 #include <cassert>
 #include <cstddef>
 #include <format>
+#include <functional>
 #include <limits>
 #include <memory>
 #include <ranges>
@@ -49,10 +50,7 @@ unique_ptr<node> node::clone() const {
 bool node::deep_equals(const node* lhs, const node* rhs) noexcept {
   assert(lhs);
   assert(rhs);
-  const auto get_raw = [](const auto& unq_ptr) {
-    assert(unq_ptr);
-    return unq_ptr.get();
-  };
+  const auto get_raw = &unique_ptr<node>::get;
   return lhs->is_end == rhs->is_end &&
          ranges::equal(lhs->children.keys(), rhs->children.keys()) &&
          ranges::equal(lhs->children.values(), rhs->children.values(),
@@ -60,9 +58,9 @@ bool node::deep_equals(const node* lhs, const node* rhs) noexcept {
 }
 
 size_t node::key_count() const noexcept {
-  return ranges::fold_left(
-      children.values(), is_end ? 1UZ : 0UZ,
-      [](auto counter, const auto& ptr) { return counter + ptr->key_count(); });
+  const auto recursive_count =
+      children.values() | views::transform(&node::key_count);
+  return ranges::fold_left(recursive_count, is_end ? 1UZ : 0UZ, std::plus<>{});
 }
 
 node::positional node::approximate_match(string_view key) noexcept {

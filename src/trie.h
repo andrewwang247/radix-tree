@@ -52,7 +52,7 @@ class trie {
    * @brief Assignment for both copy and move.
    * @param other The trie to assign to this.
    */
-  trie& operator=(trie other);
+  trie& operator=(trie other) noexcept;
 
   /**
    * @brief Move constructor.
